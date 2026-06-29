@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوابة العملاء — مكتب الدراسات المعمارية</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cairo:wght@300;400;500;600;700&display=swap');
+:root{--ink:#1a1714;--stone:#2e2b27;--warm:#f7f3ed;--cream:#efe9df;--line:#d5cdc1;--gold:#b8923a;--gold-l:#d4aa5a;--rust:#8b4a2b;--sage:#5a6b52;--text:#3d3830;--muted:#7a7268;--white:#ffffff;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+body{font-family:'Cairo',sans-serif;background:var(--warm);color:var(--text);}
+.hero{min-height:100vh;background:var(--ink);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 50%,rgba(184,146,58,.12),transparent 60%),radial-gradient(ellipse 60% 80% at 80% 20%,rgba(139,74,43,.08),transparent 55%);pointer-events:none;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:28px 60px;position:relative;z-index:10;border-bottom:1px solid rgba(184,146,58,.2);}
+.nav-brand{display:flex;align-items:center;gap:14px;}
+.nav-logo{width:46px;height:46px;border:1.5px solid var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;}
+.nav-logo::before{content:'';position:absolute;inset:3px;border:1px solid rgba(184,146,58,.4);border-radius:2px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);letter-spacing:1px;}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;}
+.nav-links{display:flex;gap:32px;}
+.nav-links a{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:500;transition:color .25s;}
+.nav-links a:hover{color:var(--gold-l);}
+.nav-cta{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:9px 24px;border-radius:4px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s;}
+.nav-cta:hover{background:var(--gold);color:var(--ink);}
+.hero-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 60px 60px;text-align:center;position:relative;z-index:5;}
+.hero-eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+.hero-eyebrow span{font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:600;}
+.el{width:48px;height:1px;background:var(--gold);opacity:.5;}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(42px,7vw,88px);color:var(--white);line-height:1.05;margin-bottom:28px;font-weight:700;}
+.hero-title .accent{color:var(--gold-l);font-style:italic;}
+.hero-subtitle{font-size:16px;color:rgba(255,255,255,.55);max-width:520px;line-height:1.8;margin-bottom:52px;font-weight:300;}
+.hero-cta-group{display:flex;gap:14px;align-items:center;margin-bottom:80px;}
+.btn-primary{background:var(--gold);color:var(--ink);padding:15px 40px;border-radius:4px;border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-block;}
+.btn-primary:hover{background:var(--gold-l);transform:translateY(-2px);}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);padding:14px 32px;border-radius:4px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-block;}
+.btn-ghost:hover{border-color:rgba(255,255,255,.6);color:var(--white);}
+.hero-stats{display:flex;gap:60px;align-items:center;padding-top:32px;border-top:1px solid rgba(184,146,58,.2);width:100%;max-width:600px;}
+.hsn{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);font-weight:700;}
+.hsl{font-size:12px;color:rgba(255,255,255,.45);letter-spacing:1px;margin-top:2px;}
+.sstrip{background:var(--stone);border-top:1px solid rgba(184,146,58,.2);}
+.si{display:grid;grid-template-columns:repeat(4,1fr);max-width:1200px;margin:0 auto;}
+.stab{padding:32px 28px;border-left:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .25s;display:flex;align-items:flex-start;gap:16px;}
+.stab:last-child{border-left:none;}
+.stab:hover{background:rgba(184,146,58,.07);}
+.sico{width:44px;height:44px;background:rgba(184,146,58,.12);border:1px solid rgba(184,146,58,.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stt{font-size:13px;font-weight:700;color:var(--white);margin-bottom:5px;}
+.std{font-size:11px;color:rgba(255,255,255,.4);line-height:1.6;}
+.hw{background:var(--cream);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.hi{max-width:1200px;margin:0 auto;padding:100px 60px;}
+.sl{font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.sl::after{content:'';flex:1;height:1px;background:var(--line);max-width:60px;}
+.stitle{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,46px);color:var(--ink);line-height:1.15;margin-bottom:20px;}
+.hg{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:60px;position:relative;}
+.hg::before{content:'';position:absolute;top:38px;right:12.5%;left:12.5%;height:1px;background:var(--line);z-index:0;}
+.hstep{text-align:center;padding:0 20px;position:relative;z-index:1;}
+.sc{width:76px;height:76px;border-radius:50%;background:var(--white);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:26px;box-shadow:0 0 0 8px var(--cream);}
+.snum{position:absolute;top:-6px;right:calc(50% - 48px);background:var(--gold);color:var(--ink);width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.fw{background:var(--white);}
+.fi{max-width:1100px;margin:0 auto;padding:100px 60px;display:grid;grid-template-columns:1fr 1.6fr;gap:80px;align-items:start;}
+.fintro{position:sticky;top:40px;}
+.cchips{display:flex;flex-direction:column;gap:14px;}
+.cchip{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--warm);border-radius:var(--r);border:1px solid var(--line);}
+#requestForm{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:40px;}
+.fpr{display:flex;gap:0;margin-bottom:36px;border-bottom:2px solid var(--line);padding-bottom:20px;}
+.fps{flex:1;text-align:center;font-size:11px;color:var(--muted);font-weight:600;position:relative;cursor:pointer;padding-bottom:14px;}
+.fps::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:transparent;transition:background .3s;}
+.fps.active{color:var(--gold);}.fps.active::after{background:var(--gold);}
+.fps.done{color:var(--sage);}.fps.done::after{background:var(--sage);}
+.fpd{width:28px;height:28px;border-radius:50%;background:var(--line);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 8px;transition:all .3s;}
+.fps.active .fpd{background:var(--gold);color:var(--ink);}
+.fps.done .fpd{background:var(--sage);color:var(--white);}
+.fstep{display:none;}.fstep.active{display:block;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.fgs{grid-template-columns:1fr;}
+.fgt{grid-template-columns:1fr 1fr 1fr;}
+.fd{display:flex;flex-direction:column;gap:6px;}
+.fd label{font-size:11px;font-weight:700;color:var(--stone);letter-spacing:.4px;text-transform:uppercase;}
+.fd input,.fd select,.fd textarea{background:var(--white);border:1.5px solid var(--line);border-radius:8px;padding:11px 14px;color:var(--ink);font-family:'Cairo',sans-serif;font-size:13px;transition:border-color .2s,box-shadow .2s;width:100%;}
+.fd input:focus,.fd select:focus,.fd textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,146,58,.1);}
+.fd textarea{resize:vertical;min-height:90px;}
+.fd.req label::after{content:' *';color:var(--rust);}
+.svcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.svc{border:2px solid var(--line);border-radius:10px;padding:18px 16px;cursor:pointer;transition:all .2s;background:var(--white);position:relative;}
+.svc:hover{border-color:var(--gold);}
+.svc.sel{border-color:var(--gold);background:rgba(184,146,58,.06);}
+.svc.sel::before{content:'✓';position:absolute;top:-10px;left:-10px;width:24px;height:24px;background:var(--gold);color:var(--ink);border-radius:50%;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.svc-ico{font-size:26px;margin-bottom:10px;}
+.svc-t{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+.svc-d{font-size:11px;color:var(--muted);line-height:1.6;}
+.svc-p{font-size:11px;color:var(--gold);font-weight:700;margin-top:8px;}
+.mp{border:1.5px solid var(--line);border-radius:8px;overflow:hidden;height:220px;background:var(--cream);position:relative;margin-bottom:12px;}
+.mo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(239,233,223,.85);flex-direction:column;gap:10px;cursor:pointer;}
+.uz{border:2px dashed var(--line);border-radius:8px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--white);position:relative;}
+.uz:hover{border-color:var(--gold);}
+.uz input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.ul{display:flex;flex-direction:column;gap:6px;margin-top:14px;}
+.ui{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--warm);border-radius:6px;font-size:12px;}
+.fn{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--line);}
+.btn-back{background:none;border:1.5px solid var(--line);color:var(--muted);padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-back:hover{border-color:var(--stone);color:var(--stone);}
+.btn-next{background:var(--gold);color:var(--ink);border:none;padding:12px 32px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;}
+.btn-next:hover{background:var(--gold-l);transform:translateY(-1px);}
+.btn-submit{background:var(--ink);color:var(--white);border:none;padding:14px 36px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;}
+.btn-submit:hover{background:var(--stone);transform:translateY(-1px);}
+.success-state{text-align:center;padding:40px 20px;display:none;}
+.sico2{width:80px;height:80px;background:rgba(90,107,82,.1);border:2px solid var(--sage);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px;}
+.tb{background:var(--warm);border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin:0 auto 28px;max-width:340px;text-align:center;}
+.tl{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.tn{font-family:'Playfair Display',serif;font-size:32px;color:var(--gold);font-weight:700;letter-spacing:4px;}
+.cbox{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px;}
+.cms{height:220px;overflow-y:auto;padding:14px;background:var(--white);display:flex;flex-direction:column;gap:8px;}
+.cm{max-width:75%;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;}
+.cm.client{background:rgba(184,146,58,.1);border:1px solid rgba(184,146,58,.2);margin-right:auto;}
+.cm.office{background:var(--ink);color:var(--white);margin-left:auto;}
+.cm .mt{font-size:10px;color:var(--muted);margin-top:3px;}
+.cm.office .mt{color:rgba(255,255,255,.4);}
+.cir{display:flex;gap:8px;padding:10px;background:var(--cream);border-top:1px solid var(--line);}
+.cir input{flex:1;background:var(--white);border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-family:'Cairo',sans-serif;font-size:12px;color:var(--ink);}
+.cir input:focus{outline:none;border-color:var(--gold);}
+.cir button{background:var(--gold);color:var(--ink);border:none;padding:9px 16px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.qv{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:24px;margin-top:16px;}
+.qt{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);font-weight:700;}
+.qtb{width:100%;border-collapse:collapse;font-size:12px;margin:14px 0;}
+.qtb th{background:var(--cream);padding:7px 10px;text-align:right;font-size:10px;color:var(--muted);border-bottom:1px solid var(--line);}
+.qtb td{padding:9px 10px;border-bottom:1px dashed var(--line);}
+.btn-accept{background:var(--sage);color:var(--white);border:none;padding:12px 28px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-reject{background:none;border:1.5px solid var(--rust);color:var(--rust);padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.sw{background:var(--cream);border-top:1px solid var(--line);}
+.sin{max-width:900px;margin:0 auto;padding:80px 60px;}
+.sf{display:flex;gap:12px;max-width:460px;margin:36px 0;}
+.sf input{flex:1;background:var(--white);border:1.5px solid var(--line);border-radius:8px;padding:12px 16px;font-family:'Cairo',sans-serif;font-size:13px;color:var(--ink);}
+.sf input:focus{outline:none;border-color:var(--gold);}
+.sf button{background:var(--gold);color:var(--ink);border:none;padding:12px 22px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.sr{display:none;}
+.scard{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:24px;}
+.tli{display:flex;gap:16px;}
+.tlc{display:flex;flex-direction:column;align-items:center;}
+.tld{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tld.done{background:var(--sage);}
+.tld.cur{background:var(--gold);box-shadow:0 0 0 4px rgba(184,146,58,.2);}
+.tld.pend{background:var(--line);}
+.tlv{width:1px;flex:1;background:var(--line);margin:4px 0;min-height:28px;}
+.tlco{padding-bottom:20px;}
+footer{background:var(--ink);color:rgba(255,255,255,.5);padding:60px;text-align:center;font-size:13px;border-top:1px solid rgba(184,146,58,.2);}
+.flogo{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);margin-bottom:12px;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--white);padding:14px 28px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;border-left:3px solid var(--gold);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+@media(max-width:900px){nav{padding:20px 24px;}.nav-links,.nav-cta{display:none;}.hero-content{padding:60px 24px 40px;}.hero-stats{gap:30px;}.si{grid-template-columns:1fr 1fr;}.hi{padding:60px 24px;}.hg{grid-template-columns:1fr 1fr;gap:40px;}.hg::before{display:none;}.fi{grid-template-columns:1fr;padding:60px 24px;gap:40px;}.fintro{position:static;}.svcards,.fg,.fgt{grid-template-columns:1fr;}#requestForm{padding:24px 20px;}.sin{padding:60px 24px;}footer{padding:40px 24px;}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-bg"></div>
+  <nav>
+    <div class="nav-brand"><div class="nav-logo">🏛️</div><div><div class="brand-name">مكتب الدراسات المعمارية</div><div class="brand-sub">Architecture & Engineering Office</div></div></div>
+    <div class="nav-links"><a href="#services">خدماتنا</a><a href="#how">كيف نعمل</a><a href="#request">طلب دراسة</a><a href="#status">متابعة الطلب</a></div>
+    <button class="nav-cta" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">ابدأ مشروعك</button>
+  </nav>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><div class="el"></div><span>خبرة معمارية متكاملة منذ 2005</span><div class="el"></div></div>
+    <h1 class="hero-title">نحوّل رؤيتك<br>إلى <span class="accent">فضاء حقيقي</span></h1>
+    <p class="hero-subtitle">من الفكرة الأولى إلى تسليم المفتاح — دراسة معمارية احترافية، ملف رخصة البناء، إشراف على الإنجاز.</p>
+    <div class="hero-cta-group"><a href="#request" class="btn-primary">📋 أطلب دراسة مجانية</a><a href="#how" class="btn-ghost">كيف يعمل ذلك ←</a></div>
+    <div class="hero-stats">
+      <div><div class="hsn">+320</div><div class="hsl">مشروع منجز</div></div>
+      <div style="width:1px;height:40px;background:rgba(184,146,58,.3)"></div>
+      <div><div class="hsn">+18</div><div class="hsl">سنة خبرة</div></div>
+      <div style="width:1px;height:40px;background:rgba(184,146,58,.3)"></div>
+      <div><div class="hsn">20+</div><div class="hsl">ولاية في الجزائر</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="sstrip" id="services"><div class="si">
+  <div class="stab" onclick="selSvc('study')"><div class="sico">📐</div><div><div class="stt">الدراسة المعمارية</div><div class="std">تصاميم ومخططات احترافية</div></div></div>
+  <div class="stab" onclick="selSvc('permit')"><div class="sico">📋</div><div><div class="stt">ملف رخصة البناء</div><div class="std">كامل الوثائق الرسمية</div></div></div>
+  <div class="stab" onclick="selSvc('structure')"><div class="sico">🔩</div><div><div class="stt">الدراسة الهيكلية</div><div class="std">حسابات الهيكل الخرساني</div></div></div>
+  <div class="stab" onclick="selSvc('supervision')"><div class="sico">🏗️</div><div><div class="stt">الإشراف على الإنجاز</div><div class="std">متابعة ميدانية يومية</div></div></div>
+</div></div>
+
+<div class="hw" id="how"><div class="hi">
+  <div class="sl">كيف نعمل</div>
+  <div class="stitle">أربع خطوات<br>من الطلب إلى التسليم</div>
+  <div class="hg">
+    <div class="hstep"><div class="sc" style="position:relative"><span class="snum">1</span>🖊️</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px">تقديم الطلب</div><div style="font-size:12px;color:var(--muted);line-height:1.7">أدخل بياناتك ومعلومات مشروعك عبر نموذج الطلب</div></div>
+    <div class="hstep"><div class="sc" style="position:relative"><span class="snum">2</span>📞</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px">التواصل والتقييم</div><div style="font-size:12px;color:var(--muted);line-height:1.7">يتصل بك فريقنا خلال 24 ساعة لمناقشة متطلباتك</div></div>
+    <div class="hstep"><div class="sc" style="position:relative"><span class="snum">3</span>💰</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px">عرض التكلفة</div><div style="font-size:12px;color:var(--muted);line-height:1.7">نرسل لك عرض السعر عبر البوابة مباشرة</div></div>
+    <div class="hstep"><div class="sc" style="position:relative"><span class="snum">4</span>🏛️</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px">بداية المشروع</div><div style="font-size:12px;color:var(--muted);line-height:1.7">بعد موافقتك يبدأ فريقنا في إنجاز مشروعك</div></div>
+  </div>
+</div></div>
+
+<div class="fw" id="request"><div class="fi">
+  <div class="fintro">
+    <div class="sl">طلب خدمة</div>
+    <div class="stitle">ابدأ مشروعك<br>معنا اليوم</div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.85;margin-bottom:28px">أرسل لنا طلبك وسيتواصل معك أحد مهندسينا خلال يوم عمل. الاستشارة الأولى مجانية.</p>
+    <div class="cchips">
+      <div class="cchip"><div style="font-size:18px">📞</div><div><div style="font-size:11px;color:var(--muted)">للاتصال المباشر</div><div style="font-size:13px;font-weight:600;color:var(--ink)">0550 000 000</div></div></div>
+      <div class="cchip"><div style="font-size:18px">📧</div><div><div style="font-size:11px;color:var(--muted)">البريد الإلكتروني</div><div style="font-size:13px;font-weight:600;color:var(--ink)">info@office-archi.dz</div></div></div>
+      <div class="cchip"><div style="font-size:18px">🕐</div><div><div style="font-size:11px;color:var(--muted)">أوقات العمل</div><div style="font-size:13px;font-weight:600;color:var(--ink)">الأحد — الخميس، 8ص — 5م</div></div></div>
+      <div class="cchip"><div style="font-size:18px">⚡</div><div><div style="font-size:11px;color:var(--muted)">وقت الرد المتوسط</div><div style="font-size:13px;font-weight:600;color:var(--ink)">أقل من 24 ساعة</div></div></div>
+    </div>
+  </div>
+
+  <div id="requestForm">
+    <div class="fpr">
+      <div class="fps active" id="fp1"><div class="fpd">1</div>بياناتك</div>
+      <div class="fps" id="fp2"><div class="fpd">2</div>المشروع</div>
+      <div class="fps" id="fp3"><div class="fpd">3</div>الموقع</div>
+      <div class="fps" id="fp4"><div class="fpd">4</div>التفاصيل</div>
+      <div class="fps" id="fp5"><div class="fpd">5</div>إرسال</div>
+    </div>
+
+    <div class="fstep active" id="step1">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">بياناتك الشخصية</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">معلوماتك الأساسية للتواصل معك</div>
+      <div class="fg"><div class="fd req"><label>الاسم الكامل</label><input id="f_name" placeholder="الاسم واللقب"></div><div class="fd req"><label>رقم الهاتف</label><input id="f_phone" placeholder="0555 000 000" type="tel"></div></div>
+      <div class="fg"><div class="fd"><label>البريد الإلكتروني</label><input id="f_email" placeholder="example@email.com" type="email"></div>
+      <div class="fd req"><label>الولاية</label><select id="f_wilaya"><option value="">— اختر —</option><option>الجزائر</option><option>وهران</option><option>قسنطينة</option><option>عنابة</option><option>بجاية</option><option>سطيف</option><option>تيزي وزو</option><option>بسكرة</option><option>ورقلة</option><option>باتنة</option><option>تلمسان</option><option>المسيلة</option><option>الشلف</option><option>الجلفة</option><option>البليدة</option><option>البويرة</option><option>مستغانم</option><option>معسكر</option><option>غليزان</option><option>تيارت</option><option>سكيكدة</option><option>سعيدة</option><option>أخرى</option></select></div></div>
+      <div class="fn"><div></div><button class="btn-next" onclick="goStep(2)">التالي ←</button></div>
+    </div>
+
+    <div class="fstep" id="step2">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">نوع المشروع والخدمة</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">اختر خدمة أو أكثر</div>
+      <div class="svcards">
+        <div class="svc" data-s="study" onclick="togSvc(this)"><div class="svc-ico">📐</div><div class="svc-t">الدراسة المعمارية</div><div class="svc-d">مخططات معمارية كاملة</div><div class="svc-p">من 30,000 دج</div></div>
+        <div class="svc" data-s="permit" onclick="togSvc(this)"><div class="svc-ico">📋</div><div class="svc-t">ملف رخصة البناء</div><div class="svc-d">جميع الوثائق الرسمية</div><div class="svc-p">من 15,000 دج</div></div>
+        <div class="svc" data-s="structure" onclick="togSvc(this)"><div class="svc-ico">🔩</div><div class="svc-t">الدراسة الهيكلية</div><div class="svc-d">حسابات هيكلية معتمدة</div><div class="svc-p">من 25,000 دج</div></div>
+        <div class="svc" data-s="supervision" onclick="togSvc(this)"><div class="svc-ico">🏗️</div><div class="svc-t">إشراف على الإنجاز</div><div class="svc-d">زيارات دورية للورشة</div><div class="svc-p">حسب المشروع</div></div>
+        <div class="svc" data-s="interior" onclick="togSvc(this)"><div class="svc-ico">🛋️</div><div class="svc-t">التصميم الداخلي</div><div class="svc-d">تصميم الفضاءات والمواد</div><div class="svc-p">من 20,000 دج</div></div>
+        <div class="svc" data-s="estimate" onclick="togSvc(this)"><div class="svc-ico">💰</div><div class="svc-t">تقدير التكاليف فقط</div><div class="svc-d">تقرير تفصيلي للتكاليف</div><div class="svc-p">من 8,000 دج</div></div>
+      </div>
+      <div class="fg">
+        <div class="fd req"><label>نوع المبنى</label><select id="f_building"><option value="">— اختر —</option><option>فيلا سكنية</option><option>شقة سكنية</option><option>عمارة سكنية</option><option>محل تجاري</option><option>عمارة تجارية</option><option>مكاتب إدارية</option><option>ورشة صناعية</option><option>مستودع</option><option>مشروع سياحي</option><option>أخرى</option></select></div>
+        <div class="fd req"><label>عدد الطوابق</label><select id="f_floors"><option value="">— اختر —</option><option>طابق واحد</option><option>طابقان</option><option>3 طوابق</option><option>4 طوابق</option><option>5 طوابق وأكثر</option><option>غير محدد</option></select></div>
+      </div>
+      <div class="fg fgt">
+        <div class="fd"><label>المساحة (م²)</label><input id="f_area" type="number" placeholder="200"></div>
+        <div class="fd"><label>عدد الغرف</label><input id="f_rooms" type="number" placeholder="4"></div>
+        <div class="fd"><label>الميزانية (دج)</label><input id="f_budget" type="number" placeholder="اختياري"></div>
+      </div>
+      <div class="fn"><button class="btn-back" onclick="goStep(1)">← السابق</button><button class="btn-next" onclick="goStep(3)">التالي ←</button></div>
+    </div>
+
+    <div class="fstep" id="step3">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">موقع المشروع</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">حدد موقع قطعة الأرض أو العقار</div>
+      <div class="fg">
+        <div class="fd req"><label>ولاية المشروع</label><select id="f_pwilaya"><option value="">— اختر —</option><option>الجزائر</option><option>وهران</option><option>قسنطينة</option><option>عنابة</option><option>بجاية</option><option>سطيف</option><option>تيزي وزو</option><option>بسكرة</option><option>ورقلة</option><option>باتنة</option><option>تلمسان</option><option>أخرى</option></select></div>
+        <div class="fd req"><label>البلدية</label><input id="f_commune" placeholder="اسم البلدية"></div>
+      </div>
+      <div class="fg fgs"><div class="fd req"><label>العنوان التفصيلي</label><input id="f_address" placeholder="الحي، الشارع، رقم القطعة"></div></div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:700;color:var(--stone);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:8px">الإحداثيات (اختياري)</label>
+        <div class="fg">
+          <div class="fd"><label>خط العرض (Lat)</label><input id="f_lat" type="number" step="0.000001" placeholder="36.737232"></div>
+          <div class="fd"><label>خط الطول (Lng)</label><input id="f_lng" type="number" step="0.000001" placeholder="3.086472"></div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:5px">💡 افتح Google Maps ← انقر بزر الماوس الأيمن على الموقع ← انسخ الإحداثيات</p>
+      </div>
+      <div class="fg fgs"><div class="fd"><label>ملاحظات عن القطعة</label><textarea id="f_land" placeholder="مساحة القطعة، حالة الموقع، أي تفاصيل مهمة"></textarea></div></div>
+      <div class="fn"><button class="btn-back" onclick="goStep(2)">← السابق</button><button class="btn-next" onclick="goStep(4)">التالي ←</button></div>
+    </div>
+
+    <div class="fstep" id="step4">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">تفاصيل المشروع</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">كلما أعطيتنا تفاصيل أكثر، كان عرضنا أدق</div>
+      <div class="fg fgs"><div class="fd"><label>وصف المشروع والأفكار التصميمية</label><textarea id="f_desc" placeholder="الطابع المعماري، الأولويات، أفكارك..." style="min-height:100px"></textarea></div></div>
+      <div class="fg">
+        <div class="fd"><label>الجدول الزمني</label><select id="f_timeline"><option value="">— اختر —</option><option>أقل من شهر (عاجل)</option><option>1 إلى 3 أشهر</option><option>3 إلى 6 أشهر</option><option>أكثر من 6 أشهر</option><option>غير محدد</option></select></div>
+        <div class="fd"><label>المرحلة الحالية</label><select id="f_phase"><option value="">— اختر —</option><option>فكرة فقط</option><option>امتلك قطعة الأرض</option><option>لديّ مخطط قديم</option><option>البناء جارٍ</option><option>مشروع موقوف</option></select></div>
+      </div>
+      <div class="fg fgs"><div class="fd"><label>ملاحظات أو أسئلة إضافية</label><textarea id="f_extra" placeholder="أي شيء آخر تريد إخبارنا به..."></textarea></div></div>
+      <div class="fn"><button class="btn-back" onclick="goStep(3)">← السابق</button><button class="btn-next" onclick="goStep(5)">المراجعة والإرسال ←</button></div>
+    </div>
+
+    <div class="fstep" id="step5">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">مراجعة الطلب</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px">تحقق من البيانات ثم أرسل الطلب</div>
+      <div id="reviewBox" style="background:var(--white);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:16px;font-size:12px;line-height:2"></div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(90,107,82,.07);border:1px solid rgba(90,107,82,.2);border-radius:8px;margin-bottom:8px">
+        <input type="checkbox" id="f_agree" style="width:18px;height:18px;margin-top:3px;flex-shrink:0;accent-color:var(--sage)">
+        <label for="f_agree" style="font-size:12px;cursor:pointer;line-height:1.6">أوافق على معالجة بياناتي الشخصية لأغراض معالجة الطلب والتواصل معي من قبل المكتب.</label>
+      </div>
+      <div class="fn"><button class="btn-back" onclick="goStep(4)">← السابق</button><button class="btn-submit" onclick="submitReq()">📨 إرسال الطلب</button></div>
+    </div>
+
+    <div class="success-state" id="successState">
+      <div class="sico2">✅</div>
+      <div style="font-family:'Playfair Display',serif;font-size:24px;color:var(--ink);margin-bottom:12px">تم إرسال طلبك بنجاح!</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;max-width:380px;margin:0 auto 24px">شكراً لك. سيتواصل معك مهندسنا خلال يوم عمل واحد لمناقشة التفاصيل وتقديم عرض الأسعار.</div>
+      <div class="tb"><div class="tl">رقم طلبك المرجعي</div><div class="tn" id="ticketNum">—</div><div style="font-size:11px;color:var(--muted);margin-top:6px">احتفظ بهذا الرقم لمتابعة طلبك</div></div>
+      <button class="btn-primary" onclick="document.getElementById('status').scrollIntoView({behavior:'smooth'})">📍 متابعة حالة الطلب</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="sw" id="status"><div class="sin">
+  <div class="sl">متابعة الطلب</div>
+  <div class="stitle">تتبّع حالة<br>طلبك</div>
+  <p style="font-size:14px;color:var(--muted);line-height:1.8;max-width:480px">أدخل رقم الطلب المرجعي لمعرفة آخر تحديثات ملفك، وعرض الأسعار، والتواصل مع المكتب.</p>
+  <div class="sf"><input id="statusIn" placeholder="مثال: REQ-2025-0001"><button onclick="checkSt()">بحث 🔍</button></div>
+  <div class="sr" id="statusRes">
+    <div class="scard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">رقم الطلب</div><div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--ink)" id="sr_name">—</div></div>
+        <span id="sr_badge" style="padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(251,191,36,.15);color:#b8923a;border:1px solid rgba(184,146,58,.3)">قيد المعالجة</span>
+      </div>
+      <div id="sr_tl"></div>
+    </div>
+    <div id="quotePanel" style="display:none;margin-top:16px"></div>
+    <div style="margin-top:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">💬 التواصل مع المكتب</div>
+      <div class="cbox">
+        <div class="cms" id="chatMsgs"><div style="text-align:center;color:var(--muted);font-size:12px;padding:18px">ابدأ محادثة مع فريق المكتب</div></div>
+        <div class="cir"><input id="chatIn" placeholder="اكتب رسالتك هنا..." onkeydown="if(event.key==='Enter')sendMsg()"><button onclick="sendMsg()">إرسال ←</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<footer>
+  <div class="flogo">مكتب الدراسات المعمارية</div>
+  <p>خبرة معمارية متكاملة — من التصميم إلى التسليم.</p>
+  <div style="display:flex;gap:24px;justify-content:center;margin-top:20px;flex-wrap:wrap;font-size:12px">
+    <span>📞 0550 000 000</span><span>📧 info@office-archi.dz</span><span>📍 الجزائر العاصمة</span>
+  </div>
+  <div style="margin-top:36px;font-size:11px;color:rgba(255,255,255,.25)">© 2025 مكتب الدراسات المعمارية</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script>
+// ── STATE ─────────────────────────────────
+let curStep=1, selSvcs=[], upFiles=[], activeReqId=null, activeTicket=null;
+const requests = JSON.parse(localStorage.getItem('requests')) || [];
+const chats = JSON.parse(localStorage.getItem('chats')) || {};
+
+// ── UTILS ─────────────────────────────────
+function toast(msg,d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function fmtD(iso){if(!iso)return'—';return new Date(iso).toLocaleString('ar-DZ',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function genTicket(){return 'REQ-'+new Date().getFullYear()+'-'+String(requests.length+1).padStart(4,'0');}
+
+// ── SERVICES ──────────────────────────────
+function selSvc(s){document.getElementById('request').scrollIntoView({behavior:'smooth'});setTimeout(()=>{const c=document.querySelector(`.svc[data-s="${s}"]`);if(c&&!c.classList.contains('sel'))togSvc(c);goStep(2);},400);}
+function togSvc(card){card.classList.toggle('sel');const s=card.dataset.s;if(card.classList.contains('sel')){if(!selSvcs.includes(s))selSvcs.push(s);}else selSvcs=selSvcs.filter(x=>x!==s);}
+
+// ── STEPS ─────────────────────────────────
+function goStep(n){
+  if(n>curStep){for(let i=curStep;i<n;i++){if(!valStep(i))return;}}
+  curStep=n;
+  document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.fps').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i+1<n)s.classList.add('done');
+    if(i+1===n)s.classList.add('active');
+  });
+  if(n===5)buildReview();
+  document.getElementById('requestForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function valStep(n){
+  const rules={
+    1:[{id:'f_name',m:'يرجى إدخال اسمك الكامل'},{id:'f_phone',m:'يرجى إدخال رقم هاتفك'},{id:'f_wilaya',m:'يرجى اختيار ولايتك'}],
+    2:[{id:'f_building',m:'يرجى اختيار نوع المبنى'},{id:'f_floors',m:'يرجى اختيار عدد الطوابق'}],
+    3:[{id:'f_pwilaya',m:'يرجى اختيار ولاية المشروع'},{id:'f_commune',m:'يرجى إدخال اسم البلدية'},{id:'f_address',m:'يرجى إدخال العنوان'}]
+  };
+  if(n===2&&selSvcs.length===0){toast('⚠️ يرجى اختيار خدمة واحدة على الأقل');return false;}
+  for(const r of(rules[n]||[])){const el=document.getElementById(r.id);if(!el||!el.value.trim()){toast('⚠️ '+r.m);el?.focus();return false;}}
+  return true;
+}
+
+// ── REVIEW ────────────────────────────────
+function buildReview(){
+  const sn={study:'الدراسة المعمارية',permit:'ملف رخصة البناء',structure:'الدراسة الهيكلية',supervision:'الإشراف على الإنجاز',interior:'التصميم الداخلي',estimate:'تقدير التكاليف'};
+  const rows=[['الاسم الكامل',gv('f_name')],['رقم الهاتف',gv('f_phone')],['البريد الإلكتروني',gv('f_email')||'—'],['الولاية',gv('f_wilaya')],
+    ['الخدمات المطلوبة',selSvcs.map(s=>sn[s]).join(' + ')||'—'],['نوع المبنى',gv('f_building')],['عدد الطوابق',gv('f_floors')],
+    ['المساحة',gv('f_area')?gv('f_area')+' م²':'—'],['الغرف',gv('f_rooms')||'—'],['الميزانية',gv('f_budget')?Number(gv('f_budget')).toLocaleString('ar-DZ')+' دج':'—'],
+    ['ولاية المشروع',gv('f_pwilaya')],['البلدية',gv('f_commune')],['العنوان',gv('f_address')],
+    ['الجدول الزمني',gv('f_timeline')||'—'],['المرحلة الحالية',gv('f_phase')||'—']];
+  document.getElementById('reviewBox').innerHTML=rows.map(r=>`<div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)"><strong>${r[0]}</strong><span>${r[1]}</span></div>`).join('');
+}
+
+// ── SUBMIT ────────────────────────────────
+function submitReq(){
+  if(!document.getElementById('f_agree').checked){toast('⚠️ يرجى الموافقة على معالجة البيانات');return;}
+  const req={
+    id:genTicket(),
+    name:gv('f_name'),
+    phone:gv('f_phone'),
+    email:gv('f_email'),
+    wilaya:gv('f_wilaya'),
+    services:selSvcs,
+    building:gv('f_building'),
+    floors:gv('f_floors'),
+    area:gv('f_area'),
+    rooms:gv('f_rooms'),
+    budget:gv('f_budget'),
+    pwilaya:gv('f_pwilaya'),
+    commune:gv('f_commune'),
+    address:gv('f_address'),
+    lat:gv('f_lat'),
+    lng:gv('f_lng'),
+    land:gv('f_land'),
+    desc:gv('f_desc'),
+    timeline:gv('f_timeline'),
+    phase:gv('f_phase'),
+    extra:gv('f_extra'),
+    date:new Date().toISOString(),
+    status:'pending'
+  };
+  requests.push(req);
+  localStorage.setItem('requests',JSON.stringify(requests));
+  chats[req.id]=[];
+  localStorage.setItem('chats',JSON.stringify(chats));
+  document.getElementById('requestForm').style.display='none';
+  document.getElementById('successState').style.display='block';
+  document.getElementById('ticketNum').textContent=req.id;
+  toast('✅ تم إرسال طلبك بنجاح!');
+}
+
+// ── STATUS ────────────────────────────────
+function checkSt(){
+  const id=gv('statusIn');
+  const req=requests.find(r=>r.id===id);
+  if(!req){toast('⚠️ لم يتم العثور على الطلب');return;}
+  activeTicket=id;
+  document.getElementById('statusRes').style.display='block';
+  document.getElementById('sr_name').textContent=req.id;
+  const statuses={pending:'قيد المعالجة',reviewed:'تم المراجعة',quoted:'تم عرض السعر',accepted:'مقبول',inprogress:'قيد الإنجاز',completed:'مكتمل'};
+  document.getElementById('sr_badge').textContent=statuses[req.status]||'قيد المعالجة';
+  const timeline=`<div class="tli"><div class="tlc"><div class="tld done"></div><div class="tlv"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--ink)">تم استقبال الطلب</div><div style="font-size:11px;color:var(--muted)">${fmtD(req.date)}</div></div></div>`;
+  document.getElementById('sr_tl').innerHTML=timeline;
+  loadChat(id);
+}
+
+// ── CHAT ──────────────────────────────────
+function loadChat(id){
+  const msgs=chats[id]||[];
+  document.getElementById('chatMsgs').innerHTML=msgs.length?msgs.map(m=>`<div class="cm ${m.from}"><div>${m.text}</div><div class="mt">${fmtD(m.time)}</div></div>`).join(''):'<div style="text-align:center;color:var(--muted);font-size:12px;padding:18px">ابدأ محادثة مع فريق المكتب</div>';
+  document.getElementById('chatMsgs').scrollTop=document.getElementById('chatMsgs').scrollHeight;
+}
+function sendMsg(){
+  if(!activeTicket){toast('⚠️ يرجى البحث عن طلب أولاً');return;}
+  const msg=gv('chatIn');
+  if(!msg){return;}
+  if(!chats[activeTicket])chats[activeTicket]=[];
+  chats[activeTicket].push({from:'client',text:msg,time:new Date().toISOString()});
+  localStorage.setItem('chats',JSON.stringify(chats));
+  document.getElementById('chatIn').value='';
+  loadChat(activeTicket);
+  toast('✅ تم إرسال الرسالة');
+}
+
+// ── DEMO DATA ─────────────────────────────
+if(requests.length===0){
+  const demo={id:'REQ-2025-0001',name:'أحمد محمد',phone:'0550123456',email:'ahmed@email.com',wilaya:'الجزائر',services:['study','permit'],building:'فيلا سكنية',floors:'طابقان',area:'250',rooms:'5',budget:'3000000',pwilaya:'الجزائر',commune:'الجزائر العاصمة',address:'حي الجزائر الجديدة',lat:'36.737',lng:'3.086',land:'قطعة مستوية',desc:'فيلا حديثة مع حديقة',timeline:'3 إلى 6 أشهر',phase:'امتلك قطعة الأرض',extra:'',date:new Date().toISOString(),status:'quoted'};
+  requests.push(demo);
+  localStorage.setItem('requests',JSON.stringify(requests));
+  chats[demo.id]=[{from:'office',text:'مرحباً أحمد، شكراً على طلبك. تم استقبال بياناتك بنجاح.',time:new Date().toISOString()}];
+  localStorage.setItem('chats',JSON.stringify(chats));
+}
+</script>
+</body>
+</html>
