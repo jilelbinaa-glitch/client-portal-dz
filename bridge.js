@@ -63,6 +63,15 @@ function toISO(val) {
   return val;
 }
 
+// تحويل أي شكل من أشكال الطابع الزمني إلى رقم (ميلي ثانية) للترتيب
+function toMillis(val) {
+  if (!val) return 0;
+  if (val instanceof Timestamp) return val.toMillis();
+  if (typeof val?.seconds === 'number') return val.seconds * 1000;
+  if (typeof val === 'string') return new Date(val).getTime() || 0;
+  return 0;
+}
+
 // ── تنظيف الكائن من undefined ───────────────────────────
 function clean(obj) {
   const result = {};
@@ -245,8 +254,11 @@ const Quotes = {
   },
 
   async getByReq(reqId) {
-    const snap = await getDocs(query(collection(db, COL.quotes), where('reqId', '==', reqId), orderBy('createdAt', 'desc')));
-    return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+    const snap = await getDocs(query(collection(db, COL.quotes), where('reqId', '==', reqId)));
+    if (snap.empty) return null;
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    all.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+    return all[0];
   },
 
   async getAll() {
@@ -287,8 +299,11 @@ const Quotes = {
   },
 
   watchByReq(reqId, cb) {
-    return onSnapshot(query(collection(db, COL.quotes), where('reqId', '==', reqId), orderBy('createdAt', 'desc')), snap => {
-      cb(snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() });
+    return onSnapshot(query(collection(db, COL.quotes), where('reqId', '==', reqId)), snap => {
+      if (snap.empty) { cb(null); return; }
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      all.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+      cb(all[0]);
     });
   }
 };
@@ -322,25 +337,29 @@ const Messages = {
   },
 
   async getThread(reqId) {
-    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId), orderBy('ts', 'asc')));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId)));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    all.sort((a, b) => toMillis(a.ts) - toMillis(b.ts));
+    return all;
   },
 
   async markRead(reqId, reader) {
-    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId), where('read', '==', false)));
-    const promises = snap.docs.filter(d => d.data().from !== reader).map(d => updateDoc(d.ref, { read: true }));
+    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId)));
+    const promises = snap.docs.filter(d => d.data().from !== reader && !d.data().read).map(d => updateDoc(d.ref, { read: true }));
     await Promise.all(promises);
     emit('messages:read', { reqId, reader });
   },
 
   async officeUnreadTotal() {
-    const snap = await getDocs(query(collection(db, COL.messages), where('from', '==', 'client'), where('read', '==', false)));
-    return snap.size;
+    const snap = await getDocs(query(collection(db, COL.messages), where('from', '==', 'client')));
+    return snap.docs.filter(d => !d.data().read).length;
   },
 
   watchThread(reqId, cb) {
-    return onSnapshot(query(collection(db, COL.messages), where('reqId', '==', reqId), orderBy('ts', 'asc')), snap => {
-      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    return onSnapshot(query(collection(db, COL.messages), where('reqId', '==', reqId)), snap => {
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      all.sort((a, b) => toMillis(a.ts) - toMillis(b.ts));
+      cb(all);
     });
   }
 };
@@ -357,8 +376,10 @@ const Notifs = {
   },
 
   async get(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target), orderBy('ts', 'desc')));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    all.sort((a, b) => toMillis(b.ts) - toMillis(a.ts));
+    return all;
   },
 
   async markRead(target, id) {
@@ -366,18 +387,18 @@ const Notifs = {
   },
 
   async markAllRead(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target), where('read', '==', false)));
-    await Promise.all(snap.docs.map(d => updateDoc(d.ref, { read: true })));
+    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    await Promise.all(snap.docs.filter(d => !d.data().read).map(d => updateDoc(d.ref, { read: true })));
   },
 
   async unread(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target), where('read', '==', false)));
-    return snap.size;
+    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    return snap.docs.filter(d => !d.data().read).length;
   },
 
   watch(target, cb) {
-    return onSnapshot(query(collection(db, COL.notifs), where('target', '==', target), where('read', '==', false)), snap => {
-      cb(snap.size);
+    return onSnapshot(query(collection(db, COL.notifs), where('target', '==', target)), snap => {
+      cb(snap.docs.filter(d => !d.data().read).length);
     });
   }
 };
