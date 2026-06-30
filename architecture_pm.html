@@ -1308,7 +1308,7 @@ async function filterReqs(statusVal){
   const sv=statusVal!==undefined?statusVal:(sel?sel.value:'');
   const sq=search?search.value.toLowerCase():'';
   if(sv) reqs=reqs.filter(r=>r.status===sv);
-  if(sq) reqs=reqs.filter(r=>r.name.toLowerCase().includes(sq)||r.ticket.toLowerCase().includes(sq)||(r.phone&&r.phone.includes(sq)));
+  if(sq) reqs=reqs.filter(r=>r.name.toLowerCase().includes(sq)||r.ticket.toLowerCase().includes(sq)||(r.phone&&r.phone.includes(sq))||(r.nin&&r.nin.includes(sq)));
   const tb=document.getElementById('reqsTableBody');
   if(tb) tb.innerHTML=renderReqRows(reqs);
 }
@@ -1330,6 +1330,7 @@ async function openReqDetail(reqId){
           <div style="font-size:13px;line-height:2">
             <div><strong>${req.name}</strong></div>
             <div style="color:var(--muted)">📞 ${req.phone}</div>
+            ${req.nin?`<div style="color:var(--muted)">🪪 ${req.nin}</div>`:''}
             ${req.email?`<div style="color:var(--muted)">📧 ${req.email}</div>`:''}
             <div style="color:var(--muted)">📍 ${req.wilaya||'—'}</div>
           </div>

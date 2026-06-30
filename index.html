@@ -385,10 +385,14 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
           <div class="fd req"><label>رقم الهاتف / Phone</label><input id="f_phone" placeholder="0555 000 000" type="tel"></div>
         </div>
         <div class="fg">
+          <div class="fd req"><label>رقم التعريف الوطني / National ID</label><input id="f_nin" placeholder="رقم بطاقة التعريف الوطنية" inputmode="numeric"></div>
           <div class="fd"><label>البريد الإلكتروني / Email</label><input id="f_email" placeholder="example@email.com" type="email"></div>
+        </div>
+        <div class="fg">
           <div class="fd req"><label>الولاية / Wilaya</label>
             <select id="f_wilaya"><option value="">— اختر / Choose —</option><option>الجزائر</option><option>وهران</option><option>قسنطينة</option><option>عنابة</option><option>بجاية</option><option>سطيف</option><option>تيزي وزو</option><option>بسكرة</option><option>ورقلة</option><option>باتنة</option><option>تلمسان</option><option>المسيلة</option><option>الشلف</option><option>الجلفة</option><option>البليدة</option><option>البويرة</option><option>مستغانم</option><option>معسكر</option><option>غليزان</option><option>تيارت</option><option>سكيكدة</option><option>سعيدة</option><option>أخرى / Other</option></select>
           </div>
+          <div></div>
         </div>
         <div class="fn"><div></div><button class="btn-next" onclick="goStep(2)">التالي ←</button></div>
       </div>
@@ -489,9 +493,10 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
     <div class="sl-ar" style="color:var(--gold) !important">متابعة الطلب</div>
     <div class="sl-en" style="color:var(--muted) !important;margin-bottom:14px">Track Your Request</div>
     <div class="stitle" style="color:var(--text) !important">تتبّع حالة<br>طلبك</div>
-    <p style="font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin-top:12px">أدخل رقم الطلب المرجعي لمعرفة آخر التحديثات وعرض الأسعار والتواصل مع مكتبنا.</p>
-    <div class="sf">
-      <input id="statusIn" placeholder="مثال: REQ-2025-0001">
+    <p style="font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin-top:12px">أدخل رقم الطلب المرجعي ورقم التعريف الوطني لمعرفة آخر التحديثات وعرض الأسعار والتواصل مع مكتبنا.</p>
+    <div class="sf" style="flex-wrap:wrap">
+      <input id="statusIn" placeholder="رقم الطلب — مثال: REQ-2025-0001" style="min-width:200px">
+      <input id="statusNin" placeholder="رقم التعريف الوطني" style="min-width:160px">
       <button onclick="checkSt()">🔍 بحث / Search</button>
     </div>
     <div class="sr" id="statusRes">
@@ -562,7 +567,7 @@ function goStep(n){
   document.getElementById('requestForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function valStep(n){
-  const rules={1:[{id:'f_name',m:'يرجى إدخال اسمك الكامل'},{id:'f_phone',m:'يرجى إدخال رقم هاتفك'},{id:'f_wilaya',m:'يرجى اختيار ولايتك'}],2:[{id:'f_building',m:'يرجى اختيار نوع المبنى'},{id:'f_floors',m:'يرجى اختيار عدد الطوابق'}],3:[{id:'f_pwilaya',m:'يرجى اختيار ولاية المشروع'},{id:'f_commune',m:'يرجى إدخال اسم البلدية'},{id:'f_address',m:'يرجى إدخال العنوان'}]};
+  const rules={1:[{id:'f_name',m:'يرجى إدخال اسمك الكامل'},{id:'f_phone',m:'يرجى إدخال رقم هاتفك'},{id:'f_nin',m:'يرجى إدخال رقم التعريف الوطني'},{id:'f_wilaya',m:'يرجى اختيار ولايتك'}],2:[{id:'f_building',m:'يرجى اختيار نوع المبنى'},{id:'f_floors',m:'يرجى اختيار عدد الطوابق'}],3:[{id:'f_pwilaya',m:'يرجى اختيار ولاية المشروع'},{id:'f_commune',m:'يرجى إدخال اسم البلدية'},{id:'f_address',m:'يرجى إدخال العنوان'}]};
   if(n===2&&selSvcs.length===0){toast('⚠️ يرجى اختيار خدمة واحدة على الأقل');return false;}
   for(const r of(rules[n]||[])){const el=document.getElementById(r.id);if(!el||!el.value.trim()){toast('⚠️ '+r.m);el?.focus();return false;}}
   return true;
@@ -576,7 +581,7 @@ function renderFiles(){document.getElementById('uploadList').innerHTML=upFiles.m
 
 function buildReview(){
   const sn={study:'الدراسة المعمارية',permit:'ملف رخصة البناء',structure:'الدراسة الهيكلية',supervision:'الإشراف',interior:'التصميم الداخلي',estimate:'تقدير التكاليف'};
-  const rows=[['الاسم / Name',gv('f_name')],['الهاتف / Phone',gv('f_phone')],['البريد / Email',gv('f_email')||'—'],['الولاية / Wilaya',gv('f_wilaya')],['الخدمات / Services',selSvcs.map(s=>sn[s]).join(' + ')||'—'],['نوع المبنى / Type',gv('f_building')],['الطوابق / Floors',gv('f_floors')],['المساحة / Area',gv('f_area')?gv('f_area')+' م²':'—'],['الميزانية / Budget',gv('f_budget')?Number(gv('f_budget')).toLocaleString('ar-DZ')+' دج':'—'],['ولاية المشروع',gv('f_pwilaya')],['البلدية',gv('f_commune')],['العنوان',gv('f_address')]];
+  const rows=[['الاسم / Name',gv('f_name')],['الهاتف / Phone',gv('f_phone')],['رقم التعريف الوطني / NIN',gv('f_nin')],['البريد / Email',gv('f_email')||'—'],['الولاية / Wilaya',gv('f_wilaya')],['الخدمات / Services',selSvcs.map(s=>sn[s]).join(' + ')||'—'],['نوع المبنى / Type',gv('f_building')],['الطوابق / Floors',gv('f_floors')],['المساحة / Area',gv('f_area')?gv('f_area')+' م²':'—'],['الميزانية / Budget',gv('f_budget')?Number(gv('f_budget')).toLocaleString('ar-DZ')+' دج':'—'],['ولاية المشروع',gv('f_pwilaya')],['البلدية',gv('f_commune')],['العنوان',gv('f_address')]];
   document.getElementById('reviewBox').innerHTML=rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px dashed rgba(0,0,0,0.06);padding:5px 0"><span style="color:var(--muted-text)">${k}</span><span style="font-weight:600;color:var(--ink-text);max-width:55%;text-align:left">${v||'—'}</span></div>`).join('');
 }
 
@@ -585,7 +590,7 @@ async function submitReq(){
   const btn = document.querySelector('.btn-submit');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ الإرسال...'; }
   try {
-    const data={name:gv('f_name'),phone:gv('f_phone'),email:gv('f_email'),wilaya:gv('f_wilaya'),services:[...selSvcs],building:gv('f_building'),floors:gv('f_floors'),area:gv('f_area'),rooms:gv('f_rooms'),budget:gv('f_budget'),projWilaya:gv('f_pwilaya'),commune:gv('f_commune'),address:gv('f_address'),lat:gv('f_lat'),lng:gv('f_lng'),landInfo:gv('f_land'),desc:gv('f_desc'),timeline:gv('f_timeline'),currentPhase:gv('f_phase'),extra:gv('f_extra'),files:upFiles.map(f=>f.name)};
+    const data={name:gv('f_name'),phone:gv('f_phone'),nin:gv('f_nin'),email:gv('f_email'),wilaya:gv('f_wilaya'),services:[...selSvcs],building:gv('f_building'),floors:gv('f_floors'),area:gv('f_area'),rooms:gv('f_rooms'),budget:gv('f_budget'),projWilaya:gv('f_pwilaya'),commune:gv('f_commune'),address:gv('f_address'),lat:gv('f_lat'),lng:gv('f_lng'),landInfo:gv('f_land'),desc:gv('f_desc'),timeline:gv('f_timeline'),currentPhase:gv('f_phase'),extra:gv('f_extra'),files:upFiles.map(f=>f.name)};
     const req = await Bridge.Requests.submit(data);
     activeReqId=req.id; activeTicket=req.ticket;
     document.getElementById('ticketNum').textContent=req.ticket;
@@ -603,11 +608,18 @@ async function submitReq(){
 
 async function checkSt(){
   const input=document.getElementById('statusIn').value.trim().toUpperCase();
+  const ninInput=document.getElementById('statusNin').value.trim();
   if(!input){toast('⚠️ يرجى إدخال رقم الطلب');return;}
+  if(!ninInput){toast('⚠️ يرجى إدخال رقم التعريف الوطني');return;}
   toast('🔍 جارٍ البحث...', 1500);
   try {
     const req = await Bridge.Requests.get(input);
     if(!req){document.getElementById('statusRes').style.display='none';toast('❌ رقم الطلب غير موجود');return;}
+    if(!req.nin || req.nin.trim() !== ninInput){
+      document.getElementById('statusRes').style.display='none';
+      toast('❌ رقم التعريف الوطني غير مطابق لهذا الطلب');
+      return;
+    }
     activeReqId=req.id; activeTicket=req.ticket;
     renderStatusCard(req);
 
@@ -628,7 +640,16 @@ async function checkSt(){
     unsubChat = Bridge.Messages.watchThread(req.id, msgs => { renderChatMsgs(msgs); });
   } catch(err) {
     console.error(err);
-    toast('❌ خطأ في الاتصال بقاعدة البيانات');
+    const code = err?.code || '';
+    if (code.includes('permission-denied')) {
+      toast('❌ تم رفض الوصول لقاعدة البيانات — تأكد من نشر firestore.rules', 6000);
+    } else if (code.includes('failed-precondition') || code.includes('index')) {
+      toast('❌ قاعدة البيانات تحتاج فهرساً — افتح Console (F12) وانقر الرابط الظاهر', 7000);
+    } else if (code.includes('unavailable') || code.includes('network')) {
+      toast('❌ لا يوجد اتصال بالإنترنت', 4000);
+    } else {
+      toast('❌ خطأ: ' + (err?.message || 'غير معروف'), 6000);
+    }
   }
 }
 
@@ -706,6 +727,7 @@ window.__respQ = respQ;
 window.__upFilesRemove = (i) => { upFiles.splice(i,1); renderFiles(); };
 
 document.getElementById('statusIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
+document.getElementById('statusNin').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
 
 // ── ARCHITECTURAL SLIDESHOW ───────────────
 const SLIDES = [
