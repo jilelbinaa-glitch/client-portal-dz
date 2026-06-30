@@ -65,7 +65,26 @@ function toISO(val) {
 
 // ── تنظيف الكائن من undefined ───────────────────────────
 function clean(obj) {
-  return JSON.parse(JSON.stringify(obj, (k, v) => v === undefined ? null : v));
+  const result = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) { result[k] = null; continue; }
+    // الحفاظ على القيم الخاصة بـ Firestore (مثل serverTimestamp) دون تعديل
+    if (v !== null && typeof v === 'object' && v.constructor && v.constructor.name &&
+        (v.constructor.name.includes('FieldValue') || v.constructor.name.includes('Sentinel') || typeof v._methodName === 'string')) {
+      result[k] = v;
+      continue;
+    }
+    if (Array.isArray(v)) {
+      result[k] = JSON.parse(JSON.stringify(v, (kk, vv) => vv === undefined ? null : vv));
+      continue;
+    }
+    if (v !== null && typeof v === 'object') {
+      result[k] = clean(v);
+      continue;
+    }
+    result[k] = v;
+  }
+  return result;
 }
 
 // ══════════════════════════════════════════════════════════
