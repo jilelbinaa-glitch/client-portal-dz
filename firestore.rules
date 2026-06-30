@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════
+//  قواعد أمان Firestore — مكتب جيل البناء للدراسات
+//  انسخ هذا الملف بالكامل إلى:
+//  Firebase Console → Firestore Database → Rules → الصق → Publish
+// ══════════════════════════════════════════════════════════
+//
+//  ملاحظة هامة:
+//  هذه القواعد تسمح بالقراءة والكتابة لأي زائر (عام/مفتوح)،
+//  وهذا مناسب لموقع بدون نظام تسجيل دخول (Authentication).
+//  لاحقاً، إن أردت حماية إضافية (مثلاً منع التلاعب أو السبام)،
+//  يمكن إضافة Firebase Authentication وتقييد الكتابة بمستخدمين موثقين.
+//
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // طلبات العملاء — أي شخص يمكنه إنشاء طلب (إرسال نموذج)
+    // وأي شخص يمكنه قراءة الطلبات (للبحث برقم الطلب أو منصة المكتب)
+    match /requests/{requestId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false; // منع الحذف لحماية السجلات
+    }
+
+    // عروض الأسعار
+    match /quotes/{quoteId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // الرسائل (الدردشة بين العميل والمكتب)
+    match /messages/{messageId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // الإشعارات
+    match /notifications/{notifId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+  }
+}
