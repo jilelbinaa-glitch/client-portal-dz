@@ -108,12 +108,22 @@ const Requests = {
   },
 
   async get(id) {
-    // بحث بالـ ID المباشر
-    const direct = await getDoc(doc(db, COL.requests, id));
-    if (direct.exists()) return { id: direct.id, ...direct.data() };
-    // بحث بالـ ticket
-    const snap = await getDocs(query(collection(db, COL.requests), where('ticket', '==', id)));
-    if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+    // بحث بالـ ticket أولاً (الحالة الأكثر شيوعاً من بوابة العملاء)
+    try {
+      const snap = await getDocs(query(collection(db, COL.requests), where('ticket', '==', id)));
+      if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+    } catch (err) {
+      console.error('Requests.get (by ticket) failed:', err);
+      throw err;
+    }
+    // بحث بالـ ID المباشر (يُستخدم داخلياً من منصة المكتب)
+    try {
+      const direct = await getDoc(doc(db, COL.requests, id));
+      if (direct.exists()) return { id: direct.id, ...direct.data() };
+    } catch (err) {
+      // معرف غير صالح كـ document ID — ليس خطأ حقيقي، فقط لم يُطابق
+      console.warn('Requests.get (by id) skipped:', err.message);
+    }
     return null;
   },
 
