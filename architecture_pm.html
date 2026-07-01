@@ -291,21 +291,22 @@ select option{background:var(--surface);}
   <div class="modal"><h3 id="projMTitle">🏗️ مشروع جديد</h3>
     <input type="hidden" id="p_id">
     <div class="fg">
-      <div class="fgi full"><label>اسم المشروع *</label><input id="p_name"></div>
-      <div class="fgi"><label>العميل *</label><input id="p_client"></div>
-      <div class="fgi"><label>الهاتف</label><input id="p_phone"></div>
-      <div class="fgi"><label>النوع</label><select id="p_type"><option>سكني فردي</option><option>سكني جماعي</option><option>تجاري</option><option>إداري</option><option>صناعي</option><option>سياحي</option><option>مختلط</option></select></div>
-      <div class="fgi"><label>المرحلة</label><select id="p_phase"><option>الدراسة الأولية</option><option>التصميم المعماري</option><option>ملف الرخصة</option><option>الدراسة التقنية</option><option>الإنجاز / الورشة</option><option>الاستلام</option></select></div>
+      <div class="fgi full"><label>اسم المشروع *</label><input id="p_name" placeholder="اسم أو وصف مختصر للمشروع"></div>
+      <div class="fgi"><label>العميل / صاحب المشروع *</label><input id="p_client" placeholder="الاسم الكامل"></div>
+      <div class="fgi"><label>رقم الهاتف</label><input id="p_phone" placeholder="0555 000 000" type="tel"></div>
+      <div class="fgi"><label>رقم التعريف الوطني</label><input id="p_nin" placeholder="رقم بطاقة التعريف"></div>
+      <div class="fgi"><label>نوع المشروع</label><select id="p_type"><option>سكني فردي</option><option>سكني جماعي</option><option>تجاري</option><option>إداري</option><option>صناعي</option><option>سياحي</option><option>مختلط</option></select></div>
+      <div class="fgi"><label>المرحلة الحالية</label><select id="p_phase"><option>الدراسة الأولية</option><option>التصميم المعماري</option><option>ملف الرخصة</option><option>الدراسة التقنية</option><option>الإنجاز / الورشة</option><option>الاستلام</option></select></div>
       <div class="fgi"><label>الحالة</label><select id="p_status"><option value="active">قيد التنفيذ</option><option value="pending">انتظار</option><option value="done">منجز</option><option value="paused">موقوف</option></select></div>
-      <div class="fgi"><label>الإنجاز %</label><input id="p_prog" type="number" min="0" max="100" value="0"></div>
-      <div class="fgi"><label>الموقع / الولاية</label><input id="p_loc"></div>
-      <div class="fgi"><label>المساحة (م²)</label><input id="p_area" type="number"></div>
-      <div class="fgi"><label>الميزانية (دج)</label><input id="p_budget" type="number"></div>
+      <div class="fgi"><label>نسبة الإنجاز %</label><input id="p_prog" type="number" min="0" max="100" value="0"></div>
+      <div class="fgi"><label>الموقع / الولاية</label><input id="p_loc" placeholder="ولاية — بلدية — حي"></div>
+      <div class="fgi"><label>المساحة الإجمالية (م²)</label><input id="p_area" type="number" placeholder="0"></div>
+      <div class="fgi"><label>الميزانية التقديرية (دج)</label><input id="p_budget" type="number" placeholder="0"></div>
       <div class="fgi"><label>تاريخ البداية</label><input id="p_start" type="date"></div>
-      <div class="fgi"><label>تاريخ التسليم</label><input id="p_end" type="date"></div>
-      <div class="fgi full"><label>ملاحظات</label><textarea id="p_notes"></textarea></div>
+      <div class="fgi"><label>الموعد المتوقع للتسليم</label><input id="p_end" type="date"></div>
+      <div class="fgi full"><label>ملاحظات إضافية</label><textarea id="p_notes" placeholder="أي معلومات إضافية عن المشروع..."></textarea></div>
     </div>
-    <div class="mf"><button class="btn btn-outline" onclick="closeModal('projModal')">إلغاء</button><button class="btn btn-gold" onclick="saveProject()">💾 حفظ</button></div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('projModal')">إلغاء</button><button class="btn btn-gold" onclick="saveProject()">💾 حفظ المشروع</button></div>
   </div>
 </div>
 
@@ -514,9 +515,10 @@ function openProjModal(id){
   if(id){
     const p=projects.find(x=>x.id===id); if(!p) return;
     document.getElementById('p_id').value=p.id;
-    document.getElementById('p_name').value=p.name;
+    document.getElementById('p_name').value=p.name||'';
     document.getElementById('p_client').value=p.client||'';
     document.getElementById('p_phone').value=p.phone||'';
+    document.getElementById('p_nin').value=p.nin||'';
     document.getElementById('p_type').value=p.type||'سكني فردي';
     document.getElementById('p_phase').value=p.phase||'الدراسة الأولية';
     document.getElementById('p_status').value=p.status||'active';
@@ -530,43 +532,68 @@ function openProjModal(id){
     document.getElementById('projMTitle').textContent='✏️ تعديل المشروع';
   } else {
     document.getElementById('p_id').value='';
-    ['p_name','p_client','p_phone','p_loc','p_area','p_budget','p_notes'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('p_prog').value=0; document.getElementById('p_status').value='active';
+    ['p_name','p_client','p_phone','p_nin','p_loc','p_area','p_budget','p_notes'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('p_prog').value=0;
+    document.getElementById('p_status').value='active';
+    document.getElementById('p_phase').value='الدراسة الأولية';
+    document.getElementById('p_type').value='سكني فردي';
     document.getElementById('p_start').value=new Date().toISOString().slice(0,10);
+    document.getElementById('p_end').value='';
     document.getElementById('projMTitle').textContent='🏗️ مشروع جديد';
   }
   openModal('projModal');
 }
 function saveProject(){
   const name=document.getElementById('p_name').value.trim();
-  if(!name){alert('يرجى إدخال اسم المشروع'); return;}
+  const client=document.getElementById('p_client').value.trim();
+  if(!name){showToast('⚠️ يرجى إدخال اسم المشروع'); return;}
+  if(!client){showToast('⚠️ يرجى إدخال اسم العميل'); return;}
   const id=document.getElementById('p_id').value;
-  const obj={id:id||uid(),name,client:document.getElementById('p_client').value,phone:document.getElementById('p_phone').value,
-    type:document.getElementById('p_type').value,phase:document.getElementById('p_phase').value,
-    status:document.getElementById('p_status').value,progress:parseInt(document.getElementById('p_prog').value)||0,
-    location:document.getElementById('p_loc').value,area:document.getElementById('p_area').value,
+  const obj={
+    id:id||uid(), name, client,
+    phone:document.getElementById('p_phone').value,
+    nin:document.getElementById('p_nin').value,
+    type:document.getElementById('p_type').value,
+    phase:document.getElementById('p_phase').value,
+    status:document.getElementById('p_status').value,
+    progress:parseInt(document.getElementById('p_prog').value)||0,
+    location:document.getElementById('p_loc').value,
+    area:document.getElementById('p_area').value,
     budget:parseFloat(document.getElementById('p_budget').value)||0,
-    start:document.getElementById('p_start').value,end:document.getElementById('p_end').value,
-    notes:document.getElementById('p_notes').value,created:new Date().toISOString()};
-  if(id){const i=projects.findIndex(x=>x.id===id);if(i>=0)projects[i]=obj;} else projects.push(obj);
+    start:document.getElementById('p_start').value,
+    end:document.getElementById('p_end').value,
+    notes:document.getElementById('p_notes').value,
+    created:id?(projects.find(x=>x.id===id)?.created||new Date().toISOString()):new Date().toISOString()
+  };
+  if(id){const i=projects.findIndex(x=>x.id===id);if(i>=0)projects[i]=obj;else projects.push(obj);}
+  else projects.push(obj);
   save(); closeModal('projModal'); renderProjects(); renderDash(); renderCharts(); genNotifs();
+  showToast(id?'✅ تم تحديث المشروع بنجاح':'✅ تم إضافة المشروع بنجاح');
 }
 function delProject(id){
-  if(!confirm('حذف هذا المشروع؟')) return;
-  projects=projects.filter(x=>x.id!==id); save(); renderProjects(); renderDash(); renderCharts();
+  const p=projects.find(x=>x.id===id); if(!p) return;
+  if(!confirm(`⚠️ حذف المشروع نهائياً؟\n\nالمشروع: ${p.name}\nالعميل: ${p.client||'—'}\nالمرحلة: ${p.phase||'—'}\n\nلا يمكن التراجع عن هذا الإجراء.`)) return;
+  projects=projects.filter(x=>x.id!==id);
+  // حذف التكاليف والمحاضر المرتبطة بالمشروع
+  delete costs[id];
+  delete costData[id];
+  logs=logs.filter(l=>l.project!==p.name);
+  save(); renderProjects(); renderDash(); renderCharts(); genNotifs();
+  showToast('🗑️ تم حذف المشروع: '+p.name);
 }
 function renderProjects(){
   const tb=document.getElementById('proj_tb');
   if(!projects.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:28px">لا توجد مشاريع — أضف مشروعك الأول</td></tr>';return;}
   tb.innerHTML=projects.map(p=>`<tr>
     <td><strong>${p.name}</strong>${p.location?`<div style="font-size:10px;color:var(--muted)">${p.location}</div>`:''}</td>
-    <td>${p.client||'—'}</td><td><span class="badge bm">${p.type}</span></td>
+    <td>${p.client||'—'}${p.nin?`<div style="font-size:10px;color:var(--muted)">🪪 ${p.nin}</div>`:''}</td>
+    <td><span class="badge bm">${p.type}</span></td>
     <td style="font-size:11px;color:var(--teal)">${p.phase}</td>
     <td style="min-width:100px">${pbar(p.progress)}</td><td>${sbadge(p.status)}</td>
     <td style="font-size:10px;color:var(--muted)">${p.start||'—'}</td>
     <td style="font-size:10px;color:var(--amber)">${p.end||'—'}</td>
     <td><button class="btn btn-outline btn-sm" onclick="openProjModal('${p.id}')">✏️</button>
-    <button class="btn btn-danger btn-sm" onclick="delProject('${p.id}')">🗑️</button></td>
+    <button class="btn btn-danger btn-sm" onclick="delProject('${p.id}')">🗑️ حذف</button></td>
   </tr>`).join('');
 }
 
@@ -1296,6 +1323,7 @@ function renderReqRows(reqs){
         ${r.status==='pending'||r.status==='reviewing'?`<button class="btn btn-teal btn-sm" onclick="openQuoteModal('${r.id}')">💰 عرض سعر</button>`:''}
         ${r.status==='rejected'?`<button class="btn btn-teal btn-sm" onclick="openQuoteModal('${r.id}')">💰 عرض سعر جديد</button>`:''}
         ${r.status==='accepted'?`<button class="btn btn-gold btn-sm" onclick="convertToProject('${r.id}')">🏗️ إنشاء مشروع</button>`:''}
+        ${r.status==='rejected'?`<button class="btn btn-danger btn-sm" onclick="delReq('${r.id}','${r.ticket}','${r.name}')">🗑️ حذف</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -1313,7 +1341,27 @@ async function filterReqs(statusVal){
   if(tb) tb.innerHTML=renderReqRows(reqs);
 }
 
-// ── تفاصيل الطلب ──────────────────────────────────
+async function delReq(reqId, ticket, name){
+  if(!confirm(`⚠️ حذف الطلب المرفوض نهائياً؟\n\nرقم الطلب: ${ticket}\nالعميل: ${name}\n\nلا يمكن التراجع عن هذا الإجراء.`)) return;
+  try {
+    const { doc, deleteDoc, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const db = Bridge.db;
+    // حذف الطلب من Firestore
+    await deleteDoc(doc(db, 'requests', reqId));
+    // حذف عروض السعر المرتبطة
+    const qSnap = await getDocs(query(collection(db, 'quotes'), where('reqId', '==', reqId)));
+    await Promise.all(qSnap.docs.map(d => deleteDoc(d.ref)));
+    // حذف الرسائل المرتبطة
+    const mSnap = await getDocs(query(collection(db, 'messages'), where('reqId', '==', reqId)));
+    await Promise.all(mSnap.docs.map(d => deleteDoc(d.ref)));
+    showToast('🗑️ تم حذف الطلب: ' + ticket);
+    renderRequestsPage();
+  } catch(err) {
+    console.error(err);
+    showToast('❌ تعذر حذف الطلب: ' + (err?.message || err));
+  }
+}
+window.delReq = delReq;
 async function openReqDetail(reqId){
   const req = await Bridge.Requests.get(reqId); if(!req) return;
   const sm=Bridge.STATUS_MAP[req.status]||Bridge.STATUS_MAP.pending;
