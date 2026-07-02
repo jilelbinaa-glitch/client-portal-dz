@@ -50,9 +50,16 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 
 // ── رقم الطلب ───────────────────────────────────────────
 async function ticketNum() {
-  const snap = await getDocs(collection(db, COL.requests));
-  const n = (snap.size + 1).toString().padStart(4, '0');
-  return 'REQ-' + new Date().getFullYear() + '-' + n;
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getDate()).padStart(2, '0');
+  const prefix = `JIL-${yyyy}-${mm}-${dd}-`;
+
+  // عدّ الطلبات الصادرة في نفس اليوم لتحديد الترتيب
+  const snap = await getDocs(query(collection(db, COL.requests), where('ticket', '>=', prefix), where('ticket', '<', prefix + '\uffff')));
+  const n = (snap.size + 1).toString().padStart(3, '0');
+  return prefix + n;
 }
 
 // ── تحويل Timestamp إلى ISO ─────────────────────────────
