@@ -13,8 +13,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 ::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 header{background:linear-gradient(135deg,#0f1117,#1a1f2e,#0f1117);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);gap:10px;flex-wrap:wrap;}
 .logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.logo-icon{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
-.logo-icon img{width:100%;height:100%;object-fit:cover;display:block;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:18px;}
 .logo-text h1{font-size:14px;font-weight:700;color:var(--gold);}
 .logo-text p{font-size:10px;color:var(--muted);}
 nav{display:flex;gap:2px;flex-wrap:wrap;}
@@ -134,25 +133,8 @@ select option{background:var(--surface);}
 </style>
 </head>
 <body>
-<div id="officeLoginGate" style="position:fixed;inset:0;z-index:9999;background:#0d0f14;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div style="width:100%;max-width:340px;background:#171b25;border:1px solid rgba(201,168,76,.25);border-radius:14px;padding:28px 24px;text-align:center;">
-    <img src="logo.png" alt="جيل البناء" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:14px;">
-    <h2 style="color:#c9a84c;font-size:16px;margin-bottom:4px;">دخول المكتب</h2>
-    <p style="color:#7a8299;font-size:12px;margin-bottom:18px;">هذه اللوحة مخصصة لموظفي المكتب فقط</p>
-    <input id="officeEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username"
-      style="width:100%;padding:11px 13px;margin-bottom:10px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
-    <input id="officePassword" type="password" placeholder="كلمة السر" autocomplete="current-password"
-      style="width:100%;padding:11px 13px;margin-bottom:14px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
-    <button id="officeLoginBtn" onclick="window.__officeLogin()"
-      style="width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,#7a6230,#c9a84c);color:#0d0f14;font-weight:700;font-size:13px;cursor:pointer;">
-      دخول
-    </button>
-    <p id="officeLoginError" style="color:#f87171;font-size:11px;margin-top:12px;display:none;"></p>
-  </div>
-</div>
-<div id="officeDashboardRoot" style="display:none;">
 <header>
-  <div class="logo"><div class="logo-icon"><img src="logo.png" alt="شعار جيل البناء"></div><div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div></div>
+  <div class="logo"><div class="logo-icon">🏛️</div><div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div></div>
   <nav>
     <button class="nb active" onclick="showPage('dashboard')">📊 لوحة التحكم</button>
     <button class="nb" onclick="showPage('requests')">📨 الطلبات
@@ -1253,63 +1235,7 @@ window.Bridge = Bridge;
 let _unsubAllReqs = null;
 let _officeChatUnsubs = {};
 
-// ── بوابة الدخول (Firebase Auth — إيميل/كلمة سر) ──────
-async function __officeLogin() {
-  const email = document.getElementById('officeEmail').value.trim();
-  const password = document.getElementById('officePassword').value;
-  const errEl = document.getElementById('officeLoginError');
-  const btn = document.getElementById('officeLoginBtn');
-  errEl.style.display = 'none';
-  if (!email || !password) {
-    errEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة السر';
-    errEl.style.display = 'block';
-    return;
-  }
-  btn.disabled = true; btn.textContent = '⏳ جارٍ الدخول...';
-  try {
-    await Bridge.Auth.signIn(email, password);
-    // تحقق فعلي من صلاحية الموظف: محاولة قراءة محصورة بالمكتب
-    await Bridge.Requests.getAll();
-    if (!_officeStarted) {
-      _officeStarted = true;
-      document.getElementById('officeLoginGate').style.display = 'none';
-      document.getElementById('officeDashboardRoot').style.display = '';
-      startOfficeDashboard();
-    }
-  } catch (err) {
-    console.error('Office login failed:', err);
-    if (err.code === 'permission-denied') {
-      errEl.textContent = '⛔ هذا الحساب غير مخوّل للوصول للوحة المكتب';
-      await Bridge.Auth.signOut();
-    } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-      errEl.textContent = '⛔ البريد الإلكتروني أو كلمة السر غير صحيحة';
-    } else {
-      errEl.textContent = '⛔ تعذّر تسجيل الدخول — ' + (err.message || '');
-    }
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'دخول';
-  }
-}
-window.__officeLogin = __officeLogin;
-document.getElementById('officePassword').addEventListener('keydown', e => { if (e.key === 'Enter') __officeLogin(); });
-
-function startOfficeDashboard(){
-  initBridgeInOffice();
-}
-
-let _officeStarted = false;
-Bridge.Auth.onChange(user => {
-  if (_officeStarted) return;
-  if (user && !user.isAnonymous) {
-    _officeStarted = true;
-    document.getElementById('officeLoginGate').style.display = 'none';
-    document.getElementById('officeDashboardRoot').style.display = '';
-    startOfficeDashboard();
-  }
-});
-
-async function initBridgeInOffice(){
+(async function initBridgeInOffice(){
   // ── مراقبة الطلبات لحظياً ──────────────────────
   _unsubAllReqs = Bridge.Requests.watchAll(reqs => {
     window._cachedRequests = reqs;
@@ -1319,12 +1245,11 @@ async function initBridgeInOffice(){
   });
 
   // ── مراقبة الرسائل الواردة من العملاء (لحظياً) ──
-  const { collection, collectionGroup, query, where, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  const { collection, query, where, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
   const db = Bridge.db;
 
-  // رسائل غير مقروءة من العملاء — messages أصبحت subcollection تحت كل طلب،
-  // لذا نستخدم collectionGroup لمراقبتها عبر كل التذاكر دفعة واحدة (يتطلب صلاحية المكتب)
-  onSnapshot(query(collectionGroup(db,'messages'), where('from','==','client')), snap => {
+  // رسائل غير مقروءة من العملاء
+  onSnapshot(query(collection(db,'messages'), where('from','==','client')), snap => {
     const unread = snap.docs.filter(d => !d.data().read).length;
     updateMsgBadge(unread);
     if (unread > 0) {
@@ -1364,7 +1289,7 @@ async function initBridgeInOffice(){
   });
 
   await updateAllBadges();
-}
+})();
 
 // ── نظام الشارات في قائمة الطلبات ─────────────────
 function showBadge(id, count, label) {
@@ -1887,6 +1812,5 @@ window.togglePanel = togglePanel;
 window.viewLog = viewLog;
 
 </script>
-</div>
 </body>
 </html>

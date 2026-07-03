@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="جيل البناء">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="logo-180.png">
+<link rel="apple-touch-icon" href="logo.svg">
 <title>جيل البناء — بوابة العملاء</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -303,6 +303,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
 .pay-method-ico.cib{background:rgba(0,82,165,.2);border:1px solid rgba(0,82,165,.3);}
 .pay-method-ico.baridi{background:rgba(255,165,0,.15);border:1px solid rgba(255,165,0,.3);}
 .pay-method-ico.cod{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);}
+.pay-method-ico.stripe{background:rgba(99,91,255,.15);border:1px solid rgba(99,91,255,.3);}
 .pay-method-name{font-size:13px;font-weight:700;color:var(--text);}
 .pay-method-desc{font-size:10px;color:var(--muted);margin-top:2px;}
 .pay-method-badge{margin-right:auto;font-size:9px;font-weight:700;padding:3px 8px;
@@ -329,6 +330,13 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
   text-align:center;cursor:pointer;position:relative;margin-bottom:12px;transition:all .2s;}
 .receipt-upload.has-file{border-color:var(--green);background:rgba(74,222,128,.05);}
 .receipt-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* Stripe fields */
+.stripe-field{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:13px 14px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;
+  width:100%;outline:none;margin-bottom:10px;letter-spacing:1px;}
+.stripe-field:focus{border-color:var(--gold);}
+.stripe-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
 /* إجمالي الدفع */
 .pay-total-box{background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:var(--rsm);
@@ -359,7 +367,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
   <!-- ══ HEADER ══ -->
   <header class="app-header">
     <div class="hd-brand">
-      <div class="hd-logo"><img src="logo.png" alt="شعار جيل البناء"></div>
+      <div class="hd-logo"><img src="logo.svg" alt="شعار جيل البناء"></div>
       <div>
         <div class="hd-name">جيل البناء</div>
         <div class="hd-sub">Architecture &amp; Urban Studies</div>
@@ -757,6 +765,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
           <div><div class="pay-method-name">BaridiMob</div><div class="pay-method-desc">تحويل عبر تطبيق بريدي موب</div></div>
           <span class="pay-method-badge" style="background:rgba(255,165,0,.15);color:var(--amber)">بريدي موب</span>
         </div>
+        <div class="pay-method" data-method="stripe" onclick="selectPayMethod('stripe')">
+          <div class="pay-method-ico stripe">💳</div>
+          <div><div class="pay-method-name">بطاقة بنكية دولية</div><div class="pay-method-desc">Visa / Mastercard — دفع آني مشفّر</div></div>
+          <span class="pay-method-badge" style="background:rgba(99,91,255,.15);color:#a78bfa">Stripe</span>
+        </div>
         <div class="pay-method" data-method="cod" onclick="selectPayMethod('cod')">
           <div class="pay-method-ico cod">💵</div>
           <div><div class="pay-method-name">دفع عند التسليم</div><div class="pay-method-desc">نقداً عند استلام الدراسة</div></div>
@@ -813,6 +826,32 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
         </div>
       </div>
 
+      <!-- ── Stripe ── -->
+      <div class="pay-detail" id="detail-stripe">
+        <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:10px">💳 بطاقة بنكية دولية — Visa / Mastercard</div>
+        <div class="pay-info-box" style="margin-bottom:12px">
+          <div class="pay-info-row"><span class="k">الأمان</span><span class="v" style="color:var(--green)">🔒 مشفّر SSL</span></div>
+          <div class="pay-info-row"><span class="k">العملة</span><span class="v">دولار أمريكي (USD)</span></div>
+          <div class="pay-info-row"><span class="k">المعالج</span><span class="v">Stripe Inc.</span></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px">رقم البطاقة</div>
+        <input class="stripe-field" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" oninput="formatCard(this)">
+        <div class="stripe-row">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">تاريخ الانتهاء</div>
+            <input class="stripe-field" id="cardExpiry" placeholder="MM/YY" maxlength="5" inputmode="numeric" oninput="formatExpiry(this)">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">CVV</div>
+            <input class="stripe-field" id="cardCvv" placeholder="123" maxlength="4" inputmode="numeric" type="password">
+          </div>
+        </div>
+        <input class="stripe-field" id="cardName" placeholder="الاسم على البطاقة" style="text-transform:uppercase">
+        <div style="display:flex;gap:8px;margin-top:4px;align-items:center;color:var(--muted);font-size:10px">
+          <span>🔒</span><span>بياناتك مشفّرة بالكامل — لا نحتفظ بأي معلومات بطاقة</span>
+        </div>
+      </div>
+
       <!-- ── COD ── -->
       <div class="pay-detail" id="detail-cod">
         <div class="pay-info-box">
@@ -842,7 +881,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
 
 <script type="module">
 import Bridge from './bridge.js';
-await Bridge.Auth.ready();
 
 // ═══════════════════════════════════════
 //  STATE
@@ -1230,6 +1268,7 @@ function selectPayMethod(method) {
   const labels = {
     cib: '📤 إرسال الطلب + رفع الوصل',
     baridi: '📤 إرسال الطلب + رفع الوصل',
+    stripe: '💳 ادفع الآن',
     cod: '✅ تأكيد الطلب — الدفع عند الاستلام'
   };
   btn.textContent = labels[method] || 'متابعة';
@@ -1252,12 +1291,30 @@ function copyText(text) {
 }
 window.copyText = copyText;
 
+// تنسيق رقم البطاقة
+function formatCard(input) {
+  let v = input.value.replace(/\D/g, '').substring(0,16);
+  input.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g, '').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+  input.value = v;
+}
+window.formatCard = formatCard;
+window.formatExpiry = formatExpiry;
+
 async function confirmPayment() {
   if (!_payMethod) { toast('⚠️ اختر طريقة الدفع'); return; }
   const btn = document.getElementById('btnPay');
   btn.disabled = true; btn.textContent = '⏳ جارٍ المعالجة...';
 
   try {
+    if (_payMethod === 'stripe') {
+      await processStripePayment();
+      return;
+    }
+
     // CIB / Baridi / COD — قبول العرض + تسجيل طريقة الدفع
     if ((_payMethod === 'cib' || _payMethod === 'baridi') && !_payReceipt) {
       toast('⚠️ يرجى رفع صورة وصل الدفع أولاً');
@@ -1292,21 +1349,45 @@ async function confirmPayment() {
     console.error(err);
     toast('❌ حدث خطأ: ' + (err?.message || 'تحقق من الاتصال'));
     btn.disabled = false;
-    btn.textContent = '📤 إرسال';
+    btn.textContent = _payMethod === 'stripe' ? '💳 ادفع الآن' : '📤 إرسال';
   }
 }
 window.confirmPayment = confirmPayment;
+
+async function processStripePayment() {
+  const num = document.getElementById('cardNumber')?.value?.replace(/\s/g,'');
+  const exp = document.getElementById('cardExpiry')?.value;
+  const cvv = document.getElementById('cardCvv')?.value;
+  const name = document.getElementById('cardName')?.value?.trim();
+
+  if (!num || num.length < 16) { toast('⚠️ رقم البطاقة غير صحيح'); document.getElementById('btnPay').disabled=false; document.getElementById('btnPay').textContent='💳 ادفع الآن'; return; }
+  if (!exp || !exp.includes('/')) { toast('⚠️ تاريخ انتهاء البطاقة غير صحيح'); document.getElementById('btnPay').disabled=false; document.getElementById('btnPay').textContent='💳 ادفع الآن'; return; }
+  if (!cvv || cvv.length < 3) { toast('⚠️ رمز CVV غير صحيح'); document.getElementById('btnPay').disabled=false; document.getElementById('btnPay').textContent='💳 ادفع الآن'; return; }
+  if (!name) { toast('⚠️ أدخل الاسم على البطاقة'); document.getElementById('btnPay').disabled=false; document.getElementById('btnPay').textContent='💳 ادفع الآن'; return; }
+
+  // محاكاة معالجة Stripe (يحتاج backend حقيقي في الإنتاج)
+  await new Promise(r => setTimeout(r, 2000));
+
+  await Bridge.Quotes.respond(_payQuoteId, true, '');
+  await Bridge.Requests.updateStatus(_payReqId, 'accepted', '✅ مدفوع — Stripe', 'تم الدفع بالبطاقة الدولية');
+
+  closePayModal();
+  const updated = await Bridge.Quotes.get(_payQuoteId);
+  renderQuotePanel(updated);
+  showPaymentSuccess('stripe', 'Stripe');
+}
 
 function showPaymentSuccess(method, label) {
   const msgs = {
     cib: 'تم استلام طلب الدفع ✅\nسيتحقق المكتب من وصل الدفع CIB خلال 24 ساعة ويؤكد قبول المشروع.',
     baridi: 'تم استلام طلب الدفع ✅\nسيتحقق المكتب من تحويل BaridiMob خلال 24 ساعة.',
+    stripe: 'تم الدفع بنجاح ✅\nدُفع المبلغ بالبطاقة الدولية. سيبدأ المكتب بالعمل على مشروعك قريباً.',
     cod: 'تم تأكيد طلبك ✅\nستدفع عند استلام الدراسة. سيتواصل معك المكتب قريباً لتحديد الموعد.'
   };
   // toast طويل
   const msg = msgs[method] || 'تمت العملية بنجاح ✅';
   const t = document.getElementById('toast');
-  t.textContent = '✅ ' + label + ' — ' + (method==='cod'?'تأكيد الطلب':'وصل الدفع مُرسَل');
+  t.textContent = '✅ ' + label + ' — ' + (method==='cod'?'تأكيد الطلب':method==='stripe'?'تم الدفع':'وصل الدفع مُرسَل');
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 5000);
 }
