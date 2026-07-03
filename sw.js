@@ -1,5 +1,5 @@
 const CACHE = 'jil-bina-v1';
-const ASSETS = ['app.html','bridge.js','logo.svg','manifest.json'];
+const ASSETS = ['app.html','bridge.js','logo.png','logo-180.png','logo-512.png','manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

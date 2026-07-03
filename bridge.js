@@ -1,18 +1,29 @@
 /**
  * ══════════════════════════════════════════════════════════
  *  BRIDGE.JS — طبقة البيانات المشتركة
- *  Firebase Firestore — تزامن لحظي بين بوابة العملاء ومنصة المكتب
+ *  Firebase Firestore + Auth — تزامن لحظي بين بوابة العملاء ومنصة المكتب
  *  مكتب جيل البناء للدراسات
+ *
+ *  ملاحظة أمنية:
+ *  هذا الملف يعمل مع قواعد أمان Firestore صارمة (انظر firestore.rules).
+ *  - العميل (بوابة الموقع / تطبيق الجوال) يدخل بحساب مجهول (Anonymous Auth)
+ *    تلقائياً — بدون أي واجهة تسجيل دخول، شفاف تماماً للمستخدم.
+ *  - المكتب (منصة architecture_pm.html) يجب أن يسجّل دخول بإيميل/كلمة سر
+ *    حقيقية (Bridge.Auth.signIn) قبل أي وصول لبيانات كل العملاء.
  * ══════════════════════════════════════════════════════════
  */
 
 // ── Firebase Config ─────────────────────────────────────
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, getDoc, getDocs,
-  updateDoc, onSnapshot, query, orderBy, where,
-  serverTimestamp, Timestamp
+  getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
+  updateDoc, onSnapshot, query, orderBy, where, collectionGroup,
+  serverTimestamp, Timestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged,
+  signInWithEmailAndPassword, signOut as fbSignOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2W3B4F-elXqMYpzTTyUY-elBR29hgWc8",
@@ -24,15 +35,16 @@ const firebaseConfig = {
   measurementId: "G-X22LF4DQWW"
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
 
 // ── مفاتيح المجموعات ────────────────────────────────────
 const COL = {
-  requests: 'requests',
-  quotes:   'quotes',
-  messages: 'messages',
-  notifs:   'notifications',
+  requests:     'requests',
+  quotes:       'quotes',
+  officeNotifs: 'office_notifications',
+  counters:     'counters',
 };
 
 // ── المستمعون للأحداث (محلي) ───────────────────────────
@@ -45,21 +57,64 @@ function emit(event, data) {
   (_listeners[event] || []).forEach(cb => cb(data));
 }
 
-// ── uid ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  AUTH
+//  - ready(): يضمن وجود جلسة (مجهولة إن لم تكن هناك جلسة أصلاً)
+//    ينادى مرة عند بدء بوابة الموقع/تطبيق الجوال قبل أي عملية بيانات.
+//  - signIn(): تسجيل دخول حقيقي للمكتب بإيميل/كلمة سر.
+// ══════════════════════════════════════════════════════════
+let _authReadyResolve;
+const _authReadyPromise = new Promise(res => { _authReadyResolve = res; });
+let _authResolved = false;
+
+onAuthStateChanged(auth, user => {
+  if (!_authResolved) { _authResolved = true; _authReadyResolve(user); }
+  emit('auth:changed', user);
+});
+
+const Auth = {
+  // يُستدعى من index.html / app.html — يضمن جلسة مجهولة صالحة
+  async ready() {
+    if (!auth.currentUser) {
+      try { await signInAnonymously(auth); }
+      catch (err) { console.error('Anonymous sign-in failed:', err); throw err; }
+    }
+    return _authReadyPromise;
+  },
+  // يُستدعى من architecture_pm.html — تسجيل دخول حقيقي للموظف
+  async signIn(email, password) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return cred.user;
+  },
+  async signOut() {
+    await fbSignOut(auth);
+  },
+  currentUser() { return auth.currentUser; },
+  isAnonymous() { return !!auth.currentUser?.isAnonymous; },
+  onChange(cb) { on('auth:changed', cb); if (_authResolved) cb(auth.currentUser); }
+};
+
+// ── uid (محلي — لأغراض غير حساسة فقط) ──────────────────
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-// ── رقم الطلب ───────────────────────────────────────────
+// ── رقم الطلب — عدّاد تفاعلي آمن (لا يتطلب قراءة كل الطلبات) ─
 async function ticketNum() {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm   = String(now.getMonth() + 1).padStart(2, '0');
   const dd   = String(now.getDate()).padStart(2, '0');
-  const prefix = `JIL-${yyyy}-${mm}-${dd}-`;
+  const dateKey = `${yyyy}${mm}${dd}`;
+  const prefix  = `JIL-${yyyy}-${mm}-${dd}-`;
 
-  // عدّ الطلبات الصادرة في نفس اليوم لتحديد الترتيب
-  const snap = await getDocs(query(collection(db, COL.requests), where('ticket', '>=', prefix), where('ticket', '<', prefix + '\uffff')));
-  const n = (snap.size + 1).toString().padStart(3, '0');
-  return prefix + n;
+  const counterRef = doc(db, COL.counters, dateKey);
+  const n = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    const next = snap.exists() ? (Number(snap.data().n) || 0) + 1 : 1;
+    if (snap.exists()) tx.update(counterRef, { n: next });
+    else tx.set(counterRef, { n: next });
+    return next;
+  });
+  return prefix + String(n).padStart(3, '0');
 }
 
 // ── تحويل Timestamp إلى ISO ─────────────────────────────
@@ -84,7 +139,6 @@ function clean(obj) {
   const result = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v === undefined) { result[k] = null; continue; }
-    // الحفاظ على القيم الخاصة بـ Firestore (مثل serverTimestamp) دون تعديل
     if (v !== null && typeof v === 'object' && v.constructor && v.constructor.name &&
         (v.constructor.name.includes('FieldValue') || v.constructor.name.includes('Sentinel') || typeof v._methodName === 'string')) {
       result[k] = v;
@@ -105,6 +159,9 @@ function clean(obj) {
 
 // ══════════════════════════════════════════════════════════
 //  REQUESTS
+//  معرّف المستند = رقم التذكرة (ticket) نفسه.
+//  → معرفة رقم التذكرة تكفي لقراءة الطلب (مثل رقم تتبّع شحنة)،
+//    لكن لا يمكن لأحد "تصفّح" كل الطلبات إلا المكتب (بعد تسجيل الدخول).
 // ══════════════════════════════════════════════════════════
 const Requests = {
 
@@ -122,15 +179,15 @@ const Requests = {
       projectId: null,
       timeline: [{ step:'submitted', label:'استلام الطلب', desc:'تم استلام طلبك', done:true, ts: new Date().toISOString() }]
     });
-    const ref = await addDoc(collection(db, COL.requests), req);
-    const result = { id: ref.id, ...req, ticket };
+    await setDoc(doc(db, COL.requests, ticket), req);
+    const result = { id: ticket, ...req, ticket };
 
     // إشعار للمكتب
     await Notifs.add('office', {
       type: 'new_request', icon: '📨',
       title: 'طلب جديد من عميل',
       body: `${data.name} — ${data.building || 'مشروع'} — ${data.projWilaya || data.wilaya || ''}`,
-      ticket, reqId: ref.id, link: 'requests'
+      ticket, reqId: ticket, link: 'requests'
     });
 
     emit('request:new', result);
@@ -142,24 +199,16 @@ const Requests = {
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   },
 
+  // البحث بالتذكرة أو بالمعرّف الداخلي — الاثنان متطابقان الآن
   async get(id) {
-    // بحث بالـ ticket أولاً (الحالة الأكثر شيوعاً من بوابة العملاء)
+    if (!id) return null;
     try {
-      const snap = await getDocs(query(collection(db, COL.requests), where('ticket', '==', id)));
-      if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+      const snap = await getDoc(doc(db, COL.requests, String(id).trim().toUpperCase()));
+      return snap.exists() ? { id: snap.id, ...snap.data() } : null;
     } catch (err) {
-      console.error('Requests.get (by ticket) failed:', err);
-      throw err;
+      console.error('Requests.get failed:', err);
+      return null;
     }
-    // بحث بالـ ID المباشر (يُستخدم داخلياً من منصة المكتب)
-    try {
-      const direct = await getDoc(doc(db, COL.requests, id));
-      if (direct.exists()) return { id: direct.id, ...direct.data() };
-    } catch (err) {
-      // معرف غير صالح كـ document ID — ليس خطأ حقيقي، فقط لم يُطابق
-      console.warn('Requests.get (by id) skipped:', err.message);
-    }
-    return null;
   },
 
   async updateStatus(id, status, statusLabel, desc, officeNotes) {
@@ -207,7 +256,7 @@ const Requests = {
     };
   },
 
-  // مراقبة لحظية
+  // مراقبة لحظية — للمكتب فقط (يتطلب تسجيل دخول)
   watchAll(cb) {
     return onSnapshot(query(collection(db, COL.requests), orderBy('submittedAt', 'desc')), snap => {
       cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -223,6 +272,10 @@ const Requests = {
 
 // ══════════════════════════════════════════════════════════
 //  QUOTES
+//  تبقى مجموعة عليا (top-level) — الوصول لعرض واحد بمعرّفه مسموح
+//  للجميع (نفس مبدأ رقم التذكرة)، لكن تصفّح كل العروض محصور بالمكتب.
+//  العميل يصل لعرضه عبر req.quoteId المخزّن أصلاً في مستند طلبه —
+//  دون حاجة لأي استعلام "بحث/تصفّح".
 // ══════════════════════════════════════════════════════════
 const Quotes = {
 
@@ -256,16 +309,16 @@ const Quotes = {
   },
 
   async get(id) {
+    if (!id) return null;
     const snap = await getDoc(doc(db, COL.quotes, id));
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
   },
 
+  // يقرأ quoteId من مستند الطلب نفسه بدل تصفّح مجموعة العروض
   async getByReq(reqId) {
-    const snap = await getDocs(query(collection(db, COL.quotes), where('reqId', '==', reqId)));
-    if (snap.empty) return null;
-    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    all.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
-    return all[0];
+    const req = await Requests.get(reqId);
+    if (!req?.quoteId) return null;
+    return await this.get(req.quoteId);
   },
 
   async getAll() {
@@ -305,19 +358,29 @@ const Quotes = {
     return result;
   },
 
+  // مراقبة لحظية لعرض طلب معيّن — تتبع مستند الطلب (quoteId) بدل استعلام تصفّح
   watchByReq(reqId, cb) {
-    return onSnapshot(query(collection(db, COL.quotes), where('reqId', '==', reqId)), snap => {
-      if (snap.empty) { cb(null); return; }
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      all.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
-      cb(all[0]);
+    let quoteUnsub = null;
+    const reqUnsub = onSnapshot(doc(db, COL.requests, reqId), snap => {
+      if (quoteUnsub) { quoteUnsub(); quoteUnsub = null; }
+      const qid = snap.exists() ? snap.data().quoteId : null;
+      if (!qid) { cb(null); return; }
+      quoteUnsub = onSnapshot(doc(db, COL.quotes, qid), qsnap => {
+        cb(qsnap.exists() ? { id: qsnap.id, ...qsnap.data() } : null);
+      });
     });
+    return () => { reqUnsub(); if (quoteUnsub) quoteUnsub(); };
   }
 };
 
 // ══════════════════════════════════════════════════════════
 //  MESSAGES
+//  تُخزَّن الآن كمجموعة فرعية requests/{ticket}/messages —
+//  معرفة رقم التذكرة (المسار نفسه) شرط لازم لقراءة المحادثة،
+//  والمكتب وحده يملك رؤية شاملة عبر كل التذاكر (collection group).
 // ══════════════════════════════════════════════════════════
+function msgsCol(reqId) { return collection(db, COL.requests, reqId, 'messages'); }
+
 const Messages = {
 
   async send(reqId, from, text, attachments) {
@@ -327,7 +390,7 @@ const Messages = {
       attachments: attachments || [],
       ts: serverTimestamp(), read: false
     });
-    const ref = await addDoc(collection(db, COL.messages), msg);
+    const ref = await addDoc(msgsCol(reqId), msg);
     const result = { id: ref.id, ...msg };
 
     const target = from === 'client' ? 'office' : 'client_' + (req?.ticket || '');
@@ -344,67 +407,89 @@ const Messages = {
   },
 
   async getThread(reqId) {
-    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId)));
+    const snap = await getDocs(msgsCol(reqId));
     const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     all.sort((a, b) => toMillis(a.ts) - toMillis(b.ts));
     return all;
   },
 
   async markRead(reqId, reader) {
-    const snap = await getDocs(query(collection(db, COL.messages), where('reqId', '==', reqId)));
+    const snap = await getDocs(msgsCol(reqId));
     const promises = snap.docs.filter(d => d.data().from !== reader && !d.data().read).map(d => updateDoc(d.ref, { read: true }));
     await Promise.all(promises);
     emit('messages:read', { reqId, reader });
   },
 
+  // إجمالي غير المقروء من العملاء — للمكتب فقط (collection group)
   async officeUnreadTotal() {
-    const snap = await getDocs(query(collection(db, COL.messages), where('from', '==', 'client')));
+    const snap = await getDocs(query(collectionGroup(db, 'messages'), where('from', '==', 'client')));
     return snap.docs.filter(d => !d.data().read).length;
   },
 
   watchThread(reqId, cb) {
-    return onSnapshot(query(collection(db, COL.messages), where('reqId', '==', reqId)), snap => {
+    return onSnapshot(msgsCol(reqId), snap => {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       all.sort((a, b) => toMillis(a.ts) - toMillis(b.ts));
       cb(all);
     });
+  },
+
+  // مراقبة لحظية شاملة لكل رسائل العملاء عبر كل التذاكر — للمكتب فقط
+  watchAllClientMessages(cb) {
+    return onSnapshot(query(collectionGroup(db, 'messages'), where('from', '==', 'client')), cb);
   }
 };
 
 // ══════════════════════════════════════════════════════════
 //  NOTIFICATIONS
+//  إشعارات المكتب → مجموعة عليا office_notifications (محصورة بالمكتب)
+//  إشعارات عميل معيّن → requests/{ticket}/notifications (بمعرفة التذكرة)
 // ══════════════════════════════════════════════════════════
+function notifTarget(target) {
+  if (target === 'office') {
+    return { col: collection(db, COL.officeNotifs), isClient: false };
+  }
+  const ticket = target.startsWith('client_') ? target.slice(7) : target;
+  return { col: collection(db, COL.requests, ticket, 'notifications'), isClient: true };
+}
+
 const Notifs = {
 
   async add(target, data) {
+    const { col } = notifTarget(target);
     const notif = clean({ target, ...data, ts: serverTimestamp(), read: false });
-    await addDoc(collection(db, COL.notifs), notif);
+    await addDoc(col, notif);
     emit('notif:' + target, data);
   },
 
   async get(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    const { col } = notifTarget(target);
+    const snap = await getDocs(col);
     const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     all.sort((a, b) => toMillis(b.ts) - toMillis(a.ts));
     return all;
   },
 
   async markRead(target, id) {
-    await updateDoc(doc(db, COL.notifs, id), { read: true });
+    const { col } = notifTarget(target);
+    await updateDoc(doc(col, id), { read: true });
   },
 
   async markAllRead(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    const { col } = notifTarget(target);
+    const snap = await getDocs(col);
     await Promise.all(snap.docs.filter(d => !d.data().read).map(d => updateDoc(d.ref, { read: true })));
   },
 
   async unread(target) {
-    const snap = await getDocs(query(collection(db, COL.notifs), where('target', '==', target)));
+    const { col } = notifTarget(target);
+    const snap = await getDocs(col);
     return snap.docs.filter(d => !d.data().read).length;
   },
 
   watch(target, cb) {
-    return onSnapshot(query(collection(db, COL.notifs), where('target', '==', target)), snap => {
+    const { col } = notifTarget(target);
+    return onSnapshot(col, snap => {
       cb(snap.docs.filter(d => !d.data().read).length);
     });
   }
@@ -439,6 +524,6 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('ar-DZ'); }
 // ══════════════════════════════════════════════════════════
 //  EXPORT
 // ══════════════════════════════════════════════════════════
-const Bridge = { Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db };
+const Bridge = { Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db };
 window.Bridge = Bridge;
 export default Bridge;

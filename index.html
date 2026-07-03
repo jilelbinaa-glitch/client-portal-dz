@@ -237,7 +237,7 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
 
 <nav>
   <div class="nav-brand">
-    <div class="nav-logo"><img src="logo.svg" alt="شعار جيل البناء" style="width:38px;height:38px;border-radius:50%;object-fit:cover"></div>
+    <div class="nav-logo"><img src="logo.png" alt="شعار جيل البناء" style="width:38px;height:38px;border-radius:50%;object-fit:cover"></div>
     <div>
       <div class="brand-ar">جيل البناء للهندسة المعمارية والعمرانية</div>
       <div class="brand-en">Jel Al-Bina'a · Architecture &amp; Urban Studies</div>
@@ -502,7 +502,7 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
     <div class="stitle" style="color:var(--text) !important">تتبّع حالة<br>طلبك</div>
     <p style="font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin-top:12px">أدخل رقم الطلب المرجعي ورقم التعريف الوطني لمعرفة آخر التحديثات وعرض الأسعار والتواصل مع مكتبنا.</p>
     <div class="sf" style="flex-wrap:wrap">
-      <input id="statusIn" placeholder="رقم الطلب — مثال: REQ-2025-0001" style="min-width:200px">
+      <input id="statusIn" placeholder="مثال: JIL-2025-07-01-001">
       <input id="statusNin" placeholder="رقم التعريف الوطني" style="min-width:160px">
       <button onclick="checkSt()">🔍 بحث / Search</button>
     </div>
@@ -553,6 +553,7 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
 
 <script type="module">
 import Bridge from './bridge.js';
+await Bridge.Auth.ready();
 
 let curStep=1, selSvcs=[], upFiles=[], mapLoaded=false, activeReqId=null, activeTicket=null;
 let unsubReq=null, unsubQuote=null, unsubChat=null;

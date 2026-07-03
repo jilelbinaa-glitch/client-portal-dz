@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="جيل البناء">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="logo.svg">
+<link rel="apple-touch-icon" href="logo-180.png">
 <title>جيل البناء — بوابة العملاء</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -275,7 +275,75 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
 .spinner{width:18px;height:18px;border:2px solid var(--dim);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ══ RESPONSIVE TWEAKS ═══════════════════════════════ */
+/* ══ PAYMENT MODAL ═══════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-width:500px;
+  padding:0;max-height:92dvh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--dim);border-radius:2px;margin:12px auto 0;}
+.modal-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);}
+.modal-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.modal-body{padding:16px 20px;}
+.modal-footer{padding:12px 20px 24px;border-top:1px solid var(--border);}
+
+/* طرق الدفع */
+.pay-methods{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.pay-method{display:flex;align-items:center;gap:14px;background:var(--s2);
+  border:2px solid var(--border);border-radius:var(--rsm);padding:14px;
+  cursor:pointer;transition:all .2s;}
+.pay-method:active{transform:scale(.98);}
+.pay-method.selected{border-color:var(--gold);background:var(--gold-glow);}
+.pay-method-ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;}
+.pay-method-ico.cib{background:rgba(0,82,165,.2);border:1px solid rgba(0,82,165,.3);}
+.pay-method-ico.baridi{background:rgba(255,165,0,.15);border:1px solid rgba(255,165,0,.3);}
+.pay-method-ico.cod{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);}
+.pay-method-name{font-size:13px;font-weight:700;color:var(--text);}
+.pay-method-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.pay-method-badge{margin-right:auto;font-size:9px;font-weight:700;padding:3px 8px;
+  border-radius:99px;flex-shrink:0;}
+
+/* تفاصيل الدفع */
+.pay-detail{display:none;margin-bottom:16px;}
+.pay-detail.active{display:block;}
+.pay-info-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:12px;}
+.pay-info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:12px;}
+.pay-info-row:last-child{border-bottom:none;}
+.pay-info-row .k{color:var(--muted);}
+.pay-info-row .v{color:var(--text);font-weight:700;font-family:'Space Grotesk',sans-serif;}
+.copy-btn{background:var(--s3);border:1px solid var(--border);color:var(--gold);
+  padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;border:none;}
+.pay-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.pay-step{display:flex;gap:10px;font-size:12px;color:var(--muted);line-height:1.6;}
+.pay-step-n{width:22px;height:22px;border-radius:50%;background:var(--gold-d);color:var(--bg);
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+/* رفع الوصل */
+.receipt-upload{border:2px dashed var(--dim);border-radius:var(--rsm);padding:20px;
+  text-align:center;cursor:pointer;position:relative;margin-bottom:12px;transition:all .2s;}
+.receipt-upload.has-file{border-color:var(--green);background:rgba(74,222,128,.05);}
+.receipt-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* إجمالي الدفع */
+.pay-total-box{background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:var(--rsm);
+  padding:14px;text-align:center;margin-bottom:14px;}
+.pay-total-lbl{font-size:10px;color:rgba(13,15,20,.6);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;}
+.pay-total-n{font-size:28px;font-weight:700;color:var(--bg);font-family:'Space Grotesk',sans-serif;}
+.btn-pay{width:100%;background:var(--bg);color:var(--gold);border:none;padding:14px;
+  border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;}
+.btn-pay:active{opacity:.88;}
+.btn-pay:disabled{opacity:.4;cursor:not-allowed;}
+.btn-cancel-pay{width:100%;background:none;border:1px solid var(--border);color:var(--muted);
+  padding:12px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;
+  cursor:pointer;margin-top:8px;}
+
 @media(min-width:500px){
   .screens{max-width:500px;margin:0 auto;}
   .app-nav{max-width:500px;margin:0 auto;width:100%;}
@@ -291,7 +359,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
   <!-- ══ HEADER ══ -->
   <header class="app-header">
     <div class="hd-brand">
-      <div class="hd-logo"><img src="logo.svg" alt="شعار جيل البناء"></div>
+      <div class="hd-logo"><img src="logo.png" alt="شعار جيل البناء"></div>
       <div>
         <div class="hd-name">جيل البناء</div>
         <div class="hd-sub">Architecture &amp; Urban Studies</div>
@@ -661,10 +729,120 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo',sans-serif;background:
 
 </div>
 
+<!-- ══ PAYMENT MODAL ══ -->
+<div class="modal-overlay" id="payModal" onclick="if(event.target===this)closePayModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">💳 إتمام الدفع</div>
+      <div class="modal-sub" id="payModalSub">اختر طريقة الدفع المناسبة</div>
+    </div>
+    <div class="modal-body">
+
+      <!-- المبلغ -->
+      <div class="pay-total-box">
+        <div class="pay-total-lbl">المبلغ المستحق</div>
+        <div class="pay-total-n" id="payTotalDisplay">0 دج</div>
+      </div>
+
+      <!-- اختيار الطريقة -->
+      <div class="pay-methods" id="payMethods">
+        <div class="pay-method" data-method="cib" onclick="selectPayMethod('cib')">
+          <div class="pay-method-ico cib">🏦</div>
+          <div><div class="pay-method-name">CIB / EDAHABIA</div><div class="pay-method-desc">بريد الجزائر — تحويل بنكي أو بريدي</div></div>
+          <span class="pay-method-badge" style="background:rgba(0,82,165,.15);color:#4a9ff5">بريد الجزائر</span>
+        </div>
+        <div class="pay-method" data-method="baridi" onclick="selectPayMethod('baridi')">
+          <div class="pay-method-ico baridi">📱</div>
+          <div><div class="pay-method-name">BaridiMob</div><div class="pay-method-desc">تحويل عبر تطبيق بريدي موب</div></div>
+          <span class="pay-method-badge" style="background:rgba(255,165,0,.15);color:var(--amber)">بريدي موب</span>
+        </div>
+        <div class="pay-method" data-method="cod" onclick="selectPayMethod('cod')">
+          <div class="pay-method-ico cod">💵</div>
+          <div><div class="pay-method-name">دفع عند التسليم</div><div class="pay-method-desc">نقداً عند استلام الدراسة</div></div>
+          <span class="pay-method-badge" style="background:rgba(74,222,128,.1);color:var(--green)">مضمون</span>
+        </div>
+      </div>
+
+      <!-- ── CIB / EDAHABIA ── -->
+      <div class="pay-detail" id="detail-cib">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">بيانات التحويل البنكي / البريدي</div>
+        <div class="pay-info-box">
+          <div class="pay-info-row"><span class="k">الاسم</span><span class="v">مكتب جيل البناء</span></div>
+          <div class="pay-info-row"><span class="k">RIP CCP</span><span class="v" id="cibRip">0079999 21000000000 71</span><button class="copy-btn" onclick="copyText('0079999 21000000000 71')">نسخ</button></div>
+          <div class="pay-info-row"><span class="k">البنك</span><span class="v">بريد الجزائر</span></div>
+          <div class="pay-info-row"><span class="k">المبلغ</span><span class="v" id="cibAmount">—</span></div>
+          <div class="pay-info-row"><span class="k">المرجع</span><span class="v" id="cibRef">—</span></div>
+        </div>
+        <div class="pay-steps">
+          <div class="pay-step"><div class="pay-step-n">1</div><div>توجّه إلى أقرب مكتب بريد أو استخدم تطبيق Baridimob</div></div>
+          <div class="pay-step"><div class="pay-step-n">2</div><div>حوّل المبلغ إلى رقم CCP أعلاه مع ذكر رقم الطلب كمرجع</div></div>
+          <div class="pay-step"><div class="pay-step-n">3</div><div>ارفع صورة وصل الدفع للتأكيد</div></div>
+        </div>
+        <div class="receipt-upload" id="cibUploadZone">
+          <input type="file" accept="image/*,.pdf" onchange="handleReceiptUpload(this,'cib')">
+          <div id="cibUploadContent">
+            <div style="font-size:26px;margin-bottom:6px">📎</div>
+            <div style="font-size:12px;color:var(--muted)">ارفع صورة وصل الدفع</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px">JPG, PNG, PDF</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BaridiMob ── -->
+      <div class="pay-detail" id="detail-baridi">
+        <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:10px">التحويل عبر BaridiMob</div>
+        <div class="pay-info-box">
+          <div class="pay-info-row"><span class="k">رقم الحساب</span><span class="v" id="baridiNum">0023456789</span><button class="copy-btn" onclick="copyText('0023456789')">نسخ</button></div>
+          <div class="pay-info-row"><span class="k">اسم المستفيد</span><span class="v">جيل البناء</span></div>
+          <div class="pay-info-row"><span class="k">المبلغ</span><span class="v" id="baridiAmount">—</span></div>
+          <div class="pay-info-row"><span class="k">المرجع</span><span class="v" id="baridiRef">—</span></div>
+        </div>
+        <div class="pay-steps">
+          <div class="pay-step"><div class="pay-step-n">1</div><div>افتح تطبيق BaridiMob على هاتفك</div></div>
+          <div class="pay-step"><div class="pay-step-n">2</div><div>اختر "تحويل" وأدخل رقم الحساب أعلاه</div></div>
+          <div class="pay-step"><div class="pay-step-n">3</div><div>اكتب رقم طلبك في خانة الملاحظة</div></div>
+          <div class="pay-step"><div class="pay-step-n">4</div><div>ارفع لقطة الشاشة بعد إتمام التحويل</div></div>
+        </div>
+        <div class="receipt-upload" id="baridiUploadZone">
+          <input type="file" accept="image/*" onchange="handleReceiptUpload(this,'baridi')">
+          <div id="baridiUploadContent">
+            <div style="font-size:26px;margin-bottom:6px">📱</div>
+            <div style="font-size:12px;color:var(--muted)">ارفع لقطة شاشة التحويل</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COD ── -->
+      <div class="pay-detail" id="detail-cod">
+        <div class="pay-info-box">
+          <div style="text-align:center;padding:10px">
+            <div style="font-size:40px;margin-bottom:10px">💵</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">الدفع عند الاستلام</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7">ستدفع المبلغ نقداً عند تسليم الدراسة المعمارية أو الوثائق المطلوبة. لا حاجة لأي إجراء إضافي الآن.</div>
+          </div>
+        </div>
+        <div class="pay-steps">
+          <div class="pay-step"><div class="pay-step-n">✓</div><div>اقبل عرض السعر الآن</div></div>
+          <div class="pay-step"><div class="pay-step-n">✓</div><div>سيتواصل معك المكتب لتحديد موعد الاستلام</div></div>
+          <div class="pay-step"><div class="pay-step-n">✓</div><div>ادفع المبلغ نقداً عند التسليم</div></div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+    <div class="modal-footer">
+      <button class="btn-pay" id="btnPay" onclick="confirmPayment()" disabled>اختر طريقة الدفع</button>
+      <button class="btn-cancel-pay" onclick="closePayModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
 
 <script type="module">
 import Bridge from './bridge.js';
+await Bridge.Auth.ready();
 
 // ═══════════════════════════════════════
 //  STATE
@@ -905,7 +1083,7 @@ function renderQuotePanel(q) {
           </div>`
         : `<div class="quote-actions">
             <button class="btn-reject" onclick="respondQuote(false)">❌ رفض</button>
-            <button class="btn-accept" onclick="respondQuote(true)">✅ قبول العرض</button>
+            <button class="btn-accept" onclick="openPayment('${q.id}',${q.total})">✅ قبول والدفع</button>
           </div>`}
     </div>`;
 }
@@ -1000,8 +1178,140 @@ function showChatBadge(n) {
 }
 
 // ═══════════════════════════════════════
-//  PWA INSTALL
+//  PAYMENT SYSTEM
 // ═══════════════════════════════════════
+let _payQuoteId = null;
+let _payTotal = 0;
+let _payMethod = null;
+let _payReceipt = null;
+let _payReqId = null;
+
+function openPayment(quoteId, total) {
+  _payQuoteId = quoteId;
+  _payTotal = total;
+  _payReqId = activeReqId;
+  _payMethod = null;
+  _payReceipt = null;
+
+  // تحديث المبلغ في واجهة الدفع
+  const fmt = Number(total).toLocaleString('ar-DZ') + ' دج';
+  document.getElementById('payTotalDisplay').textContent = fmt;
+  document.getElementById('cibAmount').textContent = fmt;
+  document.getElementById('baridiAmount').textContent = fmt;
+
+  // وضع رقم الطلب كمرجع
+  const ticket = document.getElementById('t_ticket')?.value?.trim() || '';
+  document.getElementById('cibRef').textContent = ticket;
+  document.getElementById('baridiRef').textContent = ticket;
+
+  // إعادة الضبط
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  document.querySelectorAll('.pay-detail').forEach(d => d.classList.remove('active'));
+  document.getElementById('btnPay').disabled = true;
+  document.getElementById('btnPay').textContent = 'اختر طريقة الدفع';
+
+  document.getElementById('payModal').classList.add('open');
+}
+window.openPayment = openPayment;
+
+function closePayModal() {
+  document.getElementById('payModal').classList.remove('open');
+}
+window.closePayModal = closePayModal;
+
+function selectPayMethod(method) {
+  _payMethod = method;
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  document.querySelector(`.pay-method[data-method="${method}"]`)?.classList.add('selected');
+  document.querySelectorAll('.pay-detail').forEach(d => d.classList.remove('active'));
+  document.getElementById('detail-' + method)?.classList.add('active');
+
+  const btn = document.getElementById('btnPay');
+  const labels = {
+    cib: '📤 إرسال الطلب + رفع الوصل',
+    baridi: '📤 إرسال الطلب + رفع الوصل',
+    cod: '✅ تأكيد الطلب — الدفع عند الاستلام'
+  };
+  btn.textContent = labels[method] || 'متابعة';
+  btn.disabled = false;
+}
+window.selectPayMethod = selectPayMethod;
+
+function handleReceiptUpload(input, type) {
+  const file = input.files[0]; if (!file) return;
+  _payReceipt = file;
+  const zone = document.getElementById(type + 'UploadZone');
+  const content = document.getElementById(type + 'UploadContent');
+  zone.classList.add('has-file');
+  content.innerHTML = `<div style="font-size:22px;margin-bottom:5px">✅</div><div style="font-size:12px;color:var(--green);font-weight:600">${file.name}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">${Math.round(file.size/1024)} KB — تم الرفع</div>`;
+}
+window.handleReceiptUpload = handleReceiptUpload;
+
+function copyText(text) {
+  navigator.clipboard?.writeText(text).then(() => toast('✅ تم النسخ: ' + text)).catch(() => toast('تعذر النسخ التلقائي'));
+}
+window.copyText = copyText;
+
+async function confirmPayment() {
+  if (!_payMethod) { toast('⚠️ اختر طريقة الدفع'); return; }
+  const btn = document.getElementById('btnPay');
+  btn.disabled = true; btn.textContent = '⏳ جارٍ المعالجة...';
+
+  try {
+    // CIB / Baridi / COD — قبول العرض + تسجيل طريقة الدفع
+    if ((_payMethod === 'cib' || _payMethod === 'baridi') && !_payReceipt) {
+      toast('⚠️ يرجى رفع صورة وصل الدفع أولاً');
+      btn.disabled = false; btn.textContent = _payMethod === 'cib' ? '📤 إرسال الطلب + رفع الوصل' : '📤 إرسال الطلب + رفع الوصل';
+      return;
+    }
+
+    // قبول العرض في Firestore
+    await Bridge.Quotes.respond(_payQuoteId, true, '');
+
+    // تسجيل بيانات الدفع في الطلب
+    const payInfo = {
+      method: _payMethod,
+      methodLabel: {cib:'CIB/EDAHABIA',baridi:'BaridiMob',cod:'دفع عند الاستلام'}[_payMethod],
+      amount: _payTotal,
+      receiptName: _payReceipt?.name || null,
+      paidAt: new Date().toISOString(),
+      status: _payMethod === 'cod' ? 'pending_delivery' : 'pending_verification'
+    };
+    await Bridge.Requests.updateStatus(_payReqId,
+      _payMethod === 'cod' ? 'accepted' : 'payment_pending',
+      _payMethod === 'cod' ? '✅ مقبول — الدفع عند الاستلام' : '⏳ قيد التحقق من الدفع',
+      `طريقة الدفع: ${payInfo.methodLabel}`
+    );
+
+    closePayModal();
+    const updated = await Bridge.Quotes.get(_payQuoteId);
+    renderQuotePanel(updated);
+    showPaymentSuccess(_payMethod, payInfo.methodLabel);
+
+  } catch (err) {
+    console.error(err);
+    toast('❌ حدث خطأ: ' + (err?.message || 'تحقق من الاتصال'));
+    btn.disabled = false;
+    btn.textContent = '📤 إرسال';
+  }
+}
+window.confirmPayment = confirmPayment;
+
+function showPaymentSuccess(method, label) {
+  const msgs = {
+    cib: 'تم استلام طلب الدفع ✅\nسيتحقق المكتب من وصل الدفع CIB خلال 24 ساعة ويؤكد قبول المشروع.',
+    baridi: 'تم استلام طلب الدفع ✅\nسيتحقق المكتب من تحويل BaridiMob خلال 24 ساعة.',
+    cod: 'تم تأكيد طلبك ✅\nستدفع عند استلام الدراسة. سيتواصل معك المكتب قريباً لتحديد الموعد.'
+  };
+  // toast طويل
+  const msg = msgs[method] || 'تمت العملية بنجاح ✅';
+  const t = document.getElementById('toast');
+  t.textContent = '✅ ' + label + ' — ' + (method==='cod'?'تأكيد الطلب':'وصل الدفع مُرسَل');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 5000);
+}
+
+
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();

@@ -6,47 +6,146 @@ rules_version = '2';
 //  Firebase Console → Firestore Database → Rules → الصق → Publish
 // ══════════════════════════════════════════════════════════
 //
-//  ملاحظة هامة:
-//  هذه القواعد تسمح بالقراءة والكتابة لأي زائر (عام/مفتوح)،
-//  وهذا مناسب لموقع بدون نظام تسجيل دخول (Authentication).
-//  لاحقاً، إن أردت حماية إضافية (مثلاً منع التلاعب أو السبام)،
-//  يمكن إضافة Firebase Authentication وتقييد الكتابة بمستخدمين موثقين.
-//
-rules_version = '2';
+//  نموذج الأمان المعتمد:
+//  - معرفة "رقم التذكرة" (ticket) تكفي لقراءة طلب واحد بعينه —
+//    تماماً كرقم تتبّع شحنة. لا يمكن لأي زائر "تصفّح" أو تعداد
+//    كل الطلبات؛ هذا محصور بموظفي المكتب فقط (بعد تسجيل دخول
+//    حقيقي بإيميل/كلمة سر، عبر التحقق من وجودهم في staff/{uid}).
+//  - زوار الموقع/تطبيق الجوال يدخلون تلقائياً بحساب Firebase
+//    Anonymous Auth (شفاف، بدون أي واجهة) — هذا يمنع الوصول
+//    الآلي المباشر عبر REST API دون المرور بـ Firebase Auth إطلاقاً.
+//  - يتطلب هذا الملف خطوة إعداد يدوية واحدة في Firebase Console:
+//    1) فعّل Authentication → Sign-in method → Anonymous + Email/Password
+//    2) أنشئ مستخدم Email/Password لكل موظف مكتب
+//    3) أضف مستند بمعرّف uid الموظف في مجموعة staff (المحتوى غير مهم)
+// ══════════════════════════════════════════════════════════
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // طلبات العملاء — أي شخص يمكنه إنشاء طلب (إرسال نموذج)
-    // وأي شخص يمكنه قراءة الطلبات (للبحث برقم الطلب أو منصة المكتب)
-    match /requests/{requestId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+    // ── دوال مساعدة ──────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOffice() {
+      return isSignedIn() && exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+    function affectedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  STAFF — قائمة موظفي المكتب المخوّلين
+    //  تُدار يدوياً من Firebase Console فقط؛ لا وصول مباشر لها
+    //  إطلاقاً (تُستخدم داخلياً عبر exists() في isOffice() فقط).
+    // ══════════════════════════════════════════════════════
+    match /staff/{uid} {
+      allow read, write: if false;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  COUNTERS — لتوليد رقم التذكرة اليومي دون الحاجة
+    //  لقراءة/تعداد مجموعة الطلبات كاملة
+    // ══════════════════════════════════════════════════════
+    match /counters/{dateKey} {
+      allow get: if true;
+      allow list: if isOffice();
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n == 1;
+      allow update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n == resource.data.n + 1;
+      allow delete: if false;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  REQUESTS — معرّف المستند = رقم التذكرة نفسه
+    // ══════════════════════════════════════════════════════
+    match /requests/{ticket} {
+      // معرفة رقم التذكرة تكفي لقراءة الطلب (نموذج تتبّع الشحنات)
+      allow get: if true;
+      // لكن تعداد/تصفّح كل الطلبات محصور بالمكتب فقط
+      allow list: if isOffice();
+
+      // أي زائر (حتى مجهول) يمكنه إنشاء طلب جديد — بشرط تطابق
+      // معرّف المستند مع حقل ticket، وحالة ابتدائية صحيحة، وحقول أساسية
+      allow create: if isSignedIn()
+        && request.resource.data.ticket == ticket
+        && request.resource.data.status == 'pending'
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.phone is string && request.resource.data.phone.size() > 0;
+
+      // المكتب: تعديل كامل. العميل: فقط تغيير حالة طلبه ضمن قائمة
+      // ضيقة (قبول/رفض عرض السعر، تأكيد الدفع) — لا يمكنه لمس
+      // officeNotes أو السعر أو أي حقل آخر
+      allow update: if isOffice()
+        || (isSignedIn()
+            && affectedKeys().hasOnly(['status','statusLabel','updatedAt','timeline'])
+            && request.resource.data.status in ['accepted','rejected','payment_pending']);
+
       allow delete: if false; // منع الحذف لحماية السجلات
+
+      // ── رسائل الدردشة الخاصة بهذا الطلب ──────────────
+      // معرفة رقم التذكرة (أي معرفة مسار هذه المجموعة الفرعية
+      // أصلاً) شرط كافٍ للقراءة — نفس مبدأ رقم التتبّع
+      match /messages/{msgId} {
+        allow get, list: if true;
+        allow create: if isSignedIn()
+          && request.resource.data.reqId == ticket
+          && request.resource.data.from in ['client','office'];
+        allow update: if isSignedIn() && affectedKeys().hasOnly(['read']);
+        allow delete: if false;
+      }
+
+      // ── إشعارات هذا العميل بالذات ─────────────────────
+      match /notifications/{notifId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && affectedKeys().hasOnly(['read']);
+        allow delete: if false;
+      }
     }
 
-    // عروض الأسعار
+    // ══════════════════════════════════════════════════════
+    //  QUOTES — تبقى مجموعة عليا؛ الوصول لعرض واحد بمعرّفه
+    //  مسموح للجميع (العميل يصل له عبر req.quoteId المخزّن في
+    //  مستند طلبه)، لكن تصفّح كل العروض محصور بالمكتب
+    // ══════════════════════════════════════════════════════
     match /quotes/{quoteId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow get: if true;
+      allow list: if isOffice();
+      allow create: if isOffice();
+      allow update: if isOffice()
+        || (isSignedIn() && affectedKeys().hasOnly(['viewedAt']))
+        || (isSignedIn()
+            && affectedKeys().hasOnly(['status','respondedAt','clientResponse'])
+            && request.resource.data.status in ['accepted','rejected']);
       allow delete: if false;
     }
 
-    // الرسائل (الدردشة بين العميل والمكتب)
-    match /messages/{messageId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+    // ══════════════════════════════════════════════════════
+    //  OFFICE NOTIFICATIONS — إشعارات المكتب (كانت target:'office')
+    // ══════════════════════════════════════════════════════
+    match /office_notifications/{notifId} {
+      allow get, list: if isOffice();
+      allow create: if isSignedIn(); // العميل يُنشئ إشعارات للمكتب (طلب جديد، قبول عرض...)
+      allow update: if isOffice() && affectedKeys().hasOnly(['read']);
       allow delete: if false;
     }
 
-    // الإشعارات
-    match /notifications/{notifId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
-      allow delete: if false;
+    // ══════════════════════════════════════════════════════
+    //  COLLECTION GROUP ACCESS — رؤية شاملة للمكتب فقط عبر
+    //  كل التذاكر دفعة واحدة (messages/notifications الفرعية)
+    //  ملاحظة: هذا لا يمنح أي صلاحية إضافية للعميل — قواعد
+    //  المسار الفرعي أعلاه (requests/{ticket}/messages) وحدها
+    //  تحكم الاستعلامات المحصورة بتذكرة واحدة معروفة.
+    // ══════════════════════════════════════════════════════
+    match /{path=**}/messages/{msgId} {
+      allow list, get: if isOffice();
+    }
+    match /{path=**}/notifications/{notifId} {
+      allow list, get: if isOffice();
     }
   }
 }

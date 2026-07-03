@@ -13,10 +13,15 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 ::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 header{background:linear-gradient(135deg,#0f1117,#1a1f2e,#0f1117);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);gap:10px;flex-wrap:wrap;}
 .logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-icon{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
+.logo-icon img{width:100%;height:100%;object-fit:cover;display:block;}
 .logo-text h1{font-size:14px;font-weight:700;color:var(--gold);}
 .logo-text p{font-size:10px;color:var(--muted);}
 nav{display:flex;gap:2px;flex-wrap:wrap;}
+@keyframes pulse-req {
+  0%,100%{box-shadow:none;}
+  50%{box-shadow:0 0 0 4px rgba(74,222,128,0.4);}
+}
 .nb{background:none;border:none;color:var(--muted);padding:6px 10px;border-radius:var(--rsm);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:all .2s;white-space:nowrap;}
 .nb:hover{background:var(--card);color:var(--text);}
 .nb.active{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-dim);}
@@ -129,11 +134,32 @@ select option{background:var(--surface);}
 </style>
 </head>
 <body>
+<div id="officeLoginGate" style="position:fixed;inset:0;z-index:9999;background:#0d0f14;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="width:100%;max-width:340px;background:#171b25;border:1px solid rgba(201,168,76,.25);border-radius:14px;padding:28px 24px;text-align:center;">
+    <img src="logo.png" alt="جيل البناء" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:14px;">
+    <h2 style="color:#c9a84c;font-size:16px;margin-bottom:4px;">دخول المكتب</h2>
+    <p style="color:#7a8299;font-size:12px;margin-bottom:18px;">هذه اللوحة مخصصة لموظفي المكتب فقط</p>
+    <input id="officeEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username"
+      style="width:100%;padding:11px 13px;margin-bottom:10px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
+    <input id="officePassword" type="password" placeholder="كلمة السر" autocomplete="current-password"
+      style="width:100%;padding:11px 13px;margin-bottom:14px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
+    <button id="officeLoginBtn" onclick="window.__officeLogin()"
+      style="width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,#7a6230,#c9a84c);color:#0d0f14;font-weight:700;font-size:13px;cursor:pointer;">
+      دخول
+    </button>
+    <p id="officeLoginError" style="color:#f87171;font-size:11px;margin-top:12px;display:none;"></p>
+  </div>
+</div>
+<div id="officeDashboardRoot" style="display:none;">
 <header>
-  <div class="logo"><div class="logo-icon">🏛️</div><div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div></div>
+  <div class="logo"><div class="logo-icon"><img src="logo.png" alt="شعار جيل البناء"></div><div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div></div>
   <nav>
     <button class="nb active" onclick="showPage('dashboard')">📊 لوحة التحكم</button>
-    <button class="nb" onclick="showPage('requests')">📨 الطلبات<span id="reqNavBadge" style="background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px"></span></button>
+    <button class="nb" onclick="showPage('requests')">📨 الطلبات
+      <span id="reqNavBadge" style="background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
+      <span id="msgNavBadge" style="background:var(--teal);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;display:none"></span>
+      <span id="acceptNavBadge" style="background:var(--green);color:var(--ink);border-radius:99px;padding:0 6px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;display:none"></span>
+    </button>
     <button class="nb" onclick="showPage('projects')">🏗️ المشاريع</button>
     <button class="nb" onclick="showPage('team')">👷 الفريق</button>
     <button class="nb" onclick="showPage('costs')">💰 التكاليف</button>
@@ -1227,33 +1253,209 @@ window.Bridge = Bridge;
 let _unsubAllReqs = null;
 let _officeChatUnsubs = {};
 
-(async function initBridgeInOffice(){
-  // تحديث فوري عند أي تغيير في الطلبات (Firestore real-time)
+// ── بوابة الدخول (Firebase Auth — إيميل/كلمة سر) ──────
+async function __officeLogin() {
+  const email = document.getElementById('officeEmail').value.trim();
+  const password = document.getElementById('officePassword').value;
+  const errEl = document.getElementById('officeLoginError');
+  const btn = document.getElementById('officeLoginBtn');
+  errEl.style.display = 'none';
+  if (!email || !password) {
+    errEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة السر';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true; btn.textContent = '⏳ جارٍ الدخول...';
+  try {
+    await Bridge.Auth.signIn(email, password);
+    // تحقق فعلي من صلاحية الموظف: محاولة قراءة محصورة بالمكتب
+    await Bridge.Requests.getAll();
+    if (!_officeStarted) {
+      _officeStarted = true;
+      document.getElementById('officeLoginGate').style.display = 'none';
+      document.getElementById('officeDashboardRoot').style.display = '';
+      startOfficeDashboard();
+    }
+  } catch (err) {
+    console.error('Office login failed:', err);
+    if (err.code === 'permission-denied') {
+      errEl.textContent = '⛔ هذا الحساب غير مخوّل للوصول للوحة المكتب';
+      await Bridge.Auth.signOut();
+    } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      errEl.textContent = '⛔ البريد الإلكتروني أو كلمة السر غير صحيحة';
+    } else {
+      errEl.textContent = '⛔ تعذّر تسجيل الدخول — ' + (err.message || '');
+    }
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'دخول';
+  }
+}
+window.__officeLogin = __officeLogin;
+document.getElementById('officePassword').addEventListener('keydown', e => { if (e.key === 'Enter') __officeLogin(); });
+
+function startOfficeDashboard(){
+  initBridgeInOffice();
+}
+
+let _officeStarted = false;
+Bridge.Auth.onChange(user => {
+  if (_officeStarted) return;
+  if (user && !user.isAnonymous) {
+    _officeStarted = true;
+    document.getElementById('officeLoginGate').style.display = 'none';
+    document.getElementById('officeDashboardRoot').style.display = '';
+    startOfficeDashboard();
+  }
+});
+
+async function initBridgeInOffice(){
+  // ── مراقبة الطلبات لحظياً ──────────────────────
   _unsubAllReqs = Bridge.Requests.watchAll(reqs => {
     window._cachedRequests = reqs;
-    updateRequestsBadge();
+    updateAllBadges();
     if(document.getElementById('page-requests')?.classList.contains('active'))
       renderRequestsPage();
   });
 
-  Bridge.on('message:new', msg => {
-    if(msg.from==='client'){
-      updateRequestsBadge();
-      const chat=document.getElementById('officeChat_'+msg.reqId);
-      if(chat) loadOfficeChat(msg.reqId);
+  // ── مراقبة الرسائل الواردة من العملاء (لحظياً) ──
+  const { collection, collectionGroup, query, where, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  const db = Bridge.db;
+
+  // رسائل غير مقروءة من العملاء — messages أصبحت subcollection تحت كل طلب،
+  // لذا نستخدم collectionGroup لمراقبتها عبر كل التذاكر دفعة واحدة (يتطلب صلاحية المكتب)
+  onSnapshot(query(collectionGroup(db,'messages'), where('from','==','client')), snap => {
+    const unread = snap.docs.filter(d => !d.data().read).length;
+    updateMsgBadge(unread);
+    if (unread > 0) {
+      // تحديث الدردشة إن كانت مفتوحة
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added' && !change.doc.data().read) {
+          const msg = change.doc.data();
+          const box = document.getElementById('officeChat_' + msg.reqId);
+          if (box) loadOfficeChat(msg.reqId);
+          addNavNotif('💬', 'رسالة جديدة من عميل', msg.text?.substring(0,50) + '...', msg.reqId, 'msg');
+        }
+      });
     }
   });
 
-  await updateRequestsBadge();
-})();
+  // عروض أسعار مقبولة أو مرفوضة
+  onSnapshot(query(collection(db,'quotes'), where('status','==','accepted')), snap => {
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added' || change.type === 'modified') {
+        const q = change.doc.data();
+        addNavNotif('✅', 'قبل العميل عرض السعر!', q.clientName + ' — ' + (q.totalLabel||''), q.reqId, 'accept');
+        updateAcceptBadge(true);
+        // إعادة تحميل الطلبات لتحديث الحالة
+        renderRequestsPage();
+      }
+    });
+  });
 
-async function updateRequestsBadge(){
+  onSnapshot(query(collection(db,'quotes'), where('status','==','rejected')), snap => {
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added' || change.type === 'modified') {
+        const q = change.doc.data();
+        addNavNotif('❌', 'رفض العميل عرض السعر', q.clientName + (q.clientResponse ? ' — ' + q.clientResponse : ''), q.reqId, 'reject');
+        renderRequestsPage();
+      }
+    });
+  });
+
+  await updateAllBadges();
+}
+
+// ── نظام الشارات في قائمة الطلبات ─────────────────
+function showBadge(id, count, label) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent = label || count;
+    el.style.display = 'inline-flex';
+  } else {
+    el.style.display = 'none';
+    el.textContent = '';
+  }
+}
+
+function updateMsgBadge(count) {
+  showBadge('msgNavBadge', count, count > 9 ? '9+' : count);
+  if (count > 0) pulseNavBtn();
+}
+
+function updateAcceptBadge(hasNew) {
+  const el = document.getElementById('acceptNavBadge');
+  if (!el) return;
+  if (hasNew) {
+    el.textContent = '✓ قبول';
+    el.style.display = 'inline-flex';
+    pulseNavBtn();
+    setTimeout(() => { el.style.display = 'none'; }, 30000);
+  }
+}
+
+function pulseNavBtn() {
+  const btn = document.querySelector('.nb[onclick*="requests"]');
+  if (btn) {
+    btn.style.animation = 'pulse-req 0.6s ease 3';
+    setTimeout(() => btn.style.animation = '', 2000);
+  }
+}
+
+// إضافة إشعار داخلي في لوحة الإشعارات
+const _navNotifs = [];
+function addNavNotif(icon, title, body, reqId, type) {
+  const notif = { icon, title, body, reqId, type, ts: new Date() };
+  _navNotifs.unshift(notif);
+  if (_navNotifs.length > 20) _navNotifs.pop();
+  renderNavNotifs();
+  updateNotifBadge();
+}
+
+function renderNavNotifs() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  if (!_navNotifs.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:11px;text-align:center;padding:16px">لا توجد إشعارات</div>';
+    return;
+  }
+  list.innerHTML = _navNotifs.map((n, i) => `
+    <div style="display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s;border-radius:6px"
+         onclick="closeNotifAndGo('${n.reqId}')" onmouseover="this.style.background='var(--card)'" onmouseout="this.style.background=''">
+      <div style="font-size:20px;flex-shrink:0;line-height:1.4">${n.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">${n.title}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.body}</div>
+        <div style="font-size:9px;color:var(--gold);margin-top:3px">${n.ts.toLocaleTimeString('ar-DZ')}</div>
+      </div>
+      <button onclick="event.stopPropagation();_navNotifs.splice(${i},1);renderNavNotifs();updateNotifBadge()" 
+              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0">✕</button>
+    </div>`).join('');
+}
+
+function closeNotifAndGo(reqId) {
+  togglePanel('notifPanel');
+  showPage('requests');
+  if (reqId) setTimeout(() => openReqDetail(reqId), 400);
+}
+window.closeNotifAndGo = closeNotifAndGo;
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notifBadge');
+  if (badge) badge.textContent = _navNotifs.length || '';
+}
+
+async function updateAllBadges() {
   try {
     const stats = await Bridge.Requests.stats();
-    const badge=document.getElementById('reqNavBadge');
-    if(badge) badge.textContent=stats.pending>0?stats.pending:'';
+    // شارة حمراء = طلبات جديدة قيد المعالجة
+    showBadge('reqNavBadge', stats.pending, stats.pending > 9 ? '9+' : stats.pending);
   } catch(err) { console.error('Badge update failed:', err); }
 }
+
+// alias للتوافق مع الاستدعاءات القديمة
+async function updateRequestsBadge() { await updateAllBadges(); }
 
 // ════════════════════════════════════
 //  REQUESTS PAGE  (صفحة الطلبات)
@@ -1618,7 +1820,20 @@ function renderProjectsIfActive(){
     renderProjects();
 }
 
-// ── expose Bridge-dependent functions to window for inline onclick ──
+window.renderNavNotifs = renderNavNotifs;
+window.updateNotifBadge = updateNotifBadge;
+window.updateAllBadges = updateAllBadges;
+window.updateRequestsBadge = updateRequestsBadge;
+
+// مسح شارة الرسائل عند فتح صفحة الطلبات
+const _origShowPage = window.showPage;
+window.showPage = function(page) {
+  _origShowPage(page);
+  if (page === 'requests') {
+    showBadge('msgNavBadge', 0);
+    showBadge('acceptNavBadge', 0);
+  }
+};
 window.filterReqs = filterReqs;
 window.openReqDetail = openReqDetail;
 window.sendOfficeMsg = sendOfficeMsg;
@@ -1672,5 +1887,6 @@ window.togglePanel = togglePanel;
 window.viewLog = viewLog;
 
 </script>
+</div>
 </body>
 </html>
