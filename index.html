@@ -231,6 +231,46 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
   .fg,.fgt{grid-template-columns:1fr;} .svcards{grid-template-columns:1fr;}
   #requestForm{padding:22px 18px;} .sw{padding:60px 22px;} footer{padding:40px 22px;}
 }
+/* ══ PAYMENT MODAL ══════════════════════════════════ */
+.pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.pay-overlay.open{opacity:1;pointer-events:all;}
+.pay-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.pay-overlay.open .pay-sheet{transform:translateY(0);}
+.pay-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.pay-hdr{padding:16px 24px 12px;border-bottom:1px solid var(--border);}
+.pay-title{font-size:17px;font-weight:700;color:var(--text);}
+.pay-total-strip{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:12px;padding:16px;text-align:center;margin:16px 24px 0;}
+.pay-total-lbl{font-size:10px;color:rgba(13,15,20,.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-family:'Space Grotesk',sans-serif;}
+.pay-total-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'Space Grotesk',sans-serif;}
+.pay-methods-wrap{padding:16px 24px;}
+.pm-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.pm-card:hover,.pm-card.sel{border-color:var(--gold);}
+.pm-card.sel{background:var(--gold-glow);}
+.pm-ico{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pm-name{font-size:13px;font-weight:700;color:var(--text);}
+.pm-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.pm-badge{margin-right:auto;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;}
+.pay-detail-wrap{padding:0 24px 16px;display:none;}
+.pay-detail-wrap.active{display:block;}
+.pay-info-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.pay-row:last-child{border-bottom:none;}
+.pay-row .k{color:var(--muted);}
+.pay-row .v{font-weight:700;color:var(--text);font-family:'Space Grotesk',sans-serif;}
+.copybtn{background:none;border:1px solid var(--border);color:var(--gold);padding:3px 8px;border-radius:5px;font-size:10px;cursor:pointer;}
+.pay-steps-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.pay-step-item{display:flex;gap:10px;font-size:12px;color:var(--muted);line-height:1.6;}
+.pay-step-n{width:22px;height:22px;border-radius:50%;background:var(--gold-dim);color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.receipt-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;position:relative;margin-bottom:12px;}
+.receipt-zone.has-file{border-color:var(--green);background:rgba(74,222,128,.05);}
+.receipt-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.sfield{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;width:100%;outline:none;margin-bottom:10px;letter-spacing:1px;}
+.sfield:focus{border-color:var(--gold);}
+.sfield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pay-footer{padding:14px 24px 28px;border-top:1px solid var(--border);}
+.btn-pay-confirm{width:100%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--ink);border:none;padding:14px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.btn-pay-confirm:disabled{opacity:.4;cursor:not-allowed;}
+.btn-pay-cancel{width:100%;background:none;border:1px solid var(--border);color:var(--muted);padding:11px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -516,6 +556,7 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
           <span id="sr_badge" style="padding:5px 14px;border-radius:99px;font-size:11px;font-weight:700;background:rgba(251,191,36,0.15);color:var(--amber);border:1px solid rgba(251,191,36,0.3)">قيد المعالجة</span>
         </div>
         <div id="sr_tl"></div>
+        <div id="sr_dates" style="display:none"></div>
       </div>
       <div id="quotePanel" style="display:none;margin-top:14px"></div>
       <div style="margin-top:14px">
@@ -676,9 +717,43 @@ function renderStatusCard(req){
   const badge=document.getElementById('sr_badge');
   badge.textContent=sm.label;badge.style.background=sm.bg;badge.style.color=sm.color;badge.style.border=`1px solid ${sm.color}40`;
   const tl=document.getElementById('sr_tl');
-  const allSteps=[...(req.timeline||[]).map(s=>({...s,isDone:true})),{label:'التواصل مع العميل',desc:'سنتصل بكم خلال يوم عمل',isDone:false},{label:'إعداد عرض السعر',desc:'سيُرسَل عرض مفصّل',isDone:false},{label:'موافقة العميل',desc:'',isDone:false},{label:'بداية المشروع',desc:'',isDone:false}].slice(0,6);
-  tl.innerHTML=allSteps.map((s,i)=>`<div class="tli"><div class="tlc"><div class="tld ${s.isDone?'done':'pend'}"></div>${i<allSteps.length-1?'<div class="tlv"></div>':''}</div><div class="tlco"><div style="font-size:13px;font-weight:700;color:${s.isDone?'var(--green)':'var(--muted)'}">${s.label||s.step}</div>${(s.desc||s.description)?`<div style="font-size:12px;color:var(--muted)">${s.desc||s.description}</div>`:''
-  }${s.ts?`<div style="font-size:10px;color:var(--gold);margin-top:2px">${fmtD(s.ts)}</div>`:''}</div></div>`).join('');
+
+  // تحديد تواريخ الاستلام والإنجاز من بيانات الطلب
+  const deliveryDate = req.deliveryDate || req.estimatedDelivery || null;
+  const startDate    = req.startDate || req.projectStart || null;
+
+  const allSteps=[...(req.timeline||[]).map(s=>({...s,isDone:true})),
+    {label:'التواصل مع العميل',desc:'سنتصل بكم خلال يوم عمل',isDone:false},
+    {label:'إعداد عرض السعر',desc:'سيُرسَل عرض مفصّل',isDone:false},
+    {label:'موافقة العميل',desc:'',isDone:false},
+    {label:'بداية المشروع',desc:'',isDone:false}
+  ].slice(0,6);
+
+  tl.innerHTML=allSteps.map((s,i)=>`
+    <div class="tli">
+      <div class="tlc"><div class="tld ${s.isDone?'done':'pend'}"></div>${i<allSteps.length-1?'<div class="tlv"></div>':''}</div>
+      <div class="tlco">
+        <div style="font-size:13px;font-weight:700;color:${s.isDone?'var(--green)':'var(--muted)'}">${s.label||s.step}</div>
+        ${(s.desc||s.description)?`<div style="font-size:12px;color:var(--muted)">${s.desc||s.description}</div>`:''}
+        ${s.ts?`<div style="font-size:10px;color:var(--gold);margin-top:2px">${fmtD(s.ts)}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  // بطاقة التواريخ المهمة — تظهر فقط إذا كان الطلب مقبولاً وفيه تواريخ
+  const datesEl = document.getElementById('sr_dates');
+  if(datesEl){
+    if((req.status==='accepted'||req.status==='project_created'||req.status==='payment_pending') && (deliveryDate||startDate)){
+      datesEl.style.display='block';
+      datesEl.innerHTML=`
+        <div style="background:var(--gold-glow);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:14px;margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px">📅 التواريخ المهمة / Key Dates</div>
+          ${startDate?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(201,168,76,0.15);font-size:12px"><span style="color:var(--muted)">🏗️ بداية الإنجاز / Start Date</span><span style="font-weight:700;color:var(--text);font-family:'Space Grotesk',sans-serif">${fmtD(startDate)}</span></div>`:''}
+          ${deliveryDate?`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px"><span style="color:var(--muted)">📦 تاريخ التسليم / Delivery Date</span><span style="font-weight:700;color:var(--green);font-family:'Space Grotesk',sans-serif">${fmtD(deliveryDate)}</span></div>`:''}
+        </div>`;
+    } else {
+      datesEl.style.display='none';
+    }
+  }
 }
 
 function renderQuotePanel(q){
@@ -686,9 +761,38 @@ function renderQuotePanel(q){
   if(!q){p.style.display='none';return;}
   p.style.display='block';
   const responded=q.status==='accepted'||q.status==='rejected';
-  p.innerHTML=`<div class="qv"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;padding-bottom:13px;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">💰 عرض الأسعار / Price Quote</div><div style="font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif">${fmtD(q.createdAt)}</div></div><div style="text-align:left"><div class="qt">${Bridge.fmtNum(q.total)} دج</div><div style="font-size:10px;color:var(--muted)">إجمالي الأتعاب / Total Fee</div></div></div>${q.items&&q.items.length?`<table class="qtb"><thead><tr><th>البيان / Item</th><th>التفاصيل / Details</th><th>المبلغ / Amount</th></tr></thead><tbody>${q.items.map(it=>`<tr><td>${it.label}</td><td style="color:var(--muted)">${it.desc||'—'}</td><td style="font-weight:700;color:var(--gold);text-align:left;font-family:'Space Grotesk',sans-serif">${Bridge.fmtNum(it.amount)} دج</td></tr>`).join('')}</tbody></table>`:''
-  }${q.notes?`<div style="background:var(--card);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:13px"><strong style="color:var(--text)">ملاحظات المكتب / Office Notes:</strong><br>${q.notes}</div>`:''
-  }${responded?`<div style="text-align:center;padding:13px;background:${q.status==='accepted'?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)'};border:1px solid ${q.status==='accepted'?'rgba(74,222,128,0.3)':'rgba(248,113,113,0.3)'};border-radius:8px;font-weight:700;color:${q.status==='accepted'?'var(--green)':'var(--red)'}">${q.status==='accepted'?'✅ لقد قبلتَ هذا العرض — سيتواصل معك مكتب جيل البناء قريباً':'❌ لقد رفضتَ هذا العرض — سيتواصل معك المكتب لمناقشة البدائل'}</div>`:`<div><p style="font-size:12px;color:var(--muted);margin-bottom:13px;text-align:center">هل توافق على هذا العرض؟ / Do you accept this quote?</p><div style="display:flex;gap:10px;justify-content:center"><button class="btn-reject" onclick="window.__respQ(false)">❌ رفض / Reject</button><button class="btn-accept" onclick="window.__respQ(true)">✅ قبول / Accept</button></div></div>`}</div>`;
+  const payMethod=q.paymentMethod||null;
+  const payLabel={cib:'CIB/EDAHABIA',baridi:'BaridiMob',stripe:'Stripe',cod:'دفع عند التسليم'};
+
+  p.innerHTML=`<div class="qv">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;padding-bottom:13px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">💰 عرض الأسعار / Price Quote</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif">${fmtD(q.createdAt)}</div>
+      </div>
+      <div style="text-align:left">
+        <div class="qt">${Bridge.fmtNum(q.total)} دج</div>
+        <div style="font-size:10px;color:var(--muted)">إجمالي الأتعاب / Total Fee</div>
+      </div>
+    </div>
+    ${q.items&&q.items.length?`<table class="qtb"><thead><tr><th>البيان</th><th>التفاصيل</th><th>المبلغ (دج)</th></tr></thead><tbody>
+      ${q.items.map(it=>`<tr><td>${it.label}</td><td style="color:var(--muted)">${it.desc||'—'}</td><td style="font-weight:700;color:var(--gold);text-align:left;font-family:'Space Grotesk',sans-serif">${Bridge.fmtNum(it.amount)}</td></tr>`).join('')}
+    </tbody></table>`:''}
+    ${q.notes?`<div style="background:var(--card);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:13px"><strong style="color:var(--text)">ملاحظات المكتب:</strong><br>${q.notes}</div>`:''}
+    ${responded
+      ?`<div style="text-align:center;padding:13px;background:${q.status==='accepted'?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)'};border:1px solid ${q.status==='accepted'?'rgba(74,222,128,0.3)':'rgba(248,113,113,0.3)'};border-radius:8px;font-weight:700;color:${q.status==='accepted'?'var(--green)':'var(--red)'}">
+          ${q.status==='accepted'
+            ?`✅ لقد قبلتَ هذا العرض${payMethod?` — طريقة الدفع: <span style="color:var(--gold)">${payLabel[payMethod]||payMethod}</span>`:''}`
+            :'❌ لقد رفضتَ هذا العرض — سيتواصل معك المكتب لمناقشة البدائل'}
+        </div>`
+      :`<div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:13px;text-align:center">هل توافق على هذا العرض؟ / Do you accept this quote?</p>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn-reject" onclick="window.__respQ(false)">❌ رفض / Reject</button>
+            <button class="btn-accept" onclick="window.__openPayment('${q.id}',${q.total})">💳 قبول والدفع / Accept & Pay</button>
+          </div>
+        </div>`}
+  </div>`;
 }
 
 async function respQ(accepted){
@@ -742,6 +846,15 @@ window.checkSt = checkSt;
 window.sendMsg = sendMsg;
 window.__respQ = respQ;
 window.__upFilesRemove = (i) => { upFiles.splice(i,1); renderFiles(); };
+
+// تعريض Bridge و activeReqId لـ modal الدفع
+window.Bridge = Bridge;
+Object.defineProperty(window,'__activeReqId',{get:()=>activeReqId,set:v=>{activeReqId=v;}});
+window.__refreshQuote = async () => {
+  if(!activeReqId) return;
+  const q = await Bridge.Quotes.getByReq(activeReqId);
+  if(q) renderQuotePanel(q);
+};
 
 document.getElementById('statusIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
 document.getElementById('statusNin').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
@@ -852,6 +965,198 @@ function goSlide(n) {
 }
 window.goSlide = goSlide;
 slideTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
+</script>
+<!-- ══ PAYMENT MODAL ══ -->
+<div class="pay-overlay" id="payOverlay" onclick="if(event.target===this)window.__closePayment()">
+  <div class="pay-sheet">
+    <div class="pay-handle"></div>
+    <div class="pay-hdr"><div class="pay-title">💳 إتمام الدفع / Payment</div></div>
+    <div class="pay-total-strip">
+      <div class="pay-total-lbl">المبلغ المستحق / Amount Due</div>
+      <div class="pay-total-num" id="payTotalNum">—</div>
+    </div>
+    <div class="pay-methods-wrap">
+      <div class="pm-card" data-m="cib" onclick="window.__selPayMethod('cib')">
+        <div class="pm-ico" style="background:rgba(0,82,165,.15)">🏦</div>
+        <div><div class="pm-name">CIB / EDAHABIA</div><div class="pm-desc">تحويل بنكي — بريد الجزائر</div></div>
+        <span class="pm-badge" style="background:rgba(0,82,165,.12);color:#4a9ff5">CIB</span>
+      </div>
+      <div class="pm-card" data-m="baridi" onclick="window.__selPayMethod('baridi')">
+        <div class="pm-ico" style="background:rgba(255,165,0,.12)">📱</div>
+        <div><div class="pm-name">BaridiMob</div><div class="pm-desc">تحويل عبر تطبيق بريدي موب</div></div>
+        <span class="pm-badge" style="background:rgba(255,165,0,.12);color:var(--amber)">BaridiMob</span>
+      </div>
+      <div class="pm-card" data-m="stripe" onclick="window.__selPayMethod('stripe')">
+        <div class="pm-ico" style="background:rgba(99,91,255,.12)">💳</div>
+        <div><div class="pm-name">بطاقة دولية / Stripe</div><div class="pm-desc">Visa / Mastercard — دفع آني مشفّر</div></div>
+        <span class="pm-badge" style="background:rgba(99,91,255,.12);color:#a78bfa">Stripe</span>
+      </div>
+      <div class="pm-card" data-m="cod" onclick="window.__selPayMethod('cod')">
+        <div class="pm-ico" style="background:rgba(74,222,128,.1)">💵</div>
+        <div><div class="pm-name">دفع عند التسليم</div><div class="pm-desc">نقداً عند استلام الدراسة</div></div>
+        <span class="pm-badge" style="background:rgba(74,222,128,.1);color:var(--green)">مضمون</span>
+      </div>
+    </div>
+    <!-- CIB -->
+    <div class="pay-detail-wrap" id="pd-cib">
+      <div class="pay-info-box">
+        <div class="pay-row"><span class="k">RIP / CCP</span><span class="v">0079999 21000000000 71</span><button class="copybtn" onclick="window.__copyPay('0079999 21000000000 71')">نسخ</button></div>
+        <div class="pay-row"><span class="k">الاسم</span><span class="v">مكتب جيل البناء</span></div>
+        <div class="pay-row"><span class="k">المبلغ</span><span class="v" id="cib-amount">—</span></div>
+        <div class="pay-row"><span class="k">المرجع</span><span class="v" id="cib-ref">—</span></div>
+      </div>
+      <div class="pay-steps-list">
+        <div class="pay-step-item"><div class="pay-step-n">1</div><div>توجّه لأقرب مكتب بريد أو استخدم BaridiMob</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">2</div><div>حوّل المبلغ مع ذكر رقم الطلب كمرجع</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">3</div><div>ارفع صورة وصل الدفع</div></div>
+      </div>
+      <div class="receipt-zone" id="cib-zone"><input type="file" accept="image/*,.pdf" onchange="window.__setReceipt(this,'cib')"><div id="cib-zc"><div style="font-size:26px;margin-bottom:6px">📎</div><div style="font-size:12px;color:var(--muted)">ارفع صورة وصل الدفع</div></div></div>
+    </div>
+    <!-- Baridi -->
+    <div class="pay-detail-wrap" id="pd-baridi">
+      <div class="pay-info-box">
+        <div class="pay-row"><span class="k">رقم الحساب</span><span class="v">0023456789</span><button class="copybtn" onclick="window.__copyPay('0023456789')">نسخ</button></div>
+        <div class="pay-row"><span class="k">اسم المستفيد</span><span class="v">جيل البناء</span></div>
+        <div class="pay-row"><span class="k">المبلغ</span><span class="v" id="baridi-amount">—</span></div>
+        <div class="pay-row"><span class="k">المرجع</span><span class="v" id="baridi-ref">—</span></div>
+      </div>
+      <div class="pay-steps-list">
+        <div class="pay-step-item"><div class="pay-step-n">1</div><div>افتح تطبيق BaridiMob</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">2</div><div>اختر تحويل وأدخل رقم الحساب أعلاه</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">3</div><div>اكتب رقم طلبك في الملاحظة وارفع لقطة الشاشة</div></div>
+      </div>
+      <div class="receipt-zone" id="baridi-zone"><input type="file" accept="image/*" onchange="window.__setReceipt(this,'baridi')"><div id="baridi-zc"><div style="font-size:26px;margin-bottom:6px">📱</div><div style="font-size:12px;color:var(--muted)">ارفع لقطة شاشة التحويل</div></div></div>
+    </div>
+    <!-- Stripe -->
+    <div class="pay-detail-wrap" id="pd-stripe">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">💳 بطاقة دولية — Visa / Mastercard</div>
+      <input class="sfield" id="s-num" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" oninput="let v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(\d{4})(?=\d)/g,'$1 ')">
+      <div class="sfield-row">
+        <input class="sfield" id="s-exp" placeholder="MM/YY" maxlength="5" inputmode="numeric" oninput="let v=this.value.replace(/\D/g,'').substring(0,4);this.value=v.length>=2?v.substring(0,2)+'/'+v.substring(2):v">
+        <input class="sfield" id="s-cvv" placeholder="CVV" maxlength="4" inputmode="numeric" type="password">
+      </div>
+      <input class="sfield" id="s-name" placeholder="الاسم على البطاقة" style="text-transform:uppercase">
+      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px">🔒 بياناتك مشفّرة — لا نحتفظ بمعلومات البطاقة</div>
+    </div>
+    <!-- COD -->
+    <div class="pay-detail-wrap" id="pd-cod">
+      <div class="pay-info-box" style="text-align:center;padding:20px">
+        <div style="font-size:40px;margin-bottom:10px">💵</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">الدفع عند الاستلام</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">ستدفع المبلغ نقداً عند تسليم الدراسة. سيتواصل معك المكتب لتحديد الموعد.</div>
+      </div>
+    </div>
+    <div class="pay-footer">
+      <button class="btn-pay-confirm" id="btnPayConfirm" onclick="window.__confirmPayment()" disabled>اختر طريقة الدفع</button>
+      <button class="btn-pay-cancel" onclick="window.__closePayment()">إلغاء / Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  PAYMENT SYSTEM — index.html
+// ═══════════════════════════════════════
+(function(){
+  let _qid=null, _total=0, _rid=null, _method=null, _receipt=null, _ticket='';
+
+  window.__openPayment = function(quoteId, total) {
+    _qid=quoteId; _total=total; _method=null; _receipt=null;
+    _ticket = document.getElementById('statusIn')?.value?.trim().toUpperCase() || '';
+    const fmt = Number(total).toLocaleString('ar-DZ') + ' دج';
+    document.getElementById('payTotalNum').textContent = fmt;
+    document.getElementById('cib-amount').textContent = fmt;
+    document.getElementById('baridi-amount').textContent = fmt;
+    document.getElementById('cib-ref').textContent = _ticket;
+    document.getElementById('baridi-ref').textContent = _ticket;
+    document.querySelectorAll('.pm-card').forEach(c=>c.classList.remove('sel'));
+    document.querySelectorAll('.pay-detail-wrap').forEach(d=>d.classList.remove('active'));
+    document.getElementById('btnPayConfirm').disabled=true;
+    document.getElementById('btnPayConfirm').textContent='اختر طريقة الدفع';
+    // reset uploads
+    ['cib','baridi'].forEach(t=>{
+      const z=document.getElementById(t+'-zone'); if(z) z.classList.remove('has-file');
+      const zc=document.getElementById(t+'-zc');
+      if(zc) zc.innerHTML=t==='cib'?'<div style="font-size:26px;margin-bottom:6px">📎</div><div style="font-size:12px;color:var(--muted)">ارفع صورة وصل الدفع</div>':'<div style="font-size:26px;margin-bottom:6px">📱</div><div style="font-size:12px;color:var(--muted)">ارفع لقطة شاشة التحويل</div>';
+    });
+    // get activeReqId from module scope via dataset trick
+    _rid = document.getElementById('statusIn')?.dataset?.reqid || null;
+    document.getElementById('payOverlay').classList.add('open');
+  };
+
+  window.__closePayment = function() {
+    document.getElementById('payOverlay').classList.remove('open');
+  };
+
+  window.__selPayMethod = function(m) {
+    _method=m;
+    document.querySelectorAll('.pm-card').forEach(c=>c.classList.toggle('sel', c.dataset.m===m));
+    document.querySelectorAll('.pay-detail-wrap').forEach(d=>d.classList.remove('active'));
+    document.getElementById('pd-'+m).classList.add('active');
+    const labels={cib:'📤 إرسال + رفع وصل الدفع',baridi:'📤 إرسال + رفع لقطة الشاشة',stripe:'💳 ادفع الآن',cod:'✅ تأكيد — دفع عند التسليم'};
+    const btn=document.getElementById('btnPayConfirm');
+    btn.textContent=labels[m]; btn.disabled=false;
+  };
+
+  window.__setReceipt = function(input, type) {
+    const f=input.files[0]; if(!f) return;
+    _receipt=f;
+    const zone=document.getElementById(type+'-zone');
+    const zc=document.getElementById(type+'-zc');
+    if(zone) zone.classList.add('has-file');
+    if(zc) zc.innerHTML=`<div style="font-size:22px;margin-bottom:5px">✅</div><div style="font-size:12px;color:var(--green);font-weight:600">${f.name}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">${Math.round(f.size/1024)} KB</div>`;
+  };
+
+  window.__copyPay = function(txt) {
+    navigator.clipboard?.writeText(txt).then(()=>showPToast('✅ تم نسخ: '+txt)).catch(()=>showPToast('انسخ يدوياً: '+txt));
+  };
+
+  function showPToast(msg) {
+    const t=document.getElementById('toast'); if(!t) return;
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),4000);
+  }
+
+  window.__confirmPayment = async function() {
+    if(!_method) return;
+    if((_method==='cib'||_method==='baridi')&&!_receipt){showPToast('⚠️ يرجى رفع صورة وصل الدفع أولاً');return;}
+    if(_method==='stripe'){
+      const num=document.getElementById('s-num')?.value?.replace(/\s/g,'');
+      const exp=document.getElementById('s-exp')?.value;
+      const cvv=document.getElementById('s-cvv')?.value;
+      const name=document.getElementById('s-name')?.value?.trim();
+      if(!num||num.length<16){showPToast('⚠️ رقم البطاقة غير صحيح');return;}
+      if(!exp||!exp.includes('/')){showPToast('⚠️ تاريخ الانتهاء غير صحيح');return;}
+      if(!cvv||cvv.length<3){showPToast('⚠️ رمز CVV غير صحيح');return;}
+      if(!name){showPToast('⚠️ أدخل الاسم على البطاقة');return;}
+    }
+    const btn=document.getElementById('btnPayConfirm');
+    btn.disabled=true; btn.textContent='⏳ جارٍ المعالجة...';
+    try {
+      // استخدام Bridge من scope الـ module عبر window.Bridge
+      const B=window.Bridge;
+      if(!B){showPToast('❌ خطأ في تحميل النظام');btn.disabled=false;return;}
+      const q=await B.Quotes.getByReq(window.__activeReqId||_ticket);
+      if(q) await B.Quotes.respond(q.id,true,'');
+      if(window.__activeReqId){
+        const methodLabel={cib:'CIB/EDAHABIA',baridi:'BaridiMob',stripe:'Stripe',cod:'دفع عند التسليم'}[_method];
+        await B.Requests.updateStatus(window.__activeReqId,
+          _method==='cod'?'accepted':'payment_pending',
+          _method==='cod'?'✅ مقبول — الدفع عند الاستلام':'⏳ قيد التحقق من الدفع',
+          'طريقة الدفع: '+methodLabel
+        );
+      }
+      window.__closePayment();
+      showPToast({cib:'✅ تم إرسال طلب الدفع CIB — سيتحقق المكتب خلال 24 ساعة',baridi:'✅ تم إرسال طلب الدفع BaridiMob — سيتحقق المكتب خلال 24 ساعة',stripe:'✅ تم الدفع بالبطاقة — سيبدأ المكتب بمشروعك قريباً',cod:'✅ تم تأكيد طلبك — الدفع عند الاستلام'}[_method]);
+      // تحديث واجهة عرض السعر
+      if(window.__refreshQuote) window.__refreshQuote();
+    } catch(err) {
+      console.error(err);
+      showPToast('❌ '+( err?.code==='permission-denied'?'خطأ في الصلاحيات — تحقق من firestore.rules':err?.message||'خطأ غير معروف'));
+      btn.disabled=false; btn.textContent='متابعة';
+    }
+  };
+})();
 </script>
 </body>
 </html>

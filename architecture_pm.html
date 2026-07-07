@@ -1548,19 +1548,24 @@ async function delReq(reqId, ticket, name){
   try {
     const { doc, deleteDoc, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
     const db = Bridge.db;
-    // حذف الطلب من Firestore
-    await deleteDoc(doc(db, 'requests', reqId));
+    // الطلب يُحفظ بالـ ticket كـ document ID
+    const reqDocId = ticket || reqId;
+    await deleteDoc(doc(db, 'requests', reqDocId));
     // حذف عروض السعر المرتبطة
-    const qSnap = await getDocs(query(collection(db, 'quotes'), where('reqId', '==', reqId)));
+    const qSnap = await getDocs(query(collection(db, 'quotes'), where('reqId', '==', reqDocId)));
     await Promise.all(qSnap.docs.map(d => deleteDoc(d.ref)));
     // حذف الرسائل المرتبطة
-    const mSnap = await getDocs(query(collection(db, 'messages'), where('reqId', '==', reqId)));
+    const mSnap = await getDocs(query(collection(db, 'messages'), where('reqId', '==', reqDocId)));
     await Promise.all(mSnap.docs.map(d => deleteDoc(d.ref)));
-    showToast('🗑️ تم حذف الطلب: ' + ticket);
+    showToast('🗑️ تم حذف الطلب: ' + reqDocId);
+    window._cachedRequests = null;
     renderRequestsPage();
   } catch(err) {
     console.error(err);
-    showToast('❌ تعذر حذف الطلب: ' + (err?.message || err));
+    const msg = err?.code==='permission-denied'
+      ? '❌ الحذف غير مسموح — تحقق من firestore.rules'
+      : '❌ تعذر حذف الطلب: ' + (err?.message || err);
+    showToast(msg);
   }
 }
 window.delReq = delReq;
@@ -1620,7 +1625,17 @@ async function openReqDetail(reqId){
           ${[['reviewing','قيد الدراسة','btn-outline'],['quoted','عرض السعر جاهز','btn-teal'],['accepted','مقبول','btn-gold'],['rejected','مرفوض','btn-danger']].map(([s,l,cls])=>
             `<button class="btn ${cls} btn-sm" onclick="updateReqStatus('${reqId}','${s}','${l}')">${l}</button>`).join('')}
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">📅 تاريخ بداية الإنجاز</div>
+            <input id="officeStartDate" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:7px 10px;color:var(--text);font-family:inherit;font-size:11px">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">📦 تاريخ التسليم المتوقع</div>
+            <input id="officeDeliveryDate" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:7px 10px;color:var(--text);font-family:inherit;font-size:11px">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
           <input id="officeNoteInput" placeholder="ملاحظة للعميل (اختياري)..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:7px 10px;color:var(--text);font-family:inherit;font-size:11px">
         </div>
       </div>
@@ -1702,14 +1717,16 @@ async function sendOfficeMsg(reqId){
 
 async function updateReqStatus(reqId,status,label){
   const note=document.getElementById('officeNoteInput')?.value||'';
+  const startDate=document.getElementById('officeStartDate')?.value||null;
+  const deliveryDate=document.getElementById('officeDeliveryDate')?.value||null;
   try {
-    await Bridge.Requests.updateStatus(reqId,status,label,note,note);
+    await Bridge.Requests.updateStatus(reqId,status,label,note,note,{startDate,deliveryDate});
     closeModal('reqDetailModal');
     renderRequestsPage();
-    showToast('✅ تم تحديث حالة الطلب إلى: '+label);
+    showToast('✅ تم تحديث حالة الطلب إلى: '+label+(deliveryDate?` — التسليم: ${deliveryDate}`:''));
   } catch(err) {
     console.error(err);
-    showToast('❌ تعذر تحديث الحالة');
+    showToast('❌ تعذر تحديث الحالة: '+(err?.message||''));
   }
 }
 

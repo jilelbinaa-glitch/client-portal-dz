@@ -1,8 +1,8 @@
 {
   "name": "جيل البناء — بوابة العملاء",
   "short_name": "جيل البناء",
-  "description": "مكتب جيل البناء للهندسة المعمارية والعمرانية — تقديم الطلبات ومتابعتها",
-  "start_url": "/client-portal-dz/app.html",
+  "description": "مكتب جيل البناء للهندسة المعمارية والعمرانية",
+  "start_url": "/client-portal-dz/client_portal.html",
   "display": "standalone",
   "background_color": "#0d0f14",
   "theme_color": "#c9a84c",
@@ -10,9 +10,8 @@
   "lang": "ar",
   "dir": "rtl",
   "icons": [
-    { "src": "logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "logo-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "logo.png",     "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "categories": ["business", "productivity"]
 }

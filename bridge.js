@@ -22,7 +22,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged,
-  signInWithEmailAndPassword, signOut as fbSignOut
+  signInWithEmailAndPassword, signOut as fbSignOut,
+  createUserWithEmailAndPassword, updateProfile,
+  sendPasswordResetEmail, sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -73,29 +75,68 @@ onAuthStateChanged(auth, user => {
 });
 
 const Auth = {
-  // يُستدعى من index.html / app.html — يضمن جلسة مجهولة صالحة
+  // يُستدعى من index.html / app.html — يضمن جلسة صالحة
   async ready() {
     if (!auth.currentUser) {
       try { await signInAnonymously(auth); }
       catch (err) {
-        // إذا لم يكن Anonymous Auth مفعّلاً، نتابع بدونه
-        // (الـ Firestore rules يجب أن تسمح بـ create بدون auth في هذه الحالة)
-        console.warn('Anonymous auth not available, continuing without auth:', err.code);
+        console.warn('Anonymous auth not available:', err.code);
       }
     }
     return _authReadyPromise;
   },
-  // يُستدعى من architecture_pm.html — تسجيل دخول حقيقي للموظف
+
+  // ── تسجيل حساب عميل جديد ──────────────────────────────
+  async registerClient(name, phone, nin, email, password) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    // حفظ بيانات العميل في Firestore
+    await setDoc(doc(db, 'clients', cred.user.uid), {
+      uid: cred.user.uid, name, phone, nin, email,
+      role: 'client',
+      createdAt: serverTimestamp(),
+      wilaya: '', profileComplete: false
+    });
+    try { await sendEmailVerification(cred.user); } catch(e) {}
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
+  // ── تسجيل دخول عميل ────────────────────────────────────
+  async loginClient(email, password) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
+  // ── الحصول على بيانات العميل من Firestore ───────────────
+  async getClientProfile(uid) {
+    const snap = await getDoc(doc(db, 'clients', uid || auth.currentUser?.uid));
+    return snap.exists() ? { uid: snap.id, ...snap.data() } : null;
+  },
+
+  // ── تحديث بيانات العميل ────────────────────────────────
+  async updateClientProfile(data) {
+    const uid = auth.currentUser?.uid; if (!uid) throw new Error('Not logged in');
+    await updateDoc(doc(db, 'clients', uid), { ...data, updatedAt: serverTimestamp() });
+  },
+
+  // ── إعادة تعيين كلمة السر ──────────────────────────────
+  async resetPassword(email) {
+    await sendPasswordResetEmail(auth, email);
+  },
+
+  // ── تسجيل دخول المكتب (داشبورد architecture_pm) ────────
   async signIn(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return cred.user;
   },
-  async signOut() {
-    await fbSignOut(auth);
-  },
+
+  async signOut() { await fbSignOut(auth); emit('auth:changed', null); },
   currentUser() { return auth.currentUser; },
   isAnonymous() { return !!auth.currentUser?.isAnonymous; },
-  onChange(cb) { on('auth:changed', cb); if (_authResolved) cb(auth.currentUser); }
+  isLoggedIn()  { return !!auth.currentUser && !auth.currentUser.isAnonymous; },
+  onChange(cb)  { on('auth:changed', cb); if (_authResolved) cb(auth.currentUser); }
 };
 
 // ── uid (محلي — لأغراض غير حساسة فقط) ──────────────────
@@ -215,21 +256,27 @@ const Requests = {
     }
   },
 
-  async updateStatus(id, status, statusLabel, desc, officeNotes) {
+  async updateStatus(id, status, statusLabel, desc, officeNotes, dates) {
     const ref = doc(db, COL.requests, id);
     const snap = await getDoc(ref);
     if (!snap.exists()) return null;
     const old = snap.data();
     const timeline = [...(old.timeline || []), { step:status, label:statusLabel, desc:desc||'', done:true, ts:new Date().toISOString() }];
-    const update = clean({ status, statusLabel, updatedAt: serverTimestamp(), timeline, ...(officeNotes !== undefined ? { officeNotes } : {}) });
+    const extra = {};
+    if (officeNotes !== undefined) extra.officeNotes = officeNotes;
+    if (dates?.startDate)    extra.startDate    = dates.startDate;
+    if (dates?.deliveryDate) extra.deliveryDate = dates.deliveryDate;
+    const update = clean({ status, statusLabel, updatedAt: serverTimestamp(), timeline, ...extra });
     await updateDoc(ref, update);
     const updated = { id, ...old, ...update };
 
     // إشعار للعميل
+    const notifBody = statusLabel + (desc ? ' — ' + desc : '') +
+      (dates?.deliveryDate ? ` — تاريخ التسليم: ${dates.deliveryDate}` : '');
     await Notifs.add('client_' + old.ticket, {
       type: 'status_update', icon: '🔄',
       title: 'تحديث على طلبك',
-      body: statusLabel + (desc ? ' — ' + desc : ''),
+      body: notifBody,
       ticket: old.ticket, reqId: id
     });
 

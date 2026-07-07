@@ -1,8 +1,7 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════
-//  قواعد Firestore المبسّطة — مكتب جيل البناء
-//  تعمل بدون Firebase Authentication
+//  قواعد Firestore — مكتب جيل البناء
 //  انسخ هذا المحتوى إلى:
 //  Firebase Console → Firestore Database → Rules → Publish
 // ══════════════════════════════════════════════════════════
@@ -10,44 +9,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // عدّادات رقم الطلب اليومي
-    match /counters/{dateKey} {
-      allow read, write: if true;
-    }
-
-    // طلبات العملاء
-    match /requests/{ticket} {
-      allow read: if true;
+    // بيانات العملاء (تسجيل الحساب)
+    match /clients/{uid} {
+      allow read:   if true;
       allow create: if true;
       allow update: if true;
       allow delete: if false;
+    }
 
-      // رسائل الدردشة
-      match /messages/{msgId} {
-        allow read, write: if true;
-      }
-      // إشعارات العميل
-      match /notifications/{notifId} {
-        allow read, write: if true;
-      }
+    // عدّادات رقم الطلب
+    match /counters/{doc} {
+      allow read, write: if true;
+    }
+
+    // الطلبات
+    match /requests/{ticket} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+
+      match /messages/{msgId}      { allow read, write, delete: if true; }
+      match /notifications/{nId}   { allow read, write, delete: if true; }
     }
 
     // عروض الأسعار
     match /quotes/{quoteId} {
-      allow read: if true;
+      allow read:   if true;
       allow create: if true;
       allow update: if true;
-      allow delete: if false;
+      allow delete: if true;
+    }
+
+    // رسائل مستقلة
+    match /messages/{msgId} {
+      allow read, write, delete: if true;
     }
 
     // إشعارات المكتب
-    match /office_notifications/{notifId} {
-      allow read, write: if true;
+    match /office_notifications/{nId} {
+      allow read, write, delete: if true;
     }
 
-    // موظفو المكتب (لن يُستخدم حالياً)
-    match /staff/{uid} {
-      allow read, write: if false;
+    // إشعارات العملاء
+    match /notifications/{nId} {
+      allow read, write, delete: if true;
     }
   }
 }
