@@ -97,5 +97,25 @@ service cloud.firestore {
       allow update: if true;
       allow delete: if false;
     }
+
+    // ══════════════════════════════════════════════════════
+    //  مستودع بيع مواد البناء
+    // ══════════════════════════════════════════════════════
+
+    // كتالوج المواد (أسعار + مخزون)
+    match /materials/{materialId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    // طلبيات/فواتير المواد
+    match /material_orders/{orderId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
   }
 }

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مستودع مواد البناء — جيل البناء</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+:root{--bg:#0f1117;--surface:#181c27;--card:#1e2332;--border:#2a3045;--gold:#c9a84c;--gold-dim:#a07830;--gold-glow:rgba(201,168,76,0.15);--teal:#2dd4bf;--red:#f87171;--green:#4ade80;--amber:#fbbf24;--purple:#a78bfa;--text:#e8eaf0;--muted:#8890a8;--radius:12px;--rsm:8px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+header{background:linear-gradient(135deg,#0f1117,#1a1f2e,#0f1117);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);gap:10px;flex-wrap:wrap;}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-icon{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
+.logo-icon img{width:100%;height:100%;object-fit:cover;display:block;}
+.logo-text h1{font-size:14px;font-weight:700;color:var(--gold);}
+.logo-text p{font-size:10px;color:var(--muted);}
+nav{display:flex;gap:2px;flex-wrap:wrap;}
+.nb{background:none;border:none;color:var(--muted);padding:8px 14px;border-radius:var(--rsm);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:all .2s;white-space:nowrap;position:relative;}
+.nb:hover{background:var(--card);color:var(--text);}
+.nb.active{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-dim);}
+.hdr{display:flex;align-items:center;gap:8px;}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:var(--rsm);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);}
+main{padding:20px;max-width:1400px;margin:0 auto;}
+.page{display:none;}.page.active{display:block;}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.st{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.btn{padding:8px 16px;border-radius:var(--rsm);border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:all .2s;}
+.btn-gold{background:var(--gold);color:#0f1117;}.btn-gold:hover{background:#e0ba60;}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--muted);}.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-danger{background:rgba(248,113,113,.15);border:1px solid var(--red);color:var(--red);}
+.btn-teal{background:rgba(45,212,191,.15);border:1px solid var(--teal);color:var(--teal);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.tw{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:auto;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--surface);padding:9px 12px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;text-align:right;white-space:nowrap;}
+td{padding:10px 12px;font-size:12px;border-top:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+tr:hover td{background:rgba(201,168,76,.03);}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.bg{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);}
+.ba{background:rgba(251,191,36,.15);color:var(--amber);border:1px solid rgba(251,191,36,.3);}
+.br{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3);}
+.bt{background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3);}
+.bm{background:rgba(136,144,168,.15);color:var(--muted);border:1px solid rgba(136,144,168,.3);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;width:640px;max-width:96vw;max-height:92vh;overflow-y:auto;}
+.modal.wide{width:920px;}
+.modal h3{font-size:15px;font-weight:700;color:var(--gold);margin-bottom:18px;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fgi{display:flex;flex-direction:column;gap:4px;}
+.fgi.full{grid-column:1/-1;}
+label{font-size:11px;color:var(--muted);font-weight:600;}
+input,select,textarea{background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:8px 11px;color:var(--text);font-family:inherit;font-size:12px;transition:border-color .2s;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);}
+textarea{resize:vertical;min-height:65px;}
+select option{background:var(--surface);}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:18px;}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s;}
+.ic:hover{border-color:var(--gold-dim);}
+.ic-h{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+.ic-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ic-b{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.ic-s{background:var(--surface);border-radius:var(--rsm);padding:7px 9px;text-align:center;}
+.ic-s .v{font-size:14px;font-weight:700;}
+.ic-s .l{font-size:9px;color:var(--muted);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--accent,var(--gold));}
+.sc .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;}
+.sc .sv{font-size:20px;font-weight:700;color:var(--accent,var(--gold));}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:12px;}
+.boq-row{display:grid;grid-template-columns:1.6fr 1fr 1.4fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.boq-row.hdr-row{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;}
+.boq-row .skip{opacity:.35;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card);border:1px solid var(--border);border-right:3px solid var(--gold);color:var(--text);padding:12px 20px;border-radius:var(--rsm);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}main{padding:10px;}header{padding:9px 12px;}.fg{grid-template-columns:1fr;}.boq-row{grid-template-columns:1fr;gap:3px;}.modal.wide{width:96vw;}}
+</style>
+</head>
+<body>
+
+<div id="officeLoginGate" style="position:fixed;inset:0;z-index:9999;background:#0d0f14;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="width:100%;max-width:340px;background:#171b25;border:1px solid rgba(201,168,76,.25);border-radius:14px;padding:28px 24px;text-align:center;">
+    <img src="logo.png" alt="جيل البناء" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:14px;">
+    <h2 style="color:#c9a84c;font-size:16px;margin-bottom:4px;">دخول المكتب</h2>
+    <p style="color:#7a8299;font-size:12px;margin-bottom:18px;">مستودع مواد البناء — لموظفي المكتب فقط</p>
+    <input id="officeEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username"
+      style="width:100%;padding:11px 13px;margin-bottom:10px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
+    <input id="officePassword" type="password" placeholder="كلمة السر" autocomplete="current-password"
+      style="width:100%;padding:11px 13px;margin-bottom:14px;border-radius:8px;border:1.5px solid #2a3040;background:#0d0f14;color:#eaecf2;font-size:13px;box-sizing:border-box;">
+    <button id="officeLoginBtn" onclick="window.__officeLogin()"
+      style="width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,#7a6230,#c9a84c);color:#0d0f14;font-weight:700;font-size:13px;cursor:pointer;">
+      دخول
+    </button>
+    <p id="officeLoginError" style="color:#f87171;font-size:11px;margin-top:12px;display:none;"></p>
+  </div>
+</div>
+
+<div id="officeDashboardRoot" style="display:none;">
+<header>
+  <div class="logo">
+    <div class="logo-icon"><img src="logo.png" alt=""></div>
+    <div class="logo-text"><h1>📦 مستودع مواد البناء</h1><p>جيل البناء — كتالوج الأسعار والمخزون</p></div>
+  </div>
+  <nav>
+    <button class="nb active" id="tab-catalog" onclick="showTab('catalog')">📦 الكتالوج والمخزون</button>
+    <button class="nb" id="tab-orders" onclick="showTab('orders')">🧾 طلبيات المشاريع</button>
+    <button class="nb" id="tab-low" onclick="showTab('low')">⚠️ تنبيهات النقص<span id="lowBadge" class="badge br" style="display:none;margin-right:6px"></span></button>
+  </nav>
+  <div class="hdr"><button class="icon-btn" onclick="doOfficeLogout()" title="تسجيل الخروج">🚪</button></div>
+</header>
+
+<main>
+  <div class="stats-grid">
+    <div class="sc" style="--accent:var(--gold)"><div class="sl">عدد المواد بالكتالوج</div><div class="sv" id="statCount">0</div></div>
+    <div class="sc" style="--accent:var(--teal)"><div class="sl">قيمة المخزون الحالي</div><div class="sv" id="statValue">0 دج</div></div>
+    <div class="sc" style="--accent:var(--amber)"><div class="sl">مواد تحت الحد الأدنى</div><div class="sv" id="statLow">0</div></div>
+    <div class="sc" style="--accent:var(--green)"><div class="sl">الطلبيات المؤكَّدة</div><div class="sv" id="statOrders">0</div></div>
+  </div>
+
+  <!-- الكتالوج والمخزون -->
+  <div class="page active" id="page-catalog">
+    <div class="sh"><div class="st">📦 كتالوج المواد والمخزون</div><button class="btn btn-gold" onclick="openMaterialModal()">+ مادة جديدة</button></div>
+    <div class="cg" id="materials_cards"><div class="empty">لا توجد مواد في الكتالوج بعد</div></div>
+  </div>
+
+  <!-- طلبيات المشاريع -->
+  <div class="page" id="page-orders">
+    <div class="sh"><div class="st">🧾 طلبيات المشاريع</div><button class="btn btn-gold" onclick="openOrderModal()">+ طلبية جديدة</button></div>
+    <div class="tw"><table><thead><tr><th>رقم الطلبية</th><th>المشروع</th><th>عدد البنود</th><th>التكلفة الإجمالية</th><th>الحالة</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+    <tbody id="orders_tb"><tr><td colspan="7" class="empty">لا توجد طلبيات بعد</td></tr></tbody></table></div>
+  </div>
+
+  <!-- تنبيهات النقص -->
+  <div class="page" id="page-low">
+    <div class="sh"><div class="st">⚠️ مواد تحت الحد الأدنى للمخزون</div></div>
+    <div class="tw"><table><thead><tr><th>المادة</th><th>الوحدة</th><th>المخزون الحالي</th><th>الحد الأدنى</th><th>النقص</th></tr></thead>
+    <tbody id="low_tb"><tr><td colspan="5" class="empty">لا توجد تنبيهات حالياً 👍</td></tr></tbody></table></div>
+  </div>
+</main>
+</div>
+
+<!-- MODAL: مادة جديدة/تعديل -->
+<div class="modal-overlay" id="materialModal">
+  <div class="modal"><h3 id="matModalTitle">📦 مادة جديدة</h3>
+    <input type="hidden" id="m_id">
+    <div class="fg">
+      <div class="fgi full"><label>اسم المادة *</label><input id="m_name" placeholder="مثال: إسمنت CPJ 45"></div>
+      <div class="fgi"><label>الوحدة *</label>
+        <select id="m_unit"><option>طن</option><option>م³</option><option>م²</option><option>قنطار</option><option>وحدة</option><option>كيس</option><option>لتر</option><option>متر طولي</option></select>
+      </div>
+      <div class="fgi"><label>التصنيف</label><input id="m_category" placeholder="مثال: خرسانة / حديد / كهرباء"></div>
+      <div class="fgi"><label>السعر الوحدوي (دج) *</label><input id="m_price" type="number" min="0" step="1"></div>
+      <div class="fgi"><label>الكمية بالمخزون *</label><input id="m_stock" type="number" min="0" step="0.01"></div>
+      <div class="fgi full"><label>الحد الأدنى للتنبيه</label><input id="m_min" type="number" min="0" step="0.01" value="0"></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('materialModal')">إلغاء</button><button class="btn btn-gold" onclick="saveMaterial()">حفظ المادة</button></div>
+  </div>
+</div>
+
+<!-- MODAL: طلبية جديدة -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal wide"><h3>🧾 طلبية مواد جديدة</h3>
+    <div class="fg" style="margin-bottom:14px">
+      <div class="fgi"><label>اختر مشروعاً (لجلب الكميات من BOQ)</label>
+        <select id="o_project" onchange="loadProjectBOQ()"><option value="">— طلبية يدوية بدون مشروع —</option></select>
+      </div>
+      <div class="fgi"><label>اسم العميل/جهة الطلب</label><input id="o_client" placeholder="اختياري"></div>
+    </div>
+
+    <div id="boqRowsWrap" style="display:none">
+      <div class="sh"><div class="st" style="font-size:12px">📋 بنود جدول الكميات (BOQ) — اختر المادة المطابقة لكل بند</div></div>
+      <div id="boqRows" style="max-height:280px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;margin-bottom:14px"></div>
+    </div>
+
+    <div class="sh"><div class="st" style="font-size:12px">➕ بند إضافي يدوي</div><button class="btn btn-outline btn-sm" onclick="addManualRow()">+ إضافة بند</button></div>
+    <div id="manualRows" style="margin-bottom:14px"></div>
+
+    <div class="tw" style="margin-bottom:10px"><table><thead><tr><th>البند</th><th>الكمية</th><th>الوحدة</th><th>السعر الوحدوي</th><th>الإجمالي</th><th>المخزون</th></tr></thead>
+    <tbody id="orderPreview_tb"><tr><td colspan="6" class="empty">لا توجد بنود بعد</td></tr></tbody></table></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:var(--rsm);padding:12px 16px;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--muted);font-weight:700">التكلفة الإجمالية</span>
+      <span style="font-size:18px;font-weight:800;color:var(--gold)" id="orderTotalLbl">0 دج</span>
+    </div>
+    <div id="shortageWarning" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:var(--rsm);padding:10px 12px;font-size:11px;color:var(--red);margin-bottom:10px"></div>
+
+    <div class="fgi full"><label>ملاحظات</label><textarea id="o_notes"></textarea></div>
+    <div class="mf">
+      <button class="btn btn-outline" onclick="closeModal('orderModal')">إلغاء</button>
+      <button class="btn btn-teal" onclick="submitOrder(false)">حفظ كمسودة</button>
+      <button class="btn btn-gold" onclick="submitOrder(true)">تأكيد وصرف من المخزون</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import Bridge from './bridge.js';
+
+let materials = [];
+let orders = [];
+let materialsUnsub = null, ordersUnsub = null;
+let orderRows = []; // { source:'boq'|'manual', label, qty, unit, materialId, unitPrice, skip }
+
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+window.closeModal = closeModal;
+document.querySelectorAll('.modal-overlay').forEach(m=>
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); }));
+
+function showToast(msg){
+  let el=document.getElementById('toastEl');
+  if(!el){ el=document.createElement('div'); el.id='toastEl'; el.className='toast'; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+// ═══ OFFICE LOGIN (نفس نمط architecture_pm.html) ═══════
+async function __officeLogin() {
+  const email = document.getElementById('officeEmail').value.trim();
+  const password = document.getElementById('officePassword').value;
+  const errEl = document.getElementById('officeLoginError');
+  const btn = document.getElementById('officeLoginBtn');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة السر'; errEl.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = '⏳ جارٍ الدخول...';
+  try {
+    await Bridge.Auth.signIn(email, password);
+    if (!_officeStarted) { _officeStarted = true; startDashboard(); }
+  } catch (err) {
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') errEl.textContent = '⛔ البريد الإلكتروني أو كلمة السر غير صحيحة';
+    else errEl.textContent = '⛔ تعذّر تسجيل الدخول — ' + (err.message || '');
+    errEl.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'دخول'; }
+}
+window.__officeLogin = __officeLogin;
+document.getElementById('officePassword').addEventListener('keydown', e => { if (e.key === 'Enter') __officeLogin(); });
+
+async function doOfficeLogout(){
+  if(!confirm('تأكيد تسجيل الخروج؟')) return;
+  if(materialsUnsub) materialsUnsub();
+  if(ordersUnsub) ordersUnsub();
+  await Bridge.Auth.signOut();
+  location.reload();
+}
+window.doOfficeLogout = doOfficeLogout;
+
+let _officeStarted = false;
+Bridge.Auth.onChange(user => {
+  if (_officeStarted) return;
+  if (user && !user.isAnonymous) { _officeStarted = true; startDashboard(); }
+});
+
+function startDashboard(){
+  document.getElementById('officeLoginGate').style.display = 'none';
+  document.getElementById('officeDashboardRoot').style.display = '';
+  materialsUnsub = Bridge.Materials.watchAll(list => { materials = list; renderAll(); });
+  ordersUnsub = Bridge.MaterialOrders.watchAll(list => { orders = list; renderOrders(); updateStats(); });
+}
+
+// ═══ TABS ══════════════════════════════════════════════
+function showTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+window.showTab = showTab;
+
+function renderAll(){ renderMaterials(); renderLowStock(); updateStats(); }
+
+function updateStats(){
+  document.getElementById('statCount').textContent = materials.length;
+  const val = materials.reduce((s,m)=>s+(Number(m.stockQty)||0)*(Number(m.unitPrice)||0), 0);
+  document.getElementById('statValue').textContent = val.toLocaleString('ar-DZ')+' دج';
+  const lowCount = materials.filter(m=>(Number(m.stockQty)||0) <= (Number(m.minThreshold)||0)).length;
+  document.getElementById('statLow').textContent = lowCount;
+  const lowBadge = document.getElementById('lowBadge');
+  if(lowCount){ lowBadge.textContent = lowCount; lowBadge.style.display='inline-block'; } else lowBadge.style.display='none';
+  document.getElementById('statOrders').textContent = orders.filter(o=>o.status==='confirmed').length;
+}
+
+// ═══ MATERIALS CATALOG ═════════════════════════════════
+function renderMaterials(){
+  const el = document.getElementById('materials_cards');
+  if(!materials.length){ el.innerHTML = '<div class="empty">لا توجد مواد في الكتالوج بعد</div>'; return; }
+  el.innerHTML = materials.map(m=>{
+    const low = (Number(m.stockQty)||0) <= (Number(m.minThreshold)||0);
+    return `<div class="ic">
+      <div class="ic-h"><div class="ic-av" style="background:var(--gold-glow);color:var(--gold)">📦</div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:10px;color:var(--muted)">${esc(m.category||'—')}</div></div>
+        ${low?'<span class="badge br">نقص</span>':''}
+      </div>
+      <div class="ic-b">
+        <div class="ic-s"><div class="v">${(m.unitPrice||0).toLocaleString('ar-DZ')}</div><div class="l">دج / ${esc(m.unit)}</div></div>
+        <div class="ic-s"><div class="v" style="color:${low?'var(--red)':'var(--teal)'}">${m.stockQty||0}</div><div class="l">المخزون (${esc(m.unit)})</div></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" style="flex:1" onclick="openMaterialModal('${m.id}')">✏️ تعديل</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMaterial('${m.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openMaterialModal(id){
+  document.getElementById('m_id').value = id||'';
+  if(id){
+    const m = materials.find(x=>x.id===id);
+    document.getElementById('matModalTitle').textContent = '✏️ تعديل مادة';
+    document.getElementById('m_name').value = m.name||'';
+    document.getElementById('m_unit').value = m.unit||'طن';
+    document.getElementById('m_category').value = m.category||'';
+    document.getElementById('m_price').value = m.unitPrice||0;
+    document.getElementById('m_stock').value = m.stockQty||0;
+    document.getElementById('m_min').value = m.minThreshold||0;
+  } else {
+    document.getElementById('matModalTitle').textContent = '📦 مادة جديدة';
+    ['m_name','m_category'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('m_price').value=''; document.getElementById('m_stock').value=''; document.getElementById('m_min').value=0;
+  }
+  openModal('materialModal');
+}
+window.openMaterialModal = openMaterialModal;
+
+async function saveMaterial(){
+  const id = document.getElementById('m_id').value;
+  const name = document.getElementById('m_name').value.trim();
+  const unit = document.getElementById('m_unit').value;
+  const category = document.getElementById('m_category').value.trim();
+  const unitPrice = Number(document.getElementById('m_price').value)||0;
+  const stockQty = Number(document.getElementById('m_stock').value)||0;
+  const minThreshold = Number(document.getElementById('m_min').value)||0;
+  if(!name || !unitPrice){ showToast('⚠️ يرجى إدخال الاسم والسعر على الأقل'); return; }
+  try{
+    if(id) await Bridge.Materials.update(id, {name,unit,category,unitPrice,stockQty,minThreshold});
+    else await Bridge.Materials.add({name,unit,category,unitPrice,stockQty,minThreshold});
+    closeModal('materialModal');
+    showToast(id?'✅ تم تحديث المادة':'✅ تمت إضافة المادة');
+  }catch(err){ showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
+}
+window.saveMaterial = saveMaterial;
+
+async function deleteMaterial(id){
+  if(!confirm('تأكيد حذف هذه المادة من الكتالوج؟')) return;
+  try{ await Bridge.Materials.remove(id); showToast('🗑️ تم الحذف'); }
+  catch(err){ showToast('❌ تعذر الحذف'); }
+}
+window.deleteMaterial = deleteMaterial;
+
+// ═══ LOW STOCK ═════════════════════════════════════════
+function renderLowStock(){
+  const low = materials.filter(m=>(Number(m.stockQty)||0) <= (Number(m.minThreshold)||0));
+  const tb = document.getElementById('low_tb');
+  tb.innerHTML = low.length ? low.map(m=>`<tr>
+    <td>${esc(m.name)}</td><td>${esc(m.unit)}</td>
+    <td style="color:var(--red);font-weight:700">${m.stockQty||0}</td>
+    <td>${m.minThreshold||0}</td>
+    <td style="color:var(--red)">${Math.max(0,(m.minThreshold||0)-(m.stockQty||0))}</td>
+  </tr>`).join('') : '<tr><td colspan="5" class="empty">لا توجد تنبيهات حالياً 👍</td></tr>';
+}
+
+// ═══ ORDERS ════════════════════════════════════════════
+function orderStatusLabel(s){ return {draft:'مسوّدة',confirmed:'مؤكَّدة',cancelled:'ملغاة'}[s]||s; }
+function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br'}[s]||'bm'; }
+
+function renderOrders(){
+  const tb = document.getElementById('orders_tb');
+  tb.innerHTML = orders.length ? orders.map(o=>`<tr>
+    <td>${esc(o.id||o.orderId)}</td><td>${esc(o.projectLabel||'—')}</td><td>${(o.items||[]).length}</td>
+    <td>${(o.totalCost||0).toLocaleString('ar-DZ')} دج</td>
+    <td><span class="badge ${orderStatusClass(o.status)}">${orderStatusLabel(o.status)}</span></td>
+    <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-DZ') : '—'}</td>
+    <td>${o.status==='draft'?`<div style="display:flex;gap:6px">
+      <button class="btn btn-teal btn-sm" onclick="confirmOrderBtn('${o.id}')">✅ تأكيد وصرف</button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrderBtn('${o.id}')">إلغاء</button>
+    </div>`:'—'}</td>
+  </tr>`).join('') : '<tr><td colspan="7" class="empty">لا توجد طلبيات بعد</td></tr>';
+}
+
+async function confirmOrderBtn(id){
+  if(!confirm('تأكيد الطلبية؟ سيتم صرف الكميات من المخزون فعلياً.')) return;
+  try{ await Bridge.MaterialOrders.confirm(id); showToast('✅ تم تأكيد الطلبية وصرف الكميات'); }
+  catch(err){ showToast('❌ تعذر التأكيد: '+(err?.message||'')); }
+}
+window.confirmOrderBtn = confirmOrderBtn;
+
+async function cancelOrderBtn(id){
+  if(!confirm('تأكيد إلغاء الطلبية؟')) return;
+  try{ await Bridge.MaterialOrders.cancel(id); showToast('تم إلغاء الطلبية'); }
+  catch(err){ showToast('❌ تعذر الإلغاء'); }
+}
+window.cancelOrderBtn = cancelOrderBtn;
+
+// ═══ قراءة مشاريع BOQ المحلية (نفس المصدر في architecture_pm.html) ═══
+function getLocalProjects(){
+  try { return JSON.parse(localStorage.getItem('arch_p')||'[]'); } catch(e) { return []; }
+}
+function getLocalCostData(){
+  try { return JSON.parse(localStorage.getItem('arch_cd')||'{}'); } catch(e) { return {}; }
+}
+
+function openOrderModal(){
+  orderRows = [];
+  document.getElementById('o_client').value = '';
+  document.getElementById('o_notes').value = '';
+  document.getElementById('boqRowsWrap').style.display = 'none';
+  document.getElementById('manualRows').innerHTML = '';
+  const sel = document.getElementById('o_project');
+  sel.innerHTML = '<option value="">— طلبية يدوية بدون مشروع —</option>';
+  const projects = getLocalProjects();
+  const cd = getLocalCostData();
+  if (!projects.length) {
+    sel.innerHTML += '<option disabled>لم يتم العثور على مشاريع محلية على هذا الجهاز</option>';
+  } else {
+    projects.forEach(p => { if(cd[p.id]) sel.appendChild(new Option(`${p.name} — ${p.client||''}`, p.id)); });
+  }
+  renderOrderPreview();
+  openModal('orderModal');
+}
+window.openOrderModal = openOrderModal;
+
+function loadProjectBOQ(){
+  const pid = document.getElementById('o_project').value;
+  const wrap = document.getElementById('boqRowsWrap');
+  orderRows = orderRows.filter(r => r.source !== 'boq');
+  if (!pid) { wrap.style.display = 'none'; renderOrderPreview(); return; }
+  const cd = getLocalCostData();
+  const data = cd[pid];
+  if (!data || !data.chapters) { wrap.style.display='none'; showToast('⚠️ لا يوجد جدول كميات BOQ لهذا المشروع'); return; }
+
+  const rowsEl = document.getElementById('boqRows');
+  let html = `<div class="boq-row hdr-row"><div>البند</div><div>الكمية</div><div>المادة المطابقة</div><div>السعر الوحدوي</div><div>تجاهل</div></div>`;
+  data.chapters.forEach((ch,ci) => {
+    (ch.rows||[]).forEach((row,ri) => {
+      if (!row.qty) return;
+      const rowId = `boq_${ci}_${ri}`;
+      orderRows.push({ id: rowId, source:'boq', label: row.desc, qty: Number(row.qty)||0, unit: row.unit||'', materialId:'', unitPrice:0, skip:false });
+      html += `<div class="boq-row" id="wrap_${rowId}">
+        <div>${esc(row.desc)} <span style="color:var(--muted)">(${esc(ch.label)})</span></div>
+        <div>${row.qty} ${esc(row.unit||'')}</div>
+        <div><select onchange="mapBoqRow('${rowId}', this.value)"><option value="">— بدون مطابقة —</option>${materials.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select></div>
+        <div id="price_${rowId}" style="color:var(--muted)">—</div>
+        <div><input type="checkbox" onchange="toggleSkipRow('${rowId}', this.checked)"></div>
+      </div>`;
+    });
+  });
+  rowsEl.innerHTML = html;
+  wrap.style.display = 'block';
+  renderOrderPreview();
+}
+window.loadProjectBOQ = loadProjectBOQ;
+
+function mapBoqRow(rowId, materialId){
+  const row = orderRows.find(r=>r.id===rowId);
+  if(!row) return;
+  const mat = materials.find(m=>m.id===materialId);
+  row.materialId = materialId;
+  row.unitPrice = mat ? Number(mat.unitPrice)||0 : 0;
+  if (mat) row.unit = mat.unit;
+  const priceEl = document.getElementById('price_'+rowId);
+  if(priceEl) priceEl.textContent = mat ? `${row.unitPrice.toLocaleString('ar-DZ')} دج` : '—';
+  renderOrderPreview();
+}
+window.mapBoqRow = mapBoqRow;
+
+function toggleSkipRow(rowId, checked){
+  const row = orderRows.find(r=>r.id===rowId);
+  if(row) row.skip = checked;
+  const wrapEl = document.getElementById('wrap_'+rowId);
+  if(wrapEl) wrapEl.classList.toggle('skip', checked);
+  renderOrderPreview();
+}
+window.toggleSkipRow = toggleSkipRow;
+
+function addManualRow(){
+  const rowId = 'man_'+uid();
+  orderRows.push({ id: rowId, source:'manual', label:'', qty:0, unit:'', materialId:'', unitPrice:0, skip:false });
+  renderManualRows();
+}
+window.addManualRow = addManualRow;
+
+function renderManualRows(){
+  const el = document.getElementById('manualRows');
+  const manualOnes = orderRows.filter(r=>r.source==='manual');
+  el.innerHTML = manualOnes.map(r=>`<div class="boq-row" style="grid-template-columns:1.6fr 1fr 1.4fr 1fr auto">
+    <div><select onchange="mapManualRow('${r.id}', this.value)"><option value="">— اختر مادة —</option>${materials.map(m=>`<option value="${m.id}" ${r.materialId===m.id?'selected':''}>${esc(m.name)}</option>`).join('')}</select></div>
+    <div><input type="number" min="0" step="0.01" value="${r.qty||0}" oninput="updateManualQty('${r.id}', this.value)"></div>
+    <div style="color:var(--muted)">${esc(r.unit||'—')}</div>
+    <div style="color:var(--muted)">${(r.unitPrice||0).toLocaleString('ar-DZ')} دج</div>
+    <div><button class="btn btn-danger btn-sm" onclick="removeManualRow('${r.id}')">🗑️</button></div>
+  </div>`).join('');
+  renderOrderPreview();
+}
+
+function mapManualRow(rowId, materialId){
+  const row = orderRows.find(r=>r.id===rowId);
+  const mat = materials.find(m=>m.id===materialId);
+  row.materialId = materialId; row.label = mat?mat.name:''; row.unit = mat?mat.unit:''; row.unitPrice = mat?Number(mat.unitPrice)||0:0;
+  renderManualRows();
+}
+window.mapManualRow = mapManualRow;
+
+function updateManualQty(rowId, val){
+  const row = orderRows.find(r=>r.id===rowId);
+  if(row) row.qty = Number(val)||0;
+  renderOrderPreview();
+}
+window.updateManualQty = updateManualQty;
+
+function removeManualRow(rowId){
+  orderRows = orderRows.filter(r=>r.id!==rowId);
+  renderManualRows();
+}
+window.removeManualRow = removeManualRow;
+
+function renderOrderPreview(){
+  const active = orderRows.filter(r => !r.skip && r.materialId && r.qty > 0);
+  const tb = document.getElementById('orderPreview_tb');
+  let total = 0;
+  const shortages = [];
+  if(!active.length){
+    tb.innerHTML = '<tr><td colspan="6" class="empty">لا توجد بنود بعد — اختر مشروعاً أو أضف بنداً يدوياً</td></tr>';
+  } else {
+    tb.innerHTML = active.map(r=>{
+      const mat = materials.find(m=>m.id===r.materialId);
+      const subtotal = (r.qty||0)*(r.unitPrice||0);
+      total += subtotal;
+      const stock = mat ? Number(mat.stockQty)||0 : 0;
+      const short = r.qty > stock;
+      if (short) shortages.push({ name: mat?.name||r.label, needed: r.qty, available: stock });
+      return `<tr>
+        <td>${esc(r.label || mat?.name || '')}</td><td>${r.qty}</td><td>${esc(r.unit||'')}</td>
+        <td>${(r.unitPrice||0).toLocaleString('ar-DZ')} دج</td>
+        <td style="font-weight:700">${subtotal.toLocaleString('ar-DZ')} دج</td>
+        <td style="color:${short?'var(--red)':'var(--green)'}">${stock} ${short?'⚠️':'✓'}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('orderTotalLbl').textContent = total.toLocaleString('ar-DZ')+' دج';
+  const warnEl = document.getElementById('shortageWarning');
+  if(shortages.length){
+    warnEl.style.display='block';
+    warnEl.innerHTML = '⚠️ نقص في المخزون: ' + shortages.map(s=>`${esc(s.name)} (مطلوب ${s.needed} / متوفر ${s.available})`).join('، ');
+  } else warnEl.style.display='none';
+}
+
+async function submitOrder(confirmNow){
+  const active = orderRows.filter(r => !r.skip && r.materialId && r.qty > 0);
+  if(!active.length){ showToast('⚠️ أضف بنداً واحداً على الأقل'); return; }
+  const pid = document.getElementById('o_project').value;
+  const projects = getLocalProjects();
+  const proj = projects.find(p=>p.id===pid);
+  const items = active.map(r=>{
+    const mat = materials.find(m=>m.id===r.materialId);
+    return { materialId: r.materialId, name: mat?.name||r.label, unit: r.unit, qty: r.qty, unitPrice: r.unitPrice };
+  });
+  try{
+    const order = await Bridge.MaterialOrders.create({
+      projectLabel: proj ? `${proj.name} — ${proj.client||''}` : '',
+      clientName: document.getElementById('o_client').value.trim(),
+      items, notes: document.getElementById('o_notes').value.trim(),
+    });
+    if (confirmNow) await Bridge.MaterialOrders.confirm(order.orderId);
+    closeModal('orderModal');
+    showToast(confirmNow ? '✅ تم إنشاء الطلبية وصرف الكميات من المخزون' : '✅ تم حفظ الطلبية كمسودة');
+  }catch(err){ showToast('❌ تعذر إنشاء الطلبية: '+(err?.message||'')); }
+}
+window.submitOrder = submitOrder;
+
+</script>
+</body>
+</html>

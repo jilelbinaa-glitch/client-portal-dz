@@ -17,7 +17,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
-  updateDoc, onSnapshot, query, orderBy, where, collectionGroup,
+  updateDoc, deleteDoc, onSnapshot, query, orderBy, where, collectionGroup,
   serverTimestamp, Timestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
@@ -51,6 +51,8 @@ const COL = {
   execProjects: 'exec_projects',
   workOffers:   'work_offers',
   workApps:     'work_applications',
+  materials:      'materials',
+  materialOrders: 'material_orders',
 };
 
 // ── مراحل الإنجاز الموحّدة (10 مراحل) ───────────────────
@@ -191,6 +193,26 @@ async function execTicketNum() {
   const dd   = String(now.getDate()).padStart(2, '0');
   const dateKey = `EXEC-${yyyy}${mm}${dd}`;
   const prefix  = `JIL-EXEC-${yyyy}-${mm}-${dd}-`;
+
+  const counterRef = doc(db, COL.counters, dateKey);
+  const n = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    const next = snap.exists() ? (Number(snap.data().n) || 0) + 1 : 1;
+    if (snap.exists()) tx.update(counterRef, { n: next });
+    else tx.set(counterRef, { n: next });
+    return next;
+  });
+  return prefix + String(n).padStart(3, '0');
+}
+
+// ── رقم طلبية مواد — نفس المبدأ ببادئة مختلفة ───────────
+async function matTicketNum() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getDate()).padStart(2, '0');
+  const dateKey = `MAT-${yyyy}${mm}${dd}`;
+  const prefix  = `JIL-MAT-${yyyy}-${mm}-${dd}-`;
 
   const counterRef = doc(db, COL.counters, dateKey);
   const n = await runTransaction(db, async (tx) => {
@@ -965,6 +987,105 @@ const Applications = {
 };
 
 // ══════════════════════════════════════════════════════════
+//  MATERIALS — مستودع بيع مواد البناء
+//  materials/{id}: كتالوج مركزي بالأسعار الوحدوية + المخزون الفعلي.
+// ══════════════════════════════════════════════════════════
+const Materials = {
+
+  async add(data) {
+    const material = clean({ ...data, stockQty: Number(data.stockQty)||0, minThreshold: Number(data.minThreshold)||0, unitPrice: Number(data.unitPrice)||0, updatedAt: serverTimestamp() });
+    const ref = await addDoc(collection(db, COL.materials), material);
+    return { id: ref.id, ...material };
+  },
+
+  async update(id, data) {
+    await updateDoc(doc(db, COL.materials, id), clean({ ...data, updatedAt: serverTimestamp() }));
+  },
+
+  async remove(id) { await deleteDoc(doc(db, COL.materials, id)); },
+
+  async get(id) {
+    const snap = await getDoc(doc(db, COL.materials, id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  async getAll() {
+    const snap = await getDocs(collection(db, COL.materials));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchAll(cb) {
+    return onSnapshot(collection(db, COL.materials), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // تعديل المخزون بفارق (موجب = توريد جديد، سالب = صرف/بيع)
+  async adjustStock(id, delta) {
+    const ref = doc(db, COL.materials, id);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) return;
+      const cur = Number(snap.data().stockQty) || 0;
+      tx.update(ref, { stockQty: Math.max(0, cur + delta), updatedAt: serverTimestamp() });
+    });
+  },
+};
+
+// ══════════════════════════════════════════════════════════
+//  MATERIAL ORDERS — طلبيات/فواتير مواد لمشروع (تُصرف من المخزون)
+// ══════════════════════════════════════════════════════════
+const MaterialOrders = {
+
+  // items: [{materialId, name, unit, qty, unitPrice}]
+  async create({ projectLabel, clientName, items, notes }) {
+    const orderId = await matTicketNum();
+    const priced = (items || []).map(it => ({ ...it, subtotal: (Number(it.qty)||0) * (Number(it.unitPrice)||0) }));
+    const totalCost = priced.reduce((s, it) => s + it.subtotal, 0);
+    const order = clean({
+      orderId, projectLabel: projectLabel || '', clientName: clientName || '',
+      items: priced, totalCost, notes: notes || '',
+      status: 'draft', createdAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, COL.materialOrders, orderId), order);
+    return order;
+  },
+
+  async get(id) {
+    const snap = await getDoc(doc(db, COL.materialOrders, id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  async getAll() {
+    const snap = await getDocs(query(collection(db, COL.materialOrders), orderBy('createdAt', 'desc')));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchAll(cb) {
+    return onSnapshot(query(collection(db, COL.materialOrders), orderBy('createdAt', 'desc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // تأكيد الطلبية — يصرف الكميات من المخزون فعلياً
+  async confirm(orderId) {
+    const ref = doc(db, COL.materialOrders, orderId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const order = snap.data();
+    for (const it of (order.items || [])) {
+      if (it.materialId) await Materials.adjustStock(it.materialId, -(Number(it.qty)||0));
+    }
+    await updateDoc(ref, { status: 'confirmed', confirmedAt: serverTimestamp() });
+    return { id: orderId, ...order, status: 'confirmed' };
+  },
+
+  async cancel(orderId) {
+    await updateDoc(doc(db, COL.materialOrders, orderId), { status: 'cancelled' });
+  },
+};
+
+// ══════════════════════════════════════════════════════════
 //  STATUS MAP & HELPERS
 // ══════════════════════════════════════════════════════════
 const STATUS_MAP = {
@@ -996,6 +1117,7 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('ar-DZ'); }
 const Bridge = {
   Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db,
   Team, ExecProjects, Offers, Applications, EXEC_PHASES, SPECIALTIES,
+  Materials, MaterialOrders,
 };
 window.Bridge = Bridge;
 export default Bridge;
