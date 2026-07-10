@@ -973,13 +973,18 @@ function initCD(pid){
   const chaps=JSON.parse(JSON.stringify(DCHAPS));
   chaps.forEach(ch=>{ch.id=uid();ch.rows.forEach(r=>{r.id=uid();});});
   const p=projects.find(x=>x.id===pid);
-  return{area:p?.area||0,chapters:chaps,realTotal:0};
+  return{area:p?.area||0,chapters:chaps,realTotalOverride:null};
 }
 function loadCosts(){
   const pid=document.getElementById('costProjSel').value, ct=document.getElementById('costContent');
   if(!pid){ct.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">اختر مشروعاً</div>';return;}
   const p=projects.find(x=>x.id===pid);
   if(!costData[pid]) costData[pid]=initCD(pid);
+  // ترحيل تلقائي: بيانات قديمة كانت تستخدم realTotal كمبلغ يدوي وحيد
+  const d = costData[pid];
+  if (d.realTotalOverride === undefined) {
+    d.realTotalOverride = (d.realTotal && Number(d.realTotal) > 0) ? Number(d.realTotal) : null;
+  }
   renderCostTable(pid,p);
 }
 function renderCostTable(pid,p){
@@ -990,11 +995,13 @@ function renderCostTable(pid,p){
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:14px;font-weight:700;color:var(--gold)">${p.name}</div><div style="font-size:11px;color:var(--muted)">${p.client||''} | ${p.location||''}</div></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-        <div><label style="font-size:10px;color:var(--muted)">المساحة م²: </label><input type="number" id="c_area" value="${data.area||p.area||0}" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:11px" oninput="costData['${pid}'].area=this.value"></div>
-        <div><label style="font-size:10px;color:var(--muted)">التكلفة الفعلية الكلية (دج): </label><input type="number" id="c_real" value="${data.realTotal||0}" style="width:120px;background:var(--surface);border:1px solid rgba(45,212,191,.4);border-radius:5px;padding:5px 8px;color:var(--teal);font-family:inherit;font-size:11px" oninput="costData['${pid}'].realTotal=parseFloat(this.value)||0;recalcAll('${pid}')"></div>
+        <div><label style="font-size:10px;color:var(--muted)">المساحة م²: </label><input type="number" id="c_area" value="${data.area||p.area||0}" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:11px" oninput="costData['${pid}'].area=this.value;recalcAll('${pid}')"></div>
+        <div><label style="font-size:10px;color:var(--muted)" title="تُحسب تلقائياً من مجموع عمود «التكلفة الفعلية» بجدول البنود">التكلفة الفعلية الكلية (دج) — محسوبة تلقائياً: </label><input type="number" id="c_real" value="${data.grandRealTotal||0}" disabled style="width:120px;background:var(--surface);border:1px solid rgba(45,212,191,.4);border-radius:5px;padding:5px 8px;color:var(--teal);font-family:inherit;font-size:11px;opacity:.85;cursor:not-allowed"></div>
+        <div><label style="font-size:10px;color:var(--muted)" title="فقط إن رغبت بتجاوز المجموع المحسوب من البنود بمبلغ إجمالي يدوي">أو أدخل مبلغاً إجمالياً يدوياً (اختياري): </label><input type="number" min="0" id="c_realOverride" value="${data.realTotalOverride||''}" placeholder="—" style="width:120px;background:var(--surface);border:1px dashed var(--border);border-radius:5px;padding:5px 8px;color:var(--amber);font-family:inherit;font-size:11px" oninput="costData['${pid}'].realTotalOverride=this.value===''?null:(parseFloat(this.value)||0);recalcAll('${pid}')"></div>
       </div>
     </div>
   </div>
+  <div id="realCostNote" style="display:none;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:var(--rsm);padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--amber)"></div>
   <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;overflow-x:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <span style="font-size:13px;font-weight:700;color:var(--gold)">💰 جدول الكميات والتكاليف</span>
@@ -1048,12 +1055,23 @@ function recalcAll(pid){
     grand+=cs; grandR+=cr;
     const cel=document.getElementById('chT_'+ch.id); if(cel) cel.textContent=fmt(cs);
   });
-  const realT=data.realTotal||grandR, area=parseFloat(document.getElementById('c_area')?.value)||0, diff=grand-realT;
+  data.grandRealTotal = grandR;
+  const hasOverride = data.realTotalOverride !== null && data.realTotalOverride !== undefined && data.realTotalOverride !== '';
+  const realT = hasOverride ? Number(data.realTotalOverride) : grandR;
+  const area=parseFloat(document.getElementById('c_area')?.value)||0, diff=grand-realT;
   const G=id=>document.getElementById(id);
   if(G('c_est')) G('c_est').textContent=fmt(grand)+' دج';
+  if(G('c_real')) G('c_real').value = fmt(grandR);
   if(G('c_real_d')){G('c_real_d').textContent=fmt(realT)+' دج';G('c_real_d').style.color=realT>grand?'var(--red)':'var(--teal)';}
   if(G('c_m2')) G('c_m2').textContent=area>0?fmt(Math.round(grand/area))+' دج/م²':'—';
   if(G('c_diff')){G('c_diff').textContent=(diff>=0?'+':'')+fmt(diff)+' دج';G('c_diff').style.color=diff<0?'var(--red)':'var(--green)';}
+  const noteEl = G('realCostNote');
+  if(noteEl){
+    if(hasOverride && Math.abs(Number(data.realTotalOverride)-grandR) > 0.01){
+      noteEl.style.display='block';
+      noteEl.textContent = `⚠️ يُستخدم المبلغ اليدوي (${fmt(Number(data.realTotalOverride))} دج) في الحسابات بدل مجموع البنود (${fmt(grandR)} دج). احذف المبلغ اليدوي لاعتماد المجموع التلقائي.`;
+    } else noteEl.style.display='none';
+  }
   if(!costs[pid]) costs[pid]={};
   costs[pid].total=grand; costs[pid].realTotal=realT; data.grandTotal=grand;
 }
@@ -1065,6 +1083,8 @@ function saveCosts(pid){
   if(!costs[pid]) costs[pid]={};
   costs[pid].chapters=JSON.parse(JSON.stringify(costData[pid].chapters));
   costs[pid].area=costData[pid].area; costs[pid].total=costData[pid].grandTotal||0;
+  const hasOverride = costData[pid].realTotalOverride !== null && costData[pid].realTotalOverride !== undefined && costData[pid].realTotalOverride !== '';
+  costs[pid].realTotal = hasOverride ? Number(costData[pid].realTotalOverride) : (costData[pid].grandRealTotal||0);
   save(); alert('✅ تم حفظ جدول التكاليف بنجاح'); renderCharts(); genNotifs();
 }
 function printCostTable(pid){
