@@ -536,6 +536,16 @@ body{background:#000;}
       </div>
     </div>
 
+    <!-- EXEC (مشروع الإنجاز) -->
+    <div class="screen" id="screen-exec">
+      <div class="screen-inner">
+        <div class="sec-title" style="margin-bottom:14px">🏗️ متابعة الإنجاز</div>
+        <div id="myExecList">
+          <div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا يوجد مشروع إنجاز نشط</div><div class="empty-d">سيظهر هنا فور اعتماد المكتب لبدء الأشغال</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- CHAT -->
     <div class="screen" id="screen-chat">
       <div class="screen-inner" style="padding-bottom:calc(56px + var(--nav-h) + var(--safe-bot))">
@@ -578,6 +588,7 @@ body{background:#000;}
     <button class="ntab active" id="ntab-home" onclick="goTab('home')"><div class="ntab-ico">🏠</div><div>الرئيسية</div></button>
     <button class="ntab" id="ntab-request" onclick="goNewRequest()"><div class="ntab-ico">📋</div><div>طلب جديد</div></button>
     <button class="ntab" id="ntab-track" onclick="goTab('track')"><div class="ntab-ico">🔍</div><div>طلباتي</div><span class="nbadge" id="nbadge-track"></span></button>
+    <button class="ntab" id="ntab-exec" onclick="goTab('exec')" style="display:none"><div class="ntab-ico">🏗️</div><div>الإنجاز</div><span class="nbadge" id="nbadge-exec"></span></button>
     <button class="ntab" id="ntab-chat" onclick="goTab('chat')"><div class="ntab-ico">💬</div><div>الدردشة</div><span class="nbadge" id="nbadge-chat"></span></button>
     <button class="ntab" id="ntab-profile" onclick="goTab('profile')"><div class="ntab-ico">👤</div><div>حسابي</div></button>
   </nav>
@@ -601,6 +612,8 @@ let upFiles = [];
 let activeChatReqId = null;
 let chatUnsub = null;
 let reqsUnsub = null;
+let execProjects = [];
+let execUnsub = null;
 
 // ═══ UTILS ═══════════════════════════════════════════
 function toast(msg, d=3200) {
@@ -691,8 +704,9 @@ window.doForgot = doForgot;
 async function doLogout() {
   if (!confirm('تأكيد تسجيل الخروج؟')) return;
   await Bridge.Auth.signOut();
-  currentUser = null; clientProfile = null; myRequests = [];
+  currentUser = null; clientProfile = null; myRequests = []; execProjects = [];
   if (reqsUnsub) { reqsUnsub(); reqsUnsub=null; }
+  if (execUnsub) { execUnsub(); execUnsub=null; }
   showAuthScreen();
 }
 window.doLogout = doLogout;
@@ -755,6 +769,7 @@ function showMainApp() {
   document.getElementById('profDate').textContent = fmtD(clientProfile?.createdAt) || '—';
   // تحميل الطلبات
   loadMyRequests();
+  loadExecTab();
   populateWilayas();
   buildStep0();
 }
@@ -1044,6 +1059,80 @@ function renderTrackRequests() {
       ${renderQuoteForReq(r)}
     </div>`;
   }).join('');
+}
+
+// ═══ EXEC TAB (متابعة الإنجاز) ════════════════════════
+function loadExecTab() {
+  if (!currentUser) return;
+  if (execUnsub) { execUnsub(); execUnsub = null; }
+  execUnsub = Bridge.ExecProjects.watchByClient(currentUser.uid, list => {
+    execProjects = list;
+    updateExecNav();
+    renderExecScreen();
+  });
+}
+
+function updateExecNav() {
+  const tab = document.getElementById('ntab-exec');
+  if (!tab) return;
+  const hasActive = execProjects.length > 0;
+  tab.style.display = hasActive ? 'flex' : 'none';
+  const badge = document.getElementById('nbadge-exec');
+  const inProgress = execProjects.filter(p => p.status === 'in_progress').length;
+  if (badge) { badge.textContent = inProgress || ''; badge.style.display = inProgress ? 'flex' : 'none'; }
+}
+
+const EXEC_STATUS_LABELS = {
+  awaiting_start: { label:'بانتظار الانطلاق', color:'var(--amber)', bg:'rgba(251,191,36,.15)' },
+  in_progress:    { label:'قيد التنفيذ',       color:'var(--teal)',  bg:'rgba(45,212,191,.12)' },
+  paused:         { label:'متوقف مؤقتاً',       color:'var(--red)',   bg:'rgba(248,113,113,.12)' },
+  completed:      { label:'مكتمل',              color:'var(--green)', bg:'rgba(74,222,128,.12)' },
+};
+
+async function renderExecScreen() {
+  const el = document.getElementById('myExecList');
+  if (!el) return;
+  if (!execProjects.length) {
+    el.innerHTML = '<div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا يوجد مشروع إنجاز نشط</div><div class="empty-d">سيظهر هنا فور اعتماد المكتب لبدء الأشغال</div></div>';
+    return;
+  }
+  const cards = await Promise.all(execProjects.map(renderExecCard));
+  el.innerHTML = cards.join('');
+}
+
+async function renderExecCard(p) {
+  const sm = EXEC_STATUS_LABELS[p.status] || EXEC_STATUS_LABELS.awaiting_start;
+  const phases = p.phases || [];
+  const engineerName = p.team?.engineerName || (p.team?.engineerId ? 'مهندس مُعيَّن' : '— لم يُعيَّن بعد —');
+  const workerCount = (p.team?.workerIds || []).length;
+  let visits = [];
+  try { visits = (await Bridge.ExecProjects.getVisits(p.id)).slice(0, 3); } catch(e) {}
+
+  return `<div class="status-card">
+    <div class="status-hdr">
+      <div>
+        <div style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">رقم المشروع</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--text)">${p.id}</div>
+      </div>
+      <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+    </div>
+
+    <div class="dates-card">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:6px">👥 الفريق المكلّف</div>
+      <div class="dates-row"><span class="k">👷 المهندس المشرف</span><span class="v">${engineerName}</span></div>
+      <div class="dates-row"><span class="k">🔨 عدد العمال</span><span class="v">${workerCount} عامل</span></div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:var(--gold);margin:14px 0 8px">📊 مراحل التنفيذ</div>
+    <div class="tl-item" style="flex-direction:column">
+      ${phases.map((ph,i) => `<div style="display:flex;gap:11px"><div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0"><div class="tl-dot ${ph.status==='done'?'done':ph.status==='current'?'':'pend'}" style="${ph.status==='current'?'background:var(--gold)':''}"></div>${i<phases.length-1?'<div class="tl-line"></div>':''}</div><div class="tl-content"><div class="tl-lbl" style="color:${ph.status==='done'?'var(--green)':ph.status==='current'?'var(--gold)':'var(--muted)'}">${ph.label}${ph.status==='current'?' — جارية الآن':''}</div></div></div>`).join('')}
+    </div>
+
+    ${visits.length ? `
+    <div style="font-size:10px;font-weight:700;color:var(--gold);margin:14px 0 8px">📋 آخر محاضر الزيارة</div>
+    ${visits.map(v => `<div class="dates-row"><span class="k">📅 ${v.date}</span><span class="v">${v.engineerName||'—'}${v.progress?' — '+v.progress+'%':''}</span></div>`).join('')}
+    ` : ''}
+  </div>`;
 }
 
 function renderQuoteForReq(req) {

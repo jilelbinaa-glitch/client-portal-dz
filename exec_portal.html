@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2dd4bf">
+<title>مؤسسة جيل البناء للإنجاز — بوابة الفريق</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14; --s1:#13161d; --s2:#1a1e29; --s3:#222738;
+  --border:rgba(255,255,255,0.07);
+  --gold:#c9a84c; --gold-l:#e0ba60; --gold-d:#7a6230; --gold-glow:rgba(201,168,76,0.12);
+  --teal:#2dd4bf; --teal-glow:rgba(45,212,191,.12);
+  --green:#4ade80; --red:#f87171; --amber:#fbbf24;
+  --text:#eaecf2; --muted:#7a8299; --dim:#3a4055;
+  --r:14px; --rsm:10px;
+  --nav-h:64px; --safe-bot:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px;}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;max-width:500px;margin:0 auto;position:relative;}
+body{background:#000;}
+
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top)+10px) 16px 10px;background:rgba(13,15,20,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-brand{display:flex;flex-direction:column;}
+.hdr-name{font-size:13px;font-weight:700;color:var(--teal);line-height:1.2;}
+.hdr-sub{font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;}
+.hdr-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--muted);}
+
+.screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;overflow-y:auto;opacity:0;transform:translateX(20px);pointer-events:none;transition:all .3s cubic-bezier(.4,0,.2,1);}
+.screen.active{opacity:1;transform:translateX(0);pointer-events:all;}
+.screen-inner{padding:16px 16px calc(16px + var(--nav-h) + var(--safe-bot));}
+
+.nav{display:flex;padding:0 8px;padding-bottom:var(--safe-bot);background:rgba(13,15,20,.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);flex-shrink:0;height:calc(var(--nav-h) + var(--safe-bot));}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:9px;font-weight:600;transition:all .2s;position:relative;}
+.ntab-ico{font-size:22px;transition:transform .2s;}
+.ntab.active{color:var(--teal);}
+.ntab.active .ntab-ico{transform:scale(1.12);}
+.ntab::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--teal);border-radius:0 0 2px 2px;transition:width .25s;}
+.ntab.active::after{width:36px;}
+.nbadge{position:absolute;top:6px;right:calc(50% - 18px);min-width:16px;height:16px;background:var(--red);border-radius:8px;font-size:8px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;padding:0 4px;}
+
+.auth-wrap{position:absolute;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow-y:auto;}
+.auth-hero{background:linear-gradient(135deg,#0d0f14 0%,#0f2622 100%);padding:calc(var(--safe-top)+36px) 24px 28px;text-align:center;flex-shrink:0;position:relative;overflow:hidden;}
+.auth-hero::before{content:'🏢';position:absolute;font-size:110px;opacity:.05;top:50%;left:50%;transform:translate(-50%,-50%);}
+.auth-title{font-size:19px;font-weight:900;color:var(--teal);margin-bottom:4px;}
+.auth-sub{font-size:11px;color:var(--muted);line-height:1.6;}
+.auth-body{padding:24px;flex:1;}
+.auth-tabs{display:flex;background:var(--s2);border-radius:var(--rsm);padding:4px;margin-bottom:20px;gap:4px;}
+.auth-tab{flex:1;padding:10px;border-radius:8px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.auth-tab.active{background:var(--teal);color:var(--bg);}
+.aform{display:none;}.aform.active{display:block;}
+.afield{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.afield label{font-size:10px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;}
+.afield .req{color:var(--red);}
+.afield input,.afield select{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;width:100%;outline:none;transition:border-color .2s;-webkit-appearance:none;}
+.afield input:focus,.afield select:focus{border-color:var(--teal);}
+.afield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-auth{width:100%;background:linear-gradient(135deg,#1a3a3a,var(--teal));color:var(--bg);border:none;padding:14px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:all .2s;}
+.btn-auth:disabled{opacity:.4;cursor:not-allowed;}
+.btn-forgot{background:none;border:none;color:var(--teal);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;width:100%;text-align:center;padding:8px;}
+.auth-err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none;}
+.auth-ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);margin-bottom:12px;display:none;}
+
+.role-tabs{display:flex;background:var(--s2);border-radius:var(--rsm);padding:4px;margin-bottom:16px;gap:4px;}
+.role-tab{flex:1;padding:11px;border-radius:8px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.role-tab.active{background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3);}
+
+.chip-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;}
+.chip{background:var(--s2);border:1.5px solid var(--border);border-radius:99px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s;}
+.chip.sel{border-color:var(--teal);background:var(--teal-glow);color:var(--teal);}
+
+.status-wrap{position:absolute;inset:0;background:var(--bg);z-index:180;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+.status-ico{font-size:56px;margin-bottom:18px;}
+.status-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.status-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px;max-width:320px;}
+
+.sec-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sec-title::before{content:'';width:3px;height:14px;background:var(--teal);border-radius:2px;flex-shrink:0;}
+.home-hero{background:linear-gradient(135deg,#123c38,var(--teal));border-radius:var(--r);padding:22px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
+.home-hero::after{content:'🏗️';position:absolute;left:-10px;top:-10px;font-size:70px;opacity:.1;}
+.home-welcome{font-size:11px;color:rgba(13,15,20,.6);margin-bottom:4px;}
+.home-name{font-size:19px;font-weight:900;color:var(--bg);line-height:1.2;margin-bottom:4px;}
+.home-role{font-size:11px;color:rgba(13,15,20,.7);font-weight:700;}
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.stat-c{background:var(--s2);border:1px solid var(--border);border-radius:var(--rsm);padding:13px 10px;text-align:center;}
+.stat-n{font-size:20px;font-weight:700;color:var(--teal);font-family:'Space Grotesk',sans-serif;line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);margin-top:4px;}
+.empty-card{text-align:center;padding:28px 16px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);}
+.empty-ico{font-size:36px;margin-bottom:8px;}
+.empty-t{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;}
+.empty-d{font-size:11px;color:var(--dim);}
+
+.pcard{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.pcard-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.pcard-id{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--teal);}
+.pcard-name{font-size:13px;font-weight:600;color:var(--text);margin-top:2px;}
+.badge{display:inline-flex;padding:4px 10px;border-radius:99px;font-size:9px;font-weight:700;white-space:nowrap;}
+.pw{background:var(--dim);border-radius:99px;height:5px;margin:8px 0;}
+.pb{height:5px;border-radius:99px;background:var(--teal);transition:width .5s;}
+.tl-item{display:flex;gap:11px;}
+.tl-dot{width:11px;height:11px;border-radius:50%;margin-top:3px;flex-shrink:0;}
+.tl-dot.done{background:var(--green);}
+.tl-dot.pend{background:var(--dim);}
+.tl-line{width:1px;flex:1;background:var(--dim);margin:3px 0;min-height:14px;}
+.tl-content{padding-bottom:10px;flex:1;}
+.tl-lbl{font-size:11px;font-weight:600;}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px;}
+.field label{font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;}
+.field input,.field select,.field textarea{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;width:100%;outline:none;-webkit-appearance:none;}
+.field textarea{resize:vertical;min-height:70px;}
+.btn-block{width:100%;background:linear-gradient(135deg,#1a3a3a,var(--teal));color:var(--bg);border:none;padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-outline-sm{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;}
+
+.offer-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.offer-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.offer-spec{font-size:13px;font-weight:700;color:var(--text);}
+.offer-meta{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;}
+.btn-apply{width:100%;background:var(--gold-glow);border:1px solid rgba(201,168,76,.3);color:var(--gold);padding:10px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-apply:disabled{opacity:.5;cursor:not-allowed;}
+
+.tw{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);overflow:auto;margin-bottom:12px;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--s1);padding:8px 10px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;text-align:right;white-space:nowrap;}
+td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+
+.profile-avatar{width:66px;height:66px;border-radius:50%;background:var(--teal-glow);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;}
+.profile-name{font-size:17px;font-weight:700;color:var(--text);text-align:center;margin-bottom:3px;}
+.profile-role{font-size:12px;color:var(--teal);text-align:center;margin-bottom:18px;font-weight:700;}
+.profile-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.profile-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.profile-row:last-child{border-bottom:none;}
+.profile-row .k{color:var(--muted);font-size:11px;}
+.profile-row .v{font-weight:600;color:var(--text);}
+.btn-logout{width:100%;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+.toast{position:fixed;bottom:calc(var(--nav-h)+var(--safe-bot)+10px);left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--s2);border:1px solid var(--border);border-right:3px solid var(--teal);color:var(--text);padding:11px 18px;border-radius:var(--rsm);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.spinner{width:16px;height:16px;border:2px solid var(--dim);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(min-width:500px){body{background:#000;}#app{box-shadow:0 0 60px rgba(0,0,0,.9);}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ AUTH ══ -->
+  <div class="auth-wrap" id="authWrap">
+    <div class="auth-hero">
+      <div style="font-size:44px;margin-bottom:10px">🏢</div>
+      <div class="auth-title">مؤسسة جيل البناء للإنجاز</div>
+      <div class="auth-sub">بوابة المهندسين والعمال — انضم لفريق التنفيذ</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">انضمام جديد</button>
+      </div>
+
+      <!-- Login -->
+      <div class="aform active" id="aform-login">
+        <div class="auth-err" id="login-err"></div>
+        <div class="auth-ok" id="login-ok"></div>
+        <div class="afield"><label>البريد الإلكتروني <span class="req">*</span></label><input id="l-email" type="email" placeholder="example@email.com" autocomplete="email"></div>
+        <div class="afield"><label>كلمة المرور <span class="req">*</span></label><input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+        <button class="btn-auth" id="btnLogin" onclick="doLogin()">تسجيل الدخول</button>
+        <button class="btn-forgot" onclick="doForgot()">نسيت كلمة المرور؟</button>
+      </div>
+
+      <!-- Register -->
+      <div class="aform" id="aform-register">
+        <div class="auth-err" id="reg-err"></div>
+        <div class="auth-ok" id="reg-ok"></div>
+
+        <div class="role-tabs">
+          <button class="role-tab active" id="rtab-engineer" onclick="switchRoleTab('engineer')">👷 مهندس إشراف</button>
+          <button class="role-tab" id="rtab-worker" onclick="switchRoleTab('worker')">🔨 عامل ورشة</button>
+        </div>
+
+        <div class="afield-row">
+          <div class="afield"><label>الاسم الكامل <span class="req">*</span></label><input id="r-name" placeholder="الاسم واللقب" autocomplete="name"></div>
+          <div class="afield"><label>رقم الهاتف <span class="req">*</span></label><input id="r-phone" type="tel" placeholder="0555 000 000" autocomplete="tel"></div>
+        </div>
+        <div class="afield"><label>رقم التعريف الوطني <span class="req">*</span></label><input id="r-nin" placeholder="رقم بطاقة التعريف" inputmode="numeric"></div>
+        <div class="afield"><label>البريد الإلكتروني <span class="req">*</span></label><input id="r-email" type="email" placeholder="example@email.com" autocomplete="email"></div>
+        <div class="afield-row">
+          <div class="afield"><label>كلمة المرور <span class="req">*</span></label><input id="r-pass" type="password" placeholder="6 أحرف على الأقل" autocomplete="new-password"></div>
+          <div class="afield"><label>تأكيد كلمة المرور <span class="req">*</span></label><input id="r-pass2" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+        </div>
+
+        <!-- حقول المهندس -->
+        <div id="reg-engineer-fields">
+          <div class="afield"><label>نوع الإشراف</label>
+            <select id="r-eng-specialty">
+              <option value="إشراف عام">إشراف عام</option>
+              <option value="بناء">إشراف بناء</option>
+              <option value="كهرباء وسباكة">إشراف كهرباء وسباكة</option>
+              <option value="تشطيبات">إشراف تشطيبات</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- حقول العامل -->
+        <div id="reg-worker-fields" style="display:none">
+          <div class="afield"><label>التخصص (اختر واحداً أو أكثر) <span class="req">*</span></label>
+            <div class="chip-grid" id="r-worker-specialties"></div>
+          </div>
+          <div class="afield"><label>نظام الأجر المفضّل</label>
+            <select id="r-worker-paytype">
+              <option value="daily">يومي</option>
+              <option value="piece">بالقطعة (عند تسليم المرحلة)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-auth" id="btnReg" onclick="doRegister()">إرسال طلب الانضمام</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ حالة الانضمام (pending / suspended) ══ -->
+  <div class="status-wrap" id="statusWrap" style="display:none">
+    <div class="status-ico" id="statusIco">⏳</div>
+    <div class="status-title" id="statusTitle">طلبك قيد المراجعة</div>
+    <div class="status-desc" id="statusDesc">سيقوم المكتب بمراجعة طلب انضمامك قريباً. ستصلك رسالة عند القبول ويمكنك عندها استخدام التطبيق بالكامل.</div>
+    <button class="btn-outline-sm" onclick="doLogout()">تسجيل الخروج</button>
+  </div>
+
+  <!-- ══ MAIN APP ══ -->
+  <div class="hdr" id="mainHdr" style="display:none">
+    <div class="hdr-brand"><div class="hdr-name">مؤسسة جيل البناء للإنجاز</div><div class="hdr-sub" id="hdrRoleLbl">EXECUTION TEAM PORTAL</div></div>
+    <button class="hdr-btn" onclick="doLogout()">🚪</button>
+  </div>
+
+  <div class="screens" id="mainScreens" style="display:none">
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="screen-inner">
+        <div class="home-hero">
+          <div class="home-welcome">مرحباً بك 👋</div>
+          <div class="home-name" id="homeName">—</div>
+          <div class="home-role" id="homeRole">—</div>
+        </div>
+        <div class="stats-row" id="homeStats"></div>
+        <div class="sec-title">آخر التحديثات</div>
+        <div id="homeUpdates"><div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد تحديثات بعد</div></div></div>
+      </div>
+    </div>
+
+    <!-- WORK (مشاريعي / العروض) -->
+    <div class="screen" id="screen-work">
+      <div class="screen-inner">
+        <div class="sec-title" id="workTitle">🏗️ مشاريعي</div>
+        <div id="workContent"></div>
+      </div>
+    </div>
+
+    <!-- EARNINGS (أتعابي / أجري) -->
+    <div class="screen" id="screen-earnings">
+      <div class="screen-inner">
+        <div class="sec-title">💰 مستحقاتي</div>
+        <input type="month" id="earnMonth" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%;margin-bottom:14px" oninput="loadEarnings()">
+        <div id="earningsContent"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="screen-inner">
+        <div class="profile-avatar" id="profAvatar">👤</div>
+        <div class="profile-name" id="profName">—</div>
+        <div class="profile-role" id="profRole">—</div>
+        <div class="profile-card">
+          <div class="profile-row"><span class="k">📞 الهاتف</span><span class="v" id="profPhone">—</span></div>
+          <div class="profile-row"><span class="k">🪪 الرقم الوطني</span><span class="v" id="profNin">—</span></div>
+          <div class="profile-row"><span class="k">📧 البريد</span><span class="v" id="profEmail">—</span></div>
+          <div class="profile-row"><span class="k">💼 التخصص</span><span class="v" id="profSpecialty">—</span></div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">🚪 تسجيل الخروج</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: تسجيل زيارة (مهندس) ══ -->
+  <div id="visitModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:92%;max-width:440px;max-height:88vh;overflow-y:auto">
+      <div style="font-size:15px;font-weight:700;color:var(--teal);margin-bottom:14px">📋 محضر زيارة ورشة جديد</div>
+      <input type="hidden" id="vm_projectId">
+      <div class="field"><label>تاريخ الزيارة</label><input id="vm_date" type="date"></div>
+      <div class="field"><label>نسبة التقدم %</label><input id="vm_progress" type="number" min="0" max="100" value="0"></div>
+      <div class="field"><label>ملاحظات</label><textarea id="vm_notes"></textarea></div>
+      <div class="field"><label>مشاكل/عوائق</label><textarea id="vm_issues"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-outline-sm" style="flex:1" onclick="closeVisitModal()">إلغاء</button>
+        <button class="btn-block" style="flex:1;margin-top:0" onclick="submitVisit()">حفظ المحضر</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <div class="nav" id="mainNav" style="display:none">
+    <button class="ntab active" onclick="goTab('home')"><div class="ntab-ico">🏠</div><div>الرئيسية</div></button>
+    <button class="ntab" id="ntab-work" onclick="goTab('work')"><div class="ntab-ico" id="ntabWorkIco">🏗️</div><div id="ntabWorkLbl">مشاريعي</div><span class="nbadge" id="nbadge-work"></span></button>
+    <button class="ntab" onclick="goTab('earnings')"><div class="ntab-ico">💰</div><div>مستحقاتي</div></button>
+    <button class="ntab" onclick="goTab('profile')"><div class="ntab-ico">👤</div><div>حسابي</div></button>
+  </div>
+
+</div>
+
+<script type="module">
+import Bridge from './bridge.js';
+
+let currentUser = null;
+let profile = null;      // team_members doc
+let profileUnsub = null;
+let projectsUnsub = null;
+let offersUnsub = null;
+let appsUnsub = null;
+let myProjects = [];
+let myOffers = [];
+let myApplications = [];
+
+// ═══ HELPERS ═══════════════════════════════════════════
+function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function showErr(id, msg) { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
+function showOk(id, msg)  { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg){
+  let el=document.getElementById('toastEl');
+  if(!el){ el=document.createElement('div'); el.id='toastEl'; el.className='toast'; document.getElementById('app').appendChild(el); }
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+// ═══ AUTH TABS ═════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.aform').forEach(f=>f.classList.remove('active'));
+  document.querySelector(`.auth-tab[onclick*="${tab}"]`).classList.add('active');
+  document.getElementById('aform-'+tab).classList.add('active');
+}
+window.switchAuthTab = switchAuthTab;
+
+let regRole = 'engineer';
+function switchRoleTab(role) {
+  regRole = role;
+  document.getElementById('rtab-engineer').classList.toggle('active', role==='engineer');
+  document.getElementById('rtab-worker').classList.toggle('active', role==='worker');
+  document.getElementById('reg-engineer-fields').style.display = role==='engineer' ? '' : 'none';
+  document.getElementById('reg-worker-fields').style.display = role==='worker' ? '' : 'none';
+}
+window.switchRoleTab = switchRoleTab;
+
+// شرائح التخصصات للعامل
+let selectedSpecialties = [];
+(function initSpecialtyChips(){
+  const box = document.getElementById('r-worker-specialties');
+  Bridge.SPECIALTIES.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'chip'; chip.textContent = s;
+    chip.onclick = () => {
+      chip.classList.toggle('sel');
+      if (selectedSpecialties.includes(s)) selectedSpecialties = selectedSpecialties.filter(x=>x!==s);
+      else selectedSpecialties.push(s);
+    };
+    box.appendChild(chip);
+  });
+})();
+
+// ═══ AUTH ACTIONS ══════════════════════════════════════
+async function doLogin() {
+  const email=gv('l-email'), pass=gv('l-pass');
+  if (!email||!pass) { showErr('login-err','يرجى ملء جميع الحقول'); return; }
+  const btn=document.getElementById('btnLogin');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  showErr('login-err',''); showOk('login-ok','');
+  try {
+    await Bridge.Team.login(email, pass);
+  } catch(err) {
+    const msgs={'auth/user-not-found':'البريد غير مسجّل','auth/wrong-password':'كلمة المرور خاطئة','auth/invalid-credential':'البريد أو كلمة المرور خاطئة','auth/too-many-requests':'تم تجاوز عدد المحاولات، انتظر قليلاً'};
+    showErr('login-err', msgs[err.code] || 'خطأ: ' + err.message);
+    btn.disabled=false; btn.textContent='تسجيل الدخول';
+  }
+}
+window.doLogin = doLogin;
+
+async function doRegister() {
+  const name=gv('r-name'), phone=gv('r-phone'), nin=gv('r-nin'), email=gv('r-email'), pass=gv('r-pass'), pass2=gv('r-pass2');
+  showErr('reg-err',''); showOk('reg-ok','');
+  if (!name||!phone||!nin||!email||!pass) { showErr('reg-err','يرجى ملء جميع الحقول الإلزامية'); return; }
+  if (pass !== pass2) { showErr('reg-err','كلمتا المرور غير متطابقتين'); return; }
+  if (pass.length < 6) { showErr('reg-err','كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+  if (regRole === 'worker' && !selectedSpecialties.length) { showErr('reg-err','اختر تخصصاً واحداً على الأقل'); return; }
+
+  const btn=document.getElementById('btnReg');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try {
+    if (regRole === 'engineer') {
+      const specialty = gv('r-eng-specialty');
+      await Bridge.Team.registerEngineer(name, phone, nin, email, pass, specialty, 0);
+    } else {
+      const payType = gv('r-worker-paytype');
+      await Bridge.Team.registerWorker(name, phone, nin, email, pass, selectedSpecialties, payType, 0);
+    }
+    showOk('reg-ok','✅ تم إرسال طلب انضمامك! بانتظار موافقة المكتب.');
+  } catch(err) {
+    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح'};
+    showErr('reg-err', msgs[err.code] || 'خطأ: ' + err.message);
+    btn.disabled=false; btn.textContent='إرسال طلب الانضمام';
+  }
+}
+window.doRegister = doRegister;
+
+async function doForgot() {
+  const email = gv('l-email');
+  if (!email) { showErr('login-err','أدخل بريدك الإلكتروني أولاً'); return; }
+  try { await Bridge.Auth.resetPassword(email); showOk('login-ok','✅ تم إرسال رابط إعادة تعيين كلمة المرور'); showErr('login-err',''); }
+  catch(err) { showErr('login-err','خطأ: '+err.message); }
+}
+window.doForgot = doForgot;
+
+async function doLogout() {
+  if (!confirm('تأكيد تسجيل الخروج؟')) return;
+  if (profileUnsub) { profileUnsub(); profileUnsub=null; }
+  if (projectsUnsub) { projectsUnsub(); projectsUnsub=null; }
+  if (offersUnsub) { offersUnsub(); offersUnsub=null; }
+  if (appsUnsub) { appsUnsub(); appsUnsub=null; }
+  await Bridge.Auth.signOut();
+  currentUser=null; profile=null;
+  showAuthScreen();
+}
+window.doLogout = doLogout;
+
+// ═══ AUTH STATE ═══════════════════════════════════════
+Bridge.Auth.onChange(async user => {
+  if (user && !user.isAnonymous) {
+    currentUser = user;
+    if (profileUnsub) profileUnsub();
+    profileUnsub = Bridge.Team.watchProfile(user.uid, p => {
+      profile = p;
+      handleProfileState();
+    });
+  } else {
+    showAuthScreen();
+  }
+});
+
+function handleProfileState() {
+  if (!profile) {
+    // حساب مسجّل لكن ليس ضمن أعضاء الفريق (قد يكون حساب عميل مثلاً)
+    showStatusScreen('⚠️', 'هذا الحساب غير مسجّل كعضو فريق', 'يبدو أن البريد المستخدم غير مسجّل كمهندس أو عامل في مؤسسة الإنجاز. سجّل خروجاً وأنشئ حساب انضمام جديداً.');
+    return;
+  }
+  if (profile.status === 'pending') {
+    showStatusScreen('⏳', 'طلبك قيد المراجعة', 'سيقوم المكتب بمراجعة طلب انضمامك قريباً. ستصلك رسالة عند القبول ويمكنك عندها استخدام التطبيق بالكامل.');
+    return;
+  }
+  if (profile.status === 'suspended') {
+    showStatusScreen('❌', 'تم إيقاف حسابك', 'تم إيقاف أو رفض عضويتك من طرف المكتب. تواصل مع المكتب لمزيد من المعلومات.');
+    return;
+  }
+  showMainApp();
+}
+
+function showStatusScreen(ico, title, desc) {
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('mainHdr').style.display='none';
+  document.getElementById('mainScreens').style.display='none';
+  document.getElementById('mainNav').style.display='none';
+  document.getElementById('statusWrap').style.display='flex';
+  document.getElementById('statusIco').textContent=ico;
+  document.getElementById('statusTitle').textContent=title;
+  document.getElementById('statusDesc').textContent=desc;
+}
+
+function showAuthScreen() {
+  document.getElementById('authWrap').style.display='flex';
+  document.getElementById('statusWrap').style.display='none';
+  document.getElementById('mainHdr').style.display='none';
+  document.getElementById('mainScreens').style.display='none';
+  document.getElementById('mainNav').style.display='none';
+  const bl=document.getElementById('btnLogin'); if(bl){bl.disabled=false;bl.textContent='تسجيل الدخول';}
+  const br=document.getElementById('btnReg'); if(br){br.disabled=false;br.textContent='إرسال طلب الانضمام';}
+}
+
+// ═══ MAIN APP ══════════════════════════════════════════
+function showMainApp() {
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('statusWrap').style.display='none';
+  document.getElementById('mainHdr').style.display='flex';
+  document.getElementById('mainScreens').style.display='block';
+  document.getElementById('mainNav').style.display='flex';
+
+  const isEng = profile.role === 'engineer';
+  document.getElementById('hdrRoleLbl').textContent = isEng ? 'ENGINEER PORTAL' : 'WORKER PORTAL';
+  document.getElementById('ntabWorkIco').textContent = isEng ? '🏗️' : '📢';
+  document.getElementById('ntabWorkLbl').textContent = isEng ? 'مشاريعي' : 'العروض';
+  document.getElementById('workTitle').textContent = isEng ? '🏗️ مشاريعي' : '📢 عروض العمل';
+
+  document.getElementById('homeName').textContent = profile.name;
+  document.getElementById('homeRole').textContent = isEng ? `مهندس إشراف — ${profile.specialty||''}` : `عامل — ${(profile.specialties||[]).join('، ')}`;
+
+  document.getElementById('profName').textContent = profile.name;
+  document.getElementById('profRole').textContent = isEng ? 'مهندس إشراف' : 'عامل ورشة';
+  document.getElementById('profPhone').textContent = profile.phone || '—';
+  document.getElementById('profNin').textContent = profile.nin || '—';
+  document.getElementById('profEmail').textContent = profile.email || '—';
+  document.getElementById('profSpecialty').textContent = isEng ? (profile.specialty||'—') : (profile.specialties||[]).join('، ') || '—';
+
+  document.getElementById('earnMonth').value = new Date().toISOString().slice(0,7);
+
+  if (projectsUnsub) projectsUnsub();
+  if (offersUnsub) offersUnsub();
+  if (appsUnsub) appsUnsub();
+
+  if (isEng) {
+    projectsUnsub = Bridge.ExecProjects.watchByEngineer(currentUser.uid, list => { myProjects = list; renderHomeStats(); if(isWorkActive()) renderWork(); });
+  } else {
+    projectsUnsub = profile.currentProjectId ? Bridge.ExecProjects.watchOne(profile.currentProjectId, p => { myProjects=[p]; renderHomeStats(); if(isWorkActive()) renderWork(); }) : null;
+    offersUnsub = Bridge.Offers.watchAll(list => { myOffers = list; renderHomeStats(); if(isWorkActive()) renderWork(); });
+    appsUnsub = Bridge.Applications.watchForWorker(currentUser.uid, list => { myApplications = list; if(isWorkActive()) renderWork(); });
+  }
+
+  goTab('home');
+}
+
+function isWorkActive(){ return document.getElementById('screen-work')?.classList.contains('active'); }
+
+function renderHomeStats() {
+  const isEng = profile.role === 'engineer';
+  const el = document.getElementById('homeStats');
+  if (isEng) {
+    el.innerHTML = `<div class="stat-c"><div class="stat-n">${myProjects.length}</div><div class="stat-l">مشروع مُسند إليّ</div></div>
+      <div class="stat-c"><div class="stat-n">${(profile.visitFee||0).toLocaleString('ar-DZ')}</div><div class="stat-l">أتعاب الزيارة (دج)</div></div>`;
+  } else {
+    const openCount = myOffers.filter(o=>o.status==='open' && (profile.specialties||[]).includes(o.specialty)).length;
+    el.innerHTML = `<div class="stat-c"><div class="stat-n">${openCount}</div><div class="stat-l">عروض متاحة لتخصصك</div></div>
+      <div class="stat-c"><div class="stat-n">${profile.currentProjectId ? '1' : '0'}</div><div class="stat-l">عمل حالي</div></div>`;
+  }
+}
+
+// ═══ NAV ═══════════════════════════════════════════════
+function goTab(tab) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  document.querySelectorAll('.ntab').forEach(t=>{ if(t.getAttribute('onclick')?.includes(`'${tab}'`)) t.classList.add('active'); });
+  if (tab==='work') renderWork();
+  if (tab==='earnings') loadEarnings();
+}
+window.goTab = goTab;
+
+// ═══ WORK TAB ══════════════════════════════════════════
+function renderWork() {
+  const el = document.getElementById('workContent');
+  if (profile.role === 'engineer') { renderEngineerProjects(el); }
+  else { renderWorkerOffers(el); }
+}
+
+function execPhaseLabel(key){ return (Bridge.EXEC_PHASES.find(p=>p.key===key)||{}).label || key; }
+function execStatusLabel(s){ return {awaiting_start:'بانتظار الانطلاق', in_progress:'قيد التنفيذ', paused:'متوقف', completed:'مكتمل'}[s] || s; }
+
+function renderEngineerProjects(el) {
+  if (!myProjects.length) { el.innerHTML = '<div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا توجد مشاريع مُسندة إليك بعد</div><div class="empty-d">سيقوم المكتب بإسناد مشروع إليك قريباً</div></div>'; return; }
+  el.innerHTML = myProjects.map(p => {
+    const phases = p.phases||[];
+    const cur = phases[p.currentPhaseIndex||0];
+    const done = phases.filter(ph=>ph.status==='done').length;
+    const pct = phases.length ? Math.round((done/phases.length)*100) : 0;
+    return `<div class="pcard">
+      <div class="pcard-hdr"><div><div class="pcard-id">${esc(p.id)}</div><div class="pcard-name">${esc(p.clientName||'')}</div></div>
+        <span class="badge" style="background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3)">${execStatusLabel(p.status)}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">المرحلة الحالية: <strong style="color:var(--text)">${cur?esc(cur.label):'—'}</strong></div>
+      <div class="pw"><div class="pb" style="width:${pct}%"></div></div>
+      <button class="btn-block" onclick="openVisitModal('${p.id}')">📋 تسجيل محضر زيارة</button>
+    </div>`;
+  }).join('');
+}
+
+function renderWorkerOffers(el) {
+  const mySpecs = profile.specialties || [];
+  const open = myOffers.filter(o => o.status==='open' && mySpecs.includes(o.specialty));
+  const appliedOfferIds = myApplications.map(a=>a.offerId);
+
+  let html = '';
+  if (profile.currentProjectId) {
+    const proj = myProjects[0];
+    if (proj) {
+      const phases = proj.phases||[];
+      const cur = phases[proj.currentPhaseIndex||0];
+      html += `<div class="sec-title">🔨 عملي الحالي</div><div class="pcard">
+        <div class="pcard-hdr"><div><div class="pcard-id">${esc(proj.id)}</div><div class="pcard-name">${esc(proj.clientName||'')}</div></div>
+        <span class="badge" style="background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3)">${execStatusLabel(proj.status)}</span></div>
+        <div style="font-size:11px;color:var(--muted)">المرحلة الحالية: <strong style="color:var(--text)">${cur?esc(cur.label):'—'}</strong></div>
+      </div>`;
+    }
+  }
+
+  html += `<div class="sec-title" style="margin-top:14px">📢 عروض العمل المتاحة لتخصصك</div>`;
+  if (!open.length) {
+    html += '<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد عروض حالياً</div><div class="empty-d">ستظهر هنا العروض المطابقة لتخصصك</div></div>';
+  } else {
+    html += open.map(o => {
+      const applied = appliedOfferIds.includes(o.id);
+      return `<div class="offer-card">
+        <div class="offer-hdr"><div class="offer-spec">${esc(o.specialty)}</div><span class="badge" style="background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3)">${(o.wage||0).toLocaleString('ar-DZ')} دج</span></div>
+        <div class="offer-meta">المرحلة: ${esc(execPhaseLabel(o.phase))} · الشواغر: ${o.slotsNeeded||1}</div>
+        <button class="btn-apply" ${applied?'disabled':''} onclick="applyToOffer('${o.id}')">${applied?'تم التقديم ✓':'تقديم طلب'}</button>
+      </div>`;
+    }).join('');
+  }
+  el.innerHTML = html;
+}
+
+async function applyToOffer(offerId) {
+  try { await Bridge.Applications.apply(offerId, currentUser.uid); showToast('✅ تم إرسال طلبك، بانتظار رد المكتب'); }
+  catch(err) { showToast('❌ تعذر إرسال الطلب'); }
+}
+window.applyToOffer = applyToOffer;
+
+// ═══ محضر الزيارة (مهندس) ══════════════════════════════
+function openVisitModal(projectId) {
+  document.getElementById('vm_projectId').value = projectId;
+  document.getElementById('vm_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('vm_progress').value = 0;
+  document.getElementById('vm_notes').value=''; document.getElementById('vm_issues').value='';
+  document.getElementById('visitModalOverlay').style.display='flex';
+}
+window.openVisitModal = openVisitModal;
+function closeVisitModal(){ document.getElementById('visitModalOverlay').style.display='none'; }
+window.closeVisitModal = closeVisitModal;
+
+async function submitVisit() {
+  const projectId = document.getElementById('vm_projectId').value;
+  const data = {
+    engineerId: currentUser.uid,
+    date: document.getElementById('vm_date').value,
+    progress: Number(document.getElementById('vm_progress').value)||0,
+    notes: document.getElementById('vm_notes').value,
+    issues: document.getElementById('vm_issues').value,
+  };
+  try { await Bridge.ExecProjects.addVisit(projectId, data); closeVisitModal(); showToast('✅ تم حفظ محضر الزيارة'); }
+  catch(err) { showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
+}
+window.submitVisit = submitVisit;
+
+// ═══ EARNINGS TAB ══════════════════════════════════════
+async function loadEarnings() {
+  const ym = document.getElementById('earnMonth').value;
+  const el = document.getElementById('earningsContent');
+  if (!ym || !profile) return;
+  el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px">جارٍ التحميل...</div>';
+
+  if (profile.role === 'engineer') {
+    try {
+      const fees = await Bridge.ExecProjects.monthlyEngineerFees(currentUser.uid, ym);
+      el.innerHTML = `<div class="tw"><table><tbody>
+        <tr><td>عدد الزيارات المسجّلة</td><td style="font-weight:700;color:var(--teal)">${fees.visits}</td></tr>
+        <tr><td>أتعاب الزيارة الواحدة</td><td>${(profile.visitFee||0).toLocaleString('ar-DZ')} دج</td></tr>
+        <tr><td>الإجمالي المستحق</td><td style="font-weight:700;color:var(--gold)">${fees.total.toLocaleString('ar-DZ')} دج</td></tr>
+      </tbody></table></div>`;
+    } catch(err) { el.innerHTML = '<div class="empty-card"><div class="empty-t">تعذر تحميل البيانات</div></div>'; }
+    return;
+  }
+
+  // عامل
+  if (profile.payType === 'piece') {
+    el.innerHTML = `<div class="empty-card"><div class="empty-ico">🔨</div><div class="empty-t">أجرك بنظام "بالقطعة"</div><div class="empty-d">يُحتسب أجرك عند اعتماد المكتب لتسليم كل مرحلة، وليس شهرياً.</div></div>`;
+    return;
+  }
+  try {
+    const rows = await Bridge.Team.monthlyWageReport(ym);
+    const mine = rows.find(r => r.uid === currentUser.uid);
+    if (!mine) { el.innerHTML = '<div class="empty-card"><div class="empty-t">لا توجد بيانات لهذا الشهر</div></div>'; return; }
+    el.innerHTML = `<div class="tw"><table><tbody>
+      <tr><td>أيام الحضور</td><td style="color:var(--green);font-weight:700">${mine.P}</td></tr>
+      <tr><td>أيام الغياب</td><td style="color:var(--red);font-weight:700">${mine.A}</td></tr>
+      <tr><td>الأجر اليومي</td><td>${mine.dailyWage.toLocaleString('ar-DZ')} دج</td></tr>
+      <tr><td>المستحق قبل الخصم</td><td>${mine.gross.toLocaleString('ar-DZ')} دج</td></tr>
+      <tr><td>الخصومات</td><td style="color:var(--red)">${mine.ded.toLocaleString('ar-DZ')} دج</td></tr>
+      <tr><td>الصافي</td><td style="font-weight:700;color:var(--gold)">${mine.net.toLocaleString('ar-DZ')} دج</td></tr>
+    </tbody></table></div>`;
+  } catch(err) { el.innerHTML = '<div class="empty-card"><div class="empty-t">تعذر تحميل البيانات</div></div>'; }
+}
+window.loadEarnings = loadEarnings;
+
+</script>
+</body>
+</html>

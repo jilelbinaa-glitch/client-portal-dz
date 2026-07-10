@@ -47,7 +47,28 @@ const COL = {
   quotes:       'quotes',
   officeNotifs: 'office_notifications',
   counters:     'counters',
+  teamMembers:  'team_members',
+  execProjects: 'exec_projects',
+  workOffers:   'work_offers',
+  workApps:     'work_applications',
 };
+
+// ── مراحل الإنجاز الموحّدة (10 مراحل) ───────────────────
+const EXEC_PHASES = [
+  { key:'excavation',  label:'الحفر والترابية',              boqChapter:2,     defaultPay:'daily' },
+  { key:'structure',   label:'الهيكل الخرساني',               boqChapter:3,     defaultPay:'daily' },
+  { key:'masonry',     label:'البناء والمباني',                boqChapter:4,     defaultPay:'daily' },
+  { key:'utilities',   label:'التمديدات الصحية والكهربائية',   boqChapter:'5+6', defaultPay:'daily' },
+  { key:'plastering',  label:'اللياسة',                        boqChapter:8,     defaultPay:'daily' },
+  { key:'tiling',      label:'التبليط والتكسية',               boqChapter:7,     defaultPay:'piece' },
+  { key:'painting',    label:'الطلاء',                         boqChapter:8,     defaultPay:'daily' },
+  { key:'carpentry',   label:'النجارة والألمنيوم',             boqChapter:9,     defaultPay:'piece' },
+  { key:'outdoor',     label:'التهيئة الخارجية',               boqChapter:10,    defaultPay:'daily' },
+  { key:'handover',    label:'التسليم النهائي',                boqChapter:null,  defaultPay:null },
+];
+
+// ── تخصصات العمال ────────────────────────────────────────
+const SPECIALTIES = ['بناء','حديد وخرسانة','كهرباء','سباكة','نجارة وألمنيوم','دهان','بلاط وتكسية','عزل وتهيئة'];
 
 // ── المستمعون للأحداث (محلي) ───────────────────────────
 const _listeners = {};
@@ -150,6 +171,26 @@ async function ticketNum() {
   const dd   = String(now.getDate()).padStart(2, '0');
   const dateKey = `${yyyy}${mm}${dd}`;
   const prefix  = `JIL-${yyyy}-${mm}-${dd}-`;
+
+  const counterRef = doc(db, COL.counters, dateKey);
+  const n = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    const next = snap.exists() ? (Number(snap.data().n) || 0) + 1 : 1;
+    if (snap.exists()) tx.update(counterRef, { n: next });
+    else tx.set(counterRef, { n: next });
+    return next;
+  });
+  return prefix + String(n).padStart(3, '0');
+}
+
+// ── رقم مشروع الإنجاز — نفس مبدأ رقم الطلب لكن بادئة مختلفة ─
+async function execTicketNum() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getDate()).padStart(2, '0');
+  const dateKey = `EXEC-${yyyy}${mm}${dd}`;
+  const prefix  = `JIL-EXEC-${yyyy}-${mm}-${dd}-`;
 
   const counterRef = doc(db, COL.counters, dateKey);
   const n = await runTransaction(db, async (tx) => {
@@ -500,6 +541,14 @@ function notifTarget(target) {
   if (target === 'office') {
     return { col: collection(db, COL.officeNotifs), isClient: false };
   }
+  if (target.startsWith('client_exec_')) {
+    const projectId = target.slice(12);
+    return { col: collection(db, COL.execProjects, projectId, 'notifications'), isClient: true };
+  }
+  if (target.startsWith('team_')) {
+    const uidT = target.slice(5);
+    return { col: collection(db, COL.teamMembers, uidT, 'notifications'), isClient: true };
+  }
   const ticket = target.startsWith('client_') ? target.slice(7) : target;
   return { col: collection(db, COL.requests, ticket, 'notifications'), isClient: true };
 }
@@ -547,6 +596,375 @@ const Notifs = {
 };
 
 // ══════════════════════════════════════════════════════════
+//  TEAM — مؤسسة جيل البناء للإنجاز
+//  team_members/{uid}: مهندسو الإشراف الميداني وعمّال الورشة.
+//  حساب حقيقي (Email/Password) — نفس منطق حساب العميل، لكن
+//  بحالة 'pending' حتى يوافق المكتب فتصبح 'active'.
+// ══════════════════════════════════════════════════════════
+const Team = {
+
+  async registerEngineer(name, phone, nin, email, password, specialty, visitFee) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    const member = clean({
+      uid: cred.user.uid, name, phone, nin, email,
+      role: 'engineer', specialty: specialty || 'إشراف عام',
+      visitFee: Number(visitFee) || 0,
+      status: 'pending', currentProjectId: null,
+      createdAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
+    await Notifs.add('office', {
+      type: 'team_join_request', icon: '👷',
+      title: 'طلب انضمام مهندس', body: `${name} — ${specialty || 'إشراف عام'}`,
+    });
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
+  async registerWorker(name, phone, nin, email, password, specialties, payType, rate) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    const member = clean({
+      uid: cred.user.uid, name, phone, nin, email,
+      role: 'worker', specialties: specialties || [],
+      payType: payType || 'daily',                 // 'daily' | 'piece'
+      dailyWage: payType === 'daily' ? (Number(rate) || 0) : 0,
+      phaseRate: payType === 'piece' ? (Number(rate) || 0) : 0,
+      status: 'pending', currentProjectId: null, currentPhase: null,
+      createdAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
+    await Notifs.add('office', {
+      type: 'team_join_request', icon: '🔨',
+      title: 'طلب انضمام عامل', body: `${name} — ${(specialties||[]).join('، ')}`,
+    });
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
+  async login(email, password) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
+  async getProfile(uid) {
+    const snap = await getDoc(doc(db, COL.teamMembers, uid || auth.currentUser?.uid));
+    return snap.exists() ? { uid: snap.id, ...snap.data() } : null;
+  },
+
+  watchProfile(uid, cb) {
+    return onSnapshot(doc(db, COL.teamMembers, uid), snap => { cb(snap.exists() ? { uid: snap.id, ...snap.data() } : null); });
+  },
+
+  async updateProfile_(uid, data) {
+    await updateDoc(doc(db, COL.teamMembers, uid), clean({ ...data, updatedAt: serverTimestamp() }));
+  },
+
+  // المكتب فقط — يوافق على طلب انضمام
+  async approve(uid) {
+    await updateDoc(doc(db, COL.teamMembers, uid), { status: 'active', approvedAt: serverTimestamp() });
+    await Notifs.add('team_' + uid, { type:'team_approved', icon:'✅', title:'تم قبول انضمامك!', body:'يمكنك الآن استخدام التطبيق بالكامل' });
+    emit('team:approved', uid);
+  },
+
+  async suspend(uid) {
+    await updateDoc(doc(db, COL.teamMembers, uid), { status: 'suspended' });
+    emit('team:suspended', uid);
+  },
+
+  // تصفح شامل — للمكتب فقط
+  async getAll() {
+    const snap = await getDocs(collection(db, COL.teamMembers));
+    return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  },
+
+  watchAll(cb) {
+    return onSnapshot(collection(db, COL.teamMembers), snap => {
+      cb(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
+    });
+  },
+
+  // فلترة العميل تتم محلياً (Client-side) لتجنّب فهارس مركّبة
+  async getPending() { return (await this.getAll()).filter(m => m.status === 'pending'); },
+  async getActiveBySpecialty(spec) {
+    return (await this.getAll()).filter(m => m.status === 'active' &&
+      (m.specialty === spec || (m.specialties || []).includes(spec)));
+  },
+
+  // ── الحضور اليومي (payType:'daily') ─────────────────────
+  // team_members/{uid}/attendance/{YYYY-MM-DD} → { status:'P'|'A'|'V'|'H' }
+  async setAttendance(uid, dateKey, status) {
+    const ref = doc(db, COL.teamMembers, uid, 'attendance', dateKey);
+    if (!status) { await setDoc(ref, { status: null }); return; }
+    await setDoc(ref, { status, ts: serverTimestamp() });
+  },
+
+  async getMonthAttendance(uid, yyyyMm) {
+    const snap = await getDocs(collection(db, COL.teamMembers, uid, 'attendance'));
+    return snap.docs.filter(d => d.id.startsWith(yyyyMm)).map(d => ({ date: d.id, ...d.data() }));
+  },
+
+  // تقرير الأجور الشهري لكل العمال ذوي الأجر اليومي (نفس معادلة النظام الحالي)
+  async monthlyWageReport(yyyyMm) {
+    const members = (await this.getAll()).filter(m => m.role === 'worker' && m.payType === 'daily' && m.status === 'active');
+    const rows = [];
+    for (const m of members) {
+      const att = await this.getMonthAttendance(m.uid, yyyyMm);
+      const P = att.filter(a => a.status === 'P').length;
+      const A = att.filter(a => a.status === 'A').length;
+      const V = att.filter(a => a.status === 'V').length;
+      const gross = P * (m.dailyWage || 0);
+      const ded = A > 3 ? (A - 3) * (m.dailyWage || 0) * 0.5 : 0;
+      rows.push({ uid: m.uid, name: m.name, specialty: (m.specialties||[]).join('، '), dailyWage: m.dailyWage, P, A, V, gross, ded, net: gross - ded });
+    }
+    return rows;
+  },
+};
+
+// ══════════════════════════════════════════════════════════
+//  EXEC PROJECTS — مشاريع الإنجاز
+//  exec_projects/{JIL-EXEC-...}: مربوطة اختيارياً بطلب الدراسة
+//  الأصلي (sourceTicket). تتبّع 10 مراحل تنفيذ + الفريق المُسند.
+// ══════════════════════════════════════════════════════════
+const ExecProjects = {
+
+  async create(data) {
+    const projectId = await execTicketNum();
+    const phases = EXEC_PHASES.map(p => ({ ...p, status: 'pending', startDate: null, endDate: null }));
+    phases[0].status = 'current';
+    const project = clean({
+      projectId, ...data,
+      phases, currentPhaseIndex: 0,
+      team: { engineerId: null, workerIds: [] },
+      status: 'awaiting_start',
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, COL.execProjects, projectId), project);
+    await Notifs.add('office', { type:'exec_project_new', icon:'🏗️', title:'مشروع إنجاز جديد', body: data.clientName || '' });
+    emit('exec:created', project);
+    return project;
+  },
+
+  async get(id) {
+    if (!id) return null;
+    const snap = await getDoc(doc(db, COL.execProjects, id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  // مشاريع عميل معيّن — فلترة بشرط واحد فقط
+  async getByClient(clientId) {
+    const snap = await getDocs(query(collection(db, COL.execProjects), where('clientId', '==', clientId)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  // مشاريع مهندس معيّن (حسب team.engineerId) — فلترة بشرط واحد فقط
+  async getByEngineer(engineerId) {
+    const snap = await getDocs(query(collection(db, COL.execProjects), where('team.engineerId', '==', engineerId)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchByEngineer(engineerId, cb) {
+    return onSnapshot(query(collection(db, COL.execProjects), where('team.engineerId', '==', engineerId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  async getAll() {
+    const snap = await getDocs(query(collection(db, COL.execProjects), orderBy('createdAt', 'desc')));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  // مراقبة لحظية شاملة — للمكتب فقط
+  watchAll(cb) {
+    return onSnapshot(query(collection(db, COL.execProjects), orderBy('createdAt', 'desc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  watchOne(id, cb) {
+    return onSnapshot(doc(db, COL.execProjects, id), snap => { if (snap.exists()) cb({ id: snap.id, ...snap.data() }); });
+  },
+
+  watchByClient(clientId, cb) {
+    return onSnapshot(query(collection(db, COL.execProjects), where('clientId', '==', clientId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  async assignTeam(id, { engineerId, workerIds }) {
+    const update = {};
+    if (engineerId !== undefined) update['team.engineerId'] = engineerId;
+    if (workerIds  !== undefined) update['team.workerIds']  = workerIds;
+    await updateDoc(doc(db, COL.execProjects, id), { ...update, updatedAt: serverTimestamp() });
+    emit('exec:teamAssigned', { id, engineerId, workerIds });
+  },
+
+  // الانتقال للمرحلة التالية — يُحدّث حالة المراحل ويُشعر الفريق والعميل
+  async advancePhase(id) {
+    const ref = doc(db, COL.execProjects, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const p = snap.data();
+    const idx = p.currentPhaseIndex ?? 0;
+    const phases = [...p.phases];
+    phases[idx] = { ...phases[idx], status: 'done', endDate: new Date().toISOString() };
+    const nextIdx = idx + 1;
+    let status = p.status;
+    if (nextIdx < phases.length) {
+      phases[nextIdx] = { ...phases[nextIdx], status: 'current', startDate: new Date().toISOString() };
+      status = 'in_progress';
+    } else {
+      status = 'completed';
+    }
+    await updateDoc(ref, clean({ phases, currentPhaseIndex: Math.min(nextIdx, phases.length - 1), status, updatedAt: serverTimestamp() }));
+
+    await Notifs.add('client_exec_' + id, { type:'phase_advanced', icon:'📊', title:'تحديث مرحلة المشروع', body: nextIdx < phases.length ? `بدأت مرحلة: ${phases[nextIdx].label}` : 'اكتمل تنفيذ المشروع 🎉' });
+    emit('exec:phaseAdvanced', { id, nextIdx });
+    return { id, phases, status };
+  },
+
+  // ── محاضر زيارة الورشة (مرتبطة بأتعاب المهندس) ──────────
+  // exec_projects/{id}/visits/{autoId}
+  async addVisit(projectId, { engineerId, date, notes, progress, issues }) {
+    const eng = await Team.getProfile(engineerId);
+    const visit = clean({
+      engineerId, engineerName: eng?.name || '', date: date || new Date().toISOString().slice(0,10),
+      notes: notes || '', progress: progress || 0, issues: issues || '',
+      feeCharged: eng?.visitFee || 0,
+      createdAt: serverTimestamp(),
+    });
+    const ref = await addDoc(collection(db, COL.execProjects, projectId, 'visits'), visit);
+    emit('exec:visitAdded', { projectId, id: ref.id, ...visit });
+    return { id: ref.id, ...visit };
+  },
+
+  async getVisits(projectId) {
+    const snap = await getDocs(collection(db, COL.execProjects, projectId, 'visits'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+  },
+
+  // أتعاب مهندس معيّن خلال شهر معيّن — تُجمع بتصفّح مشاريعه فقط (بدون collectionGroup)
+  async monthlyEngineerFees(engineerId, yyyyMm) {
+    const eng = await Team.getProfile(engineerId);
+    if (!eng?.currentProjectId) return { visits: 0, total: 0 };
+    const visits = (await this.getVisits(eng.currentProjectId)).filter(v => (v.date || '').startsWith(yyyyMm));
+    return { visits: visits.length, total: visits.reduce((s,v) => s + (v.feeCharged || 0), 0) };
+  },
+};
+
+// ══════════════════════════════════════════════════════════
+//  WORK OFFERS & APPLICATIONS — عروض العمل للعمال
+// ══════════════════════════════════════════════════════════
+const Offers = {
+
+  async publish(data) {
+    const offer = clean({ ...data, status: 'open', createdAt: serverTimestamp() });
+    const ref = await addDoc(collection(db, COL.workOffers), offer);
+    emit('offer:published', { id: ref.id, ...offer });
+    return { id: ref.id, ...offer };
+  },
+
+  async close(id) { await updateDoc(doc(db, COL.workOffers, id), { status: 'closed' }); },
+
+  async getAll() {
+    const snap = await getDocs(query(collection(db, COL.workOffers), orderBy('createdAt', 'desc')));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  // العروض المفتوحة حسب تخصص عامل معيّن — فلترة شرط واحد + محلية
+  async getOpenBySpecialty(specialty) {
+    const snap = await getDocs(query(collection(db, COL.workOffers), where('specialty', '==', specialty)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => o.status === 'open');
+  },
+
+  watchAll(cb) {
+    return onSnapshot(query(collection(db, COL.workOffers), orderBy('createdAt', 'desc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+};
+
+const Applications = {
+
+  async getAll() {
+    const snap = await getDocs(collection(db, COL.workApps));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchAll(cb) {
+    return onSnapshot(collection(db, COL.workApps), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  async apply(offerId, workerId) {
+    const worker = await Team.getProfile(workerId);
+    const offerSnap = await getDoc(doc(db, COL.workOffers, offerId));
+    if (!offerSnap.exists()) return null;
+    const offer = offerSnap.data();
+    const application = clean({
+      offerId, projectId: offer.projectId, workerId,
+      workerName: worker?.name || '', specialty: offer.specialty,
+      status: 'pending', appliedAt: serverTimestamp(),
+    });
+    const ref = await addDoc(collection(db, COL.workApps), application);
+    await Notifs.add('office', { type:'work_application', icon:'📝', title:'طلب انضمام لعرض عمل', body:`${worker?.name || ''} — ${offer.specialty}` });
+    emit('application:new', { id: ref.id, ...application });
+    return { id: ref.id, ...application };
+  },
+
+  async getForOffer(offerId) {
+    const snap = await getDocs(query(collection(db, COL.workApps), where('offerId', '==', offerId)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async getForWorker(workerId) {
+    const snap = await getDocs(query(collection(db, COL.workApps), where('workerId', '==', workerId)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchForWorker(workerId, cb) {
+    return onSnapshot(query(collection(db, COL.workApps), where('workerId', '==', workerId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // قبول طلب: يضيف العامل لفريق المشروع ويحدّث حالته + يغلق العرض إن اكتملت الشواغر
+  async respond(appId, accepted) {
+    const ref = doc(db, COL.workApps, appId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const app = snap.data();
+    await updateDoc(ref, { status: accepted ? 'accepted' : 'rejected', respondedAt: serverTimestamp() });
+
+    if (accepted) {
+      const project = await ExecProjects.get(app.projectId);
+      const workerIds = [...new Set([...(project?.team?.workerIds || []), app.workerId])];
+      await ExecProjects.assignTeam(app.projectId, { workerIds });
+      await Team.updateProfile_(app.workerId, { currentProjectId: app.projectId, currentPhase: app.offerId });
+
+      const offerSnap = await getDoc(doc(db, COL.workOffers, app.offerId));
+      if (offerSnap.exists()) {
+        const offer = offerSnap.data();
+        const acceptedCount = (await this.getForOffer(app.offerId)).filter(a => a.status === 'accepted').length + 1;
+        if (acceptedCount >= (offer.slotsNeeded || 1)) await Offers.close(app.offerId);
+      }
+    }
+
+    await Notifs.add('team_' + app.workerId, {
+      type: accepted ? 'application_accepted' : 'application_rejected',
+      icon: accepted ? '✅' : '❌',
+      title: accepted ? 'تم قبول طلبك!' : 'لم يُقبل طلبك',
+      body: app.specialty,
+    });
+    emit('application:responded', { id: appId, accepted });
+    return { id: appId, ...app, status: accepted ? 'accepted' : 'rejected' };
+  },
+};
+
+// ══════════════════════════════════════════════════════════
 //  STATUS MAP & HELPERS
 // ══════════════════════════════════════════════════════════
 const STATUS_MAP = {
@@ -575,6 +993,9 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('ar-DZ'); }
 // ══════════════════════════════════════════════════════════
 //  EXPORT
 // ══════════════════════════════════════════════════════════
-const Bridge = { Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db };
+const Bridge = {
+  Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db,
+  Team, ExecProjects, Offers, Applications, EXEC_PHASES, SPECIALTIES,
+};
 window.Bridge = Bridge;
 export default Bridge;

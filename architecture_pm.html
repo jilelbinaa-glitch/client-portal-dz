@@ -161,6 +161,9 @@ select option{background:var(--surface);}
       <span id="acceptNavBadge" style="background:var(--green);color:var(--ink);border-radius:99px;padding:0 6px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;display:none"></span>
     </button>
     <button class="nb" onclick="showPage('projects')">🏗️ المشاريع</button>
+    <button class="nb" onclick="showPage('execadmin')">🏢 مؤسسة الإنجاز
+      <span id="execNavBadge" style="background:var(--amber);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
+    </button>
     <button class="nb" onclick="showPage('team')">👷 الفريق</button>
     <button class="nb" onclick="showPage('costs')">💰 التكاليف</button>
     <button class="nb" onclick="showPage('logs')">📋 الورشة</button>
@@ -255,6 +258,115 @@ select option{background:var(--surface);}
   <div class="tw"><table><thead><tr><th>الاسم</th><th>التخصص</th><th>حضور</th><th>غياب</th><th>إجازة</th><th>الأجر اليومي</th><th>المستحق</th><th>خصومات</th><th>الصافي</th></tr></thead>
   <tbody id="wages_tb"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">اختر شهراً لعرض الأجور</td></tr></tbody></table></div>
 </div>
+
+<!-- ══════════ مؤسسة جيل البناء للإنجاز ══════════ -->
+<div class="page" id="page-execadmin">
+  <div class="sh"><div class="st">🏢 مؤسسة جيل البناء للإنجاز</div></div>
+  <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="nb active" id="esub-btn-projects" onclick="showExecSub('projects')">🏗️ مشاريع الإنجاز</button>
+    <button class="nb" id="esub-btn-team" onclick="showExecSub('team')">👷 الانضمام والفريق
+      <span id="teamPendingBadge" style="background:var(--amber);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
+    </button>
+    <button class="nb" id="esub-btn-offers" onclick="showExecSub('offers')">📢 عروض العمل
+      <span id="appsPendingBadge" style="background:var(--amber);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
+    </button>
+    <button class="nb" id="esub-btn-wages" onclick="showExecSub('wages')">💰 التقارير المالية</button>
+  </div>
+
+  <!-- مشاريع الإنجاز -->
+  <div class="exec-sub" id="esub-projects">
+    <div class="sh"><div></div><button class="btn btn-gold btn-sm" onclick="openExecProjModal()">+ مشروع إنجاز جديد</button></div>
+    <div class="cg" id="exec_proj_cards"><div style="color:var(--muted);padding:28px;text-align:center;grid-column:1/-1">لا توجد مشاريع إنجاز بعد</div></div>
+  </div>
+
+  <!-- الانضمام والفريق -->
+  <div class="exec-sub" id="esub-team" style="display:none">
+    <div class="sh"><div class="st" style="font-size:12px">⏳ طلبات انضمام قيد المراجعة</div></div>
+    <div class="tw" style="margin-bottom:20px"><table><thead><tr><th>الاسم</th><th>الدور</th><th>التخصص</th><th>الهاتف</th><th>الرقم الوطني</th><th>إجراءات</th></tr></thead>
+    <tbody id="execPending_tb"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات معلّقة</td></tr></tbody></table></div>
+    <div class="sh"><div class="st" style="font-size:12px">✅ الفريق النشط</div></div>
+    <div class="tw"><table><thead><tr><th>الاسم</th><th>الدور</th><th>التخصص</th><th>نظام الأجر</th><th>المشروع الحالي</th><th>إجراءات</th></tr></thead>
+    <tbody id="execActive_tb"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا يوجد أعضاء نشطون</td></tr></tbody></table></div>
+  </div>
+
+  <!-- عروض العمل -->
+  <div class="exec-sub" id="esub-offers" style="display:none">
+    <div class="sh"><div></div><button class="btn btn-gold btn-sm" onclick="openOfferModal()">+ نشر عرض عمل</button></div>
+    <div class="cg" id="offers_cards"><div style="color:var(--muted);padding:28px;text-align:center;grid-column:1/-1">لا توجد عروض منشورة</div></div>
+    <div class="sh" style="margin-top:16px"><div class="st" style="font-size:12px">📝 طلبات الانضمام للعروض</div></div>
+    <div class="tw"><table><thead><tr><th>العامل</th><th>التخصص</th><th>العرض</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+    <tbody id="apps_tb"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات</td></tr></tbody></table></div>
+  </div>
+
+  <!-- التقارير المالية -->
+  <div class="exec-sub" id="esub-wages" style="display:none">
+    <div class="sh"><div class="st" style="font-size:12px">اختر الشهر</div>
+      <input type="month" id="execWagesMonth" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:6px 11px;color:var(--text);font-family:inherit;font-size:11px" oninput="renderExecWages()">
+    </div>
+    <div class="st" style="font-size:12px;margin:14px 0 8px">🔨 أجور العمال (اليومية)</div>
+    <div class="tw" style="margin-bottom:18px"><table><thead><tr><th>الاسم</th><th>التخصص</th><th>حضور</th><th>غياب</th><th>إجازة</th><th>الأجر اليومي</th><th>المستحق</th><th>خصومات</th><th>الصافي</th></tr></thead>
+    <tbody id="execWorkerWages_tb"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">اختر شهراً لعرض الأجور</td></tr></tbody></table></div>
+    <div class="st" style="font-size:12px;margin:14px 0 8px">👷 أتعاب المهندسين (لكل زيارة ورشة)</div>
+    <div class="tw"><table><thead><tr><th>الاسم</th><th>عدد الزيارات</th><th>أتعاب الزيارة</th><th>الإجمالي</th></tr></thead>
+    <tbody id="execEngFees_tb"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">اختر شهراً لعرض الأتعاب</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════ Modals: مؤسسة الإنجاز ══════════ -->
+<div class="modal-overlay" id="execProjModal">
+  <div class="modal"><h3>🏗️ مشروع إنجاز جديد</h3>
+    <div class="fg">
+      <div class="fgi full"><label>اختر طلب/عميل (من الطلبات المقبولة) *</label>
+        <select id="ep_req"><option value="">— اختر —</option></select>
+      </div>
+      <div class="fgi full"><label>أو أدخل معرّف عميل (uid) يدوياً — اختياري إن لم يوجد طلب</label>
+        <input id="ep_manualUid" placeholder="uid العميل في Firebase (اختياري)">
+      </div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('execProjModal')">إلغاء</button><button class="btn btn-gold" onclick="saveExecProj()">إنشاء المشروع</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="assignTeamModal">
+  <div class="modal"><h3>👥 تعيين الفريق</h3>
+    <input type="hidden" id="at_projectId">
+    <div class="fgi full" style="margin-bottom:12px"><label>المهندس المشرف</label>
+      <select id="at_engineer"><option value="">— بدون —</option></select>
+    </div>
+    <div class="fgi full"><label>العمال (اختر واحداً أو أكثر)</label>
+      <div id="at_workers" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:10px"></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('assignTeamModal')">إلغاء</button><button class="btn btn-gold" onclick="saveAssignTeam()">حفظ الفريق</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addVisitModal">
+  <div class="modal"><h3>📋 محضر زيارة ورشة (إنجاز)</h3>
+    <input type="hidden" id="av_projectId">
+    <div class="fg">
+      <div class="fgi"><label>تاريخ الزيارة *</label><input id="av_date" type="date"></div>
+      <div class="fgi"><label>المهندس الزائر *</label><select id="av_engineer"><option value="">— اختر —</option></select></div>
+      <div class="fgi"><label>نسبة التقدم %</label><input id="av_progress" type="number" min="0" max="100" value="0"></div>
+      <div class="fgi full"><label>ملاحظات</label><textarea id="av_notes"></textarea></div>
+      <div class="fgi full"><label>مشاكل/عوائق</label><textarea id="av_issues"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('addVisitModal')">إلغاء</button><button class="btn btn-gold" onclick="saveExecVisit()">حفظ المحضر</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="offerModal">
+  <div class="modal"><h3>📢 نشر عرض عمل جديد</h3>
+    <div class="fg">
+      <div class="fgi full"><label>مشروع الإنجاز *</label><select id="of_project"><option value="">— اختر —</option></select></div>
+      <div class="fgi"><label>المرحلة *</label><select id="of_phase"><option value="">— اختر —</option></select></div>
+      <div class="fgi"><label>التخصص المطلوب *</label><select id="of_specialty"><option value="">— اختر —</option></select></div>
+      <div class="fgi"><label>الأجر (يومي أو بالقطعة، دج) *</label><input id="of_wage" type="number" min="0"></div>
+      <div class="fgi"><label>عدد الشواغر *</label><input id="of_slots" type="number" min="1" value="1"></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('offerModal')">إلغاء</button><button class="btn btn-gold" onclick="saveOffer()">نشر العرض</button></div>
+  </div>
+</div>
+
 
 <div class="page" id="page-costs">
   <div class="sh"><div class="st">💰 جدول الكميات والتكاليف</div>
@@ -427,6 +539,12 @@ let mapSites  = JSON.parse(localStorage.getItem('arch_ms') ||'[]');
 let settings  = JSON.parse(localStorage.getItem('arch_s')  ||'{}');
 let curLogId=null, charts={};
 
+// ── مؤسسة جيل البناء للإنجاز — حالة محلية (Firestore) ──
+let _cachedTeamMembers = [];
+let _cachedExecProjects = [];
+let _cachedOffers = [];
+let _cachedApplications = [];
+
 function save(){
   localStorage.setItem('arch_p',  JSON.stringify(projects));
   localStorage.setItem('arch_t',  JSON.stringify(team));
@@ -443,6 +561,21 @@ function save(){
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function fmt(n){ return Number(n||0).toLocaleString('ar-DZ'); }
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg){
+  let el = document.getElementById('toastBox');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toastBox';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card);border:1px solid var(--border);border-right:3px solid var(--gold);color:var(--text);padding:12px 20px;border-radius:var(--rsm);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);font-family:\'Cairo\',sans-serif';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; }, 3200);
+}
 function pbar(v){
   v=Math.min(100,Math.max(0,v||0));
   const c=v>=80?'#4ade80':v>=40?'#c9a84c':'#f87171';
@@ -475,7 +608,8 @@ function showPage(id){
     reports:()=>{popRepSel();renderReports();},
     materials:()=>{popMatFilters();renderMats();renderMatChart();},
     map:renderMapSites,
-    requests:()=>{renderRequestsPage();updateRequestsBadge();}
+    requests:()=>{renderRequestsPage();updateRequestsBadge();},
+    execadmin:()=>{renderExecAdminAll();}
   })[id]?.();
 }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -1363,6 +1497,32 @@ async function initBridgeInOffice(){
     });
   });
 
+  // ── مؤسسة جيل البناء للإنجاز — مراقبة لحظية ──────
+  Bridge.Team.watchAll(members => {
+    const prevPending = _cachedTeamMembers.filter(m => m.status === 'pending').map(m => m.uid);
+    const newPending = members.filter(m => m.status === 'pending' && !prevPending.includes(m.uid));
+    _cachedTeamMembers = members;
+    if (document.getElementById('page-execadmin')?.classList.contains('active')) {
+      renderExecTeam();
+    }
+    const pendingCount = members.filter(m => m.status === 'pending').length;
+    const navBadge = document.getElementById('execNavBadge');
+    if (navBadge) { navBadge.textContent = pendingCount || ''; navBadge.style.display = pendingCount ? 'inline-flex' : 'none'; }
+    newPending.forEach(m => addNavNotif(m.role === 'engineer' ? '👷' : '🔨', 'طلب انضمام جديد', `${m.name} — ${m.role === 'engineer' ? (m.specialty||'') : (m.specialties||[]).join('، ')}`, '', 'team'));
+  });
+  Bridge.ExecProjects.watchAll(projs => {
+    _cachedExecProjects = projs;
+    if (document.getElementById('page-execadmin')?.classList.contains('active')) renderExecProjects();
+  });
+  Bridge.Offers.watchAll(offers => {
+    _cachedOffers = offers;
+    if (document.getElementById('page-execadmin')?.classList.contains('active')) renderExecOffers();
+  });
+  Bridge.Applications.watchAll(apps => {
+    _cachedApplications = apps;
+    if (document.getElementById('page-execadmin')?.classList.contains('active')) renderExecOffers();
+  });
+
   await updateAllBadges();
 }
 
@@ -1894,6 +2054,336 @@ window.renderWages = renderWages;
 window.saveCosts = saveCosts;
 window.saveLog = saveLog;
 window.saveMapSite = saveMapSite;
+// ══════════════════════════════════════════════════════════
+//  مؤسسة جيل البناء للإنجاز — منطق الواجهة
+// ══════════════════════════════════════════════════════════
+function renderExecAdminAll(){
+  renderExecProjects();
+  renderExecTeam();
+  renderExecOffers();
+  popExecSelects();
+  popExecWagesMonths();
+}
+
+function showExecSub(id){
+  document.querySelectorAll('.exec-sub').forEach(s=>s.style.display='none');
+  document.querySelectorAll('#page-execadmin .nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('esub-'+id).style.display='';
+  document.getElementById('esub-btn-'+id).classList.add('active');
+  if(id==='wages') renderExecWages();
+}
+window.showExecSub = showExecSub;
+
+function execStatusLabel(s){
+  return {awaiting_start:'بانتظار الانطلاق', in_progress:'قيد التنفيذ', paused:'متوقف', completed:'مكتمل'}[s] || s;
+}
+function execPhaseLabel(key){ return (Bridge.EXEC_PHASES.find(p=>p.key===key)||{}).label || key; }
+
+// ── مشاريع الإنجاز ──────────────────────────────────
+function renderExecProjects(){
+  const el = document.getElementById('exec_proj_cards');
+  if(!_cachedExecProjects.length){
+    el.innerHTML = '<div style="color:var(--muted);padding:28px;text-align:center;grid-column:1/-1">لا توجد مشاريع إنجاز بعد</div>';
+    return;
+  }
+  el.innerHTML = _cachedExecProjects.map(p=>{
+    const phases = p.phases||[];
+    const curPhase = phases[p.currentPhaseIndex||0];
+    const doneCount = phases.filter(ph=>ph.status==='done').length;
+    const pct = phases.length ? Math.round((doneCount/phases.length)*100) : 0;
+    const engMember = p.team?.engineerId ? _cachedTeamMembers.find(m=>m.uid===p.team.engineerId) : null;
+    const workersCount = (p.team?.workerIds||[]).length;
+    return `<div class="ic">
+      <div class="ic-h"><div class="ic-av" style="background:var(--gold-glow);color:var(--gold)">🏗️</div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(p.id)}</div><div style="font-size:10px;color:var(--muted)">${esc(p.clientName||'')}</div></div>
+        <span class="badge ${p.status==='completed'?'bg':p.status==='in_progress'?'bt':p.status==='paused'?'br':'ba'}">${execStatusLabel(p.status)}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">المرحلة الحالية: <strong style="color:var(--text)">${curPhase?esc(curPhase.label):'—'}</strong></div>
+      <div class="pw" style="margin-bottom:10px"><div class="pb" style="width:${pct}%;background:var(--gold)"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">👷 ${esc(engMember?engMember.name:'— بدون —')} · 🔨 ${workersCount} عامل</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openAssignTeamModal('${p.id}')">تعيين الفريق</button>
+        <button class="btn btn-teal btn-sm" onclick="openAddVisitModal('${p.id}')">+ محضر زيارة</button>
+        ${p.status!=='completed'?`<button class="btn btn-gold btn-sm" onclick="advanceExecPhase('${p.id}')">➡️ المرحلة التالية</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openExecProjModal(){
+  const sel = document.getElementById('ep_req');
+  sel.innerHTML = '<option value="">— اختر —</option>';
+  const reqs = window._cachedRequests || await Bridge.Requests.getAll();
+  reqs.filter(r=>['accepted','project_created'].includes(r.status)).forEach(r=>{
+    const o=document.createElement('option'); o.value=r.ticket; o.textContent=`${r.name} — ${r.building||''} — ${r.ticket}`; sel.appendChild(o);
+  });
+  document.getElementById('ep_manualUid').value='';
+  openModal('execProjModal');
+}
+window.openExecProjModal = openExecProjModal;
+
+async function saveExecProj(){
+  const ticket = document.getElementById('ep_req').value;
+  const manualUid = document.getElementById('ep_manualUid').value.trim();
+  let clientId = manualUid, clientName = '', sourceTicket = null;
+  if(ticket){
+    const req = await Bridge.Requests.get(ticket);
+    if(!req){ showToast('⚠️ تعذر إيجاد الطلب'); return; }
+    clientId = req.uid; clientName = req.name; sourceTicket = req.ticket;
+  }
+  if(!clientId){ showToast('⚠️ اختر طلباً أو أدخل معرّف عميل'); return; }
+  try{
+    await Bridge.ExecProjects.create({ clientId, clientName, sourceTicket });
+    closeModal('execProjModal');
+    showToast('✅ تم إنشاء مشروع الإنجاز بنجاح');
+  }catch(err){ showToast('❌ تعذر إنشاء المشروع: '+(err?.message||'')); }
+}
+window.saveExecProj = saveExecProj;
+
+// ── تعيين الفريق ────────────────────────────────────
+function openAssignTeamModal(projectId){
+  document.getElementById('at_projectId').value = projectId;
+  const proj = _cachedExecProjects.find(p=>p.id===projectId);
+  const engSel = document.getElementById('at_engineer');
+  engSel.innerHTML = '<option value="">— بدون —</option>';
+  _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active').forEach(m=>{
+    const o=document.createElement('option'); o.value=m.uid; o.textContent=`${m.name} — ${m.specialty||''}`;
+    if(proj?.team?.engineerId===m.uid) o.selected=true;
+    engSel.appendChild(o);
+  });
+  const wBox = document.getElementById('at_workers');
+  const activeWorkers = _cachedTeamMembers.filter(m=>m.role==='worker' && m.status==='active');
+  if(!activeWorkers.length){ wBox.innerHTML='<div style="color:var(--muted);font-size:11px">لا يوجد عمال نشطون</div>'; }
+  else {
+    wBox.innerHTML = activeWorkers.map(m=>{
+      const checked = (proj?.team?.workerIds||[]).includes(m.uid) ? 'checked' : '';
+      return `<label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="checkbox" value="${m.uid}" ${checked}> ${esc(m.name)} — ${esc((m.specialties||[]).join('، '))}</label>`;
+    }).join('');
+  }
+  openModal('assignTeamModal');
+}
+window.openAssignTeamModal = openAssignTeamModal;
+
+async function saveAssignTeam(){
+  const projectId = document.getElementById('at_projectId').value;
+  const engineerId = document.getElementById('at_engineer').value || null;
+  const workerIds = Array.from(document.querySelectorAll('#at_workers input[type=checkbox]:checked')).map(c=>c.value);
+  try{
+    await Bridge.ExecProjects.assignTeam(projectId, { engineerId, workerIds });
+    closeModal('assignTeamModal');
+    showToast('✅ تم تحديث فريق المشروع');
+  }catch(err){ showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
+}
+window.saveAssignTeam = saveAssignTeam;
+
+async function advanceExecPhase(projectId){
+  if(!confirm('تأكيد الانتقال للمرحلة التالية؟')) return;
+  try{
+    await Bridge.ExecProjects.advancePhase(projectId);
+    showToast('✅ تم الانتقال للمرحلة التالية');
+  }catch(err){ showToast('❌ تعذر التحديث'); }
+}
+window.advanceExecPhase = advanceExecPhase;
+
+// ── محاضر زيارة الإنجاز ─────────────────────────────
+function openAddVisitModal(projectId){
+  document.getElementById('av_projectId').value = projectId;
+  document.getElementById('av_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('av_progress').value = 0;
+  document.getElementById('av_notes').value=''; document.getElementById('av_issues').value='';
+  const proj = _cachedExecProjects.find(p=>p.id===projectId);
+  const sel = document.getElementById('av_engineer');
+  sel.innerHTML = '<option value="">— اختر —</option>';
+  _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active').forEach(m=>{
+    const o=document.createElement('option'); o.value=m.uid; o.textContent=`${m.name} — ${(m.visitFee||0).toLocaleString('ar-DZ')} دج/زيارة`;
+    if(proj?.team?.engineerId===m.uid) o.selected=true;
+    sel.appendChild(o);
+  });
+  openModal('addVisitModal');
+}
+window.openAddVisitModal = openAddVisitModal;
+
+async function saveExecVisit(){
+  const projectId = document.getElementById('av_projectId').value;
+  const engineerId = document.getElementById('av_engineer').value;
+  if(!engineerId){ showToast('⚠️ اختر المهندس الزائر'); return; }
+  const data = {
+    engineerId,
+    date: document.getElementById('av_date').value,
+    progress: Number(document.getElementById('av_progress').value)||0,
+    notes: document.getElementById('av_notes').value,
+    issues: document.getElementById('av_issues').value,
+  };
+  try{
+    await Bridge.ExecProjects.addVisit(projectId, data);
+    closeModal('addVisitModal');
+    showToast('✅ تم حفظ محضر الزيارة');
+  }catch(err){ showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
+}
+window.saveExecVisit = saveExecVisit;
+
+// ── الانضمام والفريق ─────────────────────────────────
+function renderExecTeam(){
+  const pending = _cachedTeamMembers.filter(m=>m.status==='pending');
+  const active  = _cachedTeamMembers.filter(m=>m.status==='active');
+
+  const pTb = document.getElementById('execPending_tb');
+  pTb.innerHTML = pending.length ? pending.map(m=>`<tr>
+    <td>${esc(m.name)}</td><td>${m.role==='engineer'?'مهندس':'عامل'}</td>
+    <td>${esc(m.role==='engineer'?(m.specialty||''):(m.specialties||[]).join('، '))}</td>
+    <td>${esc(m.phone||'')}</td><td>${esc(m.nin||'')}</td>
+    <td><div style="display:flex;gap:6px">
+      <button class="btn btn-teal btn-sm" onclick="approveTeamMember('${m.uid}')">✅ قبول</button>
+      <button class="btn btn-danger btn-sm" onclick="suspendTeamMember('${m.uid}')">❌ رفض</button>
+    </div></td>
+  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات معلّقة</td></tr>';
+
+  const aTb = document.getElementById('execActive_tb');
+  aTb.innerHTML = active.length ? active.map(m=>{
+    const proj = _cachedExecProjects.find(p=>p.id===m.currentProjectId);
+    const payInfo = m.role==='engineer'
+      ? (m.visitFee||0).toLocaleString('ar-DZ')+' دج/زيارة'
+      : (m.payType==='daily' ? (m.dailyWage||0).toLocaleString('ar-DZ')+' دج/يوم' : (m.phaseRate||0).toLocaleString('ar-DZ')+' دج/مرحلة');
+    return `<tr>
+    <td>${esc(m.name)}</td><td>${m.role==='engineer'?'مهندس':'عامل'}</td>
+    <td>${esc(m.role==='engineer'?(m.specialty||''):(m.specialties||[]).join('، '))}</td>
+    <td>${payInfo}</td>
+    <td>${proj?esc(proj.id):'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="suspendTeamMember('${m.uid}')">إيقاف</button></td>
+  </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا يوجد أعضاء نشطون</td></tr>';
+
+  const badge = document.getElementById('teamPendingBadge');
+  if(badge){ badge.textContent = pending.length||''; badge.style.display = pending.length?'inline-flex':'none'; }
+}
+
+async function approveTeamMember(uidV){
+  try{ await Bridge.Team.approve(uidV); showToast('✅ تم قبول العضو'); }
+  catch(err){ showToast('❌ تعذر القبول'); }
+}
+window.approveTeamMember = approveTeamMember;
+
+async function suspendTeamMember(uidV){
+  if(!confirm('تأكيد إيقاف/رفض هذا العضو؟')) return;
+  try{ await Bridge.Team.suspend(uidV); showToast('تم تحديث حالة العضو'); }
+  catch(err){ showToast('❌ تعذر التحديث'); }
+}
+window.suspendTeamMember = suspendTeamMember;
+
+// ── عروض العمل ───────────────────────────────────────
+function renderExecOffers(){
+  const el = document.getElementById('offers_cards');
+  if(!_cachedOffers.length){
+    el.innerHTML = '<div style="color:var(--muted);padding:28px;text-align:center;grid-column:1/-1">لا توجد عروض منشورة</div>';
+  } else {
+    el.innerHTML = _cachedOffers.map(o=>{
+      const proj = _cachedExecProjects.find(p=>p.id===o.projectId);
+      return `<div class="ic">
+        <div class="ic-h"><div class="ic-av" style="background:rgba(45,212,191,.15);color:var(--teal)">📢</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(o.specialty)}</div><div style="font-size:10px;color:var(--muted)">${proj?esc(proj.id):''}</div></div>
+          <span class="badge ${o.status==='open'?'bg':'bm'}">${o.status==='open'?'مفتوح':'مغلق'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">المرحلة: ${esc(execPhaseLabel(o.phase))}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">💰 ${(o.wage||0).toLocaleString('ar-DZ')} دج · 👥 ${o.slotsNeeded||1} شاغر</div>
+        ${o.status==='open'?`<button class="btn btn-outline btn-sm" onclick="closeOfferBtn('${o.id}')">إغلاق العرض</button>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  const appsTb = document.getElementById('apps_tb');
+  appsTb.innerHTML = _cachedApplications.length ? _cachedApplications.map(a=>`<tr>
+    <td>${esc(a.workerName)}</td><td>${esc(a.specialty)}</td><td>${esc(a.offerId)}</td>
+    <td><span class="badge ${a.status==='accepted'?'bg':a.status==='rejected'?'br':'ba'}">${a.status==='accepted'?'مقبول':a.status==='rejected'?'مرفوض':'قيد المراجعة'}</span></td>
+    <td>${a.status==='pending'?`<div style="display:flex;gap:6px">
+      <button class="btn btn-teal btn-sm" onclick="respondApplicationBtn('${a.id}',true)">قبول</button>
+      <button class="btn btn-danger btn-sm" onclick="respondApplicationBtn('${a.id}',false)">رفض</button>
+    </div>`:'—'}</td>
+  </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات</td></tr>';
+
+  const badge = document.getElementById('appsPendingBadge');
+  const pendingApps = _cachedApplications.filter(a=>a.status==='pending').length;
+  if(badge){ badge.textContent = pendingApps||''; badge.style.display = pendingApps?'inline-flex':'none'; }
+}
+
+function popExecSelects(){
+  const projSel = document.getElementById('of_project');
+  projSel.innerHTML = '<option value="">— اختر —</option>' + _cachedExecProjects.map(p=>`<option value="${p.id}">${esc(p.id)} — ${esc(p.clientName||'')}</option>`).join('');
+  const phaseSel = document.getElementById('of_phase');
+  phaseSel.innerHTML = '<option value="">— اختر —</option>' + Bridge.EXEC_PHASES.filter(p=>p.key!=='handover').map(p=>`<option value="${p.key}">${esc(p.label)}</option>`).join('');
+  const specSel = document.getElementById('of_specialty');
+  specSel.innerHTML = '<option value="">— اختر —</option>' + Bridge.SPECIALTIES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+}
+
+function openOfferModal(){
+  popExecSelects();
+  document.getElementById('of_wage').value='';
+  document.getElementById('of_slots').value=1;
+  openModal('offerModal');
+}
+window.openOfferModal = openOfferModal;
+
+async function saveOffer(){
+  const projectId = document.getElementById('of_project').value;
+  const phase = document.getElementById('of_phase').value;
+  const specialty = document.getElementById('of_specialty').value;
+  const wage = Number(document.getElementById('of_wage').value)||0;
+  const slotsNeeded = Number(document.getElementById('of_slots').value)||1;
+  if(!projectId||!phase||!specialty||!wage){ showToast('⚠️ يرجى ملء كل الحقول المطلوبة'); return; }
+  try{
+    await Bridge.Offers.publish({ projectId, phase, specialty, wage, slotsNeeded });
+    closeModal('offerModal');
+    showToast('✅ تم نشر عرض العمل');
+  }catch(err){ showToast('❌ تعذر النشر: '+(err?.message||'')); }
+}
+window.saveOffer = saveOffer;
+
+async function closeOfferBtn(id){
+  try{ await Bridge.Offers.close(id); showToast('تم إغلاق العرض'); }
+  catch(err){ showToast('❌ تعذر الإغلاق'); }
+}
+window.closeOfferBtn = closeOfferBtn;
+
+async function respondApplicationBtn(id, accepted){
+  try{ await Bridge.Applications.respond(id, accepted); showToast(accepted?'✅ تم قبول الطلب':'تم رفض الطلب'); }
+  catch(err){ showToast('❌ تعذر التحديث: '+(err?.message||'')); }
+}
+window.respondApplicationBtn = respondApplicationBtn;
+
+// ── التقارير المالية ─────────────────────────────────
+function popExecWagesMonths(){
+  const el = document.getElementById('execWagesMonth');
+  if(el && !el.value) el.value = new Date().toISOString().slice(0,7);
+}
+
+async function renderExecWages(){
+  const ym = document.getElementById('execWagesMonth').value;
+  if(!ym) return;
+  const wTb = document.getElementById('execWorkerWages_tb');
+  wTb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">جارٍ التحميل...</td></tr>';
+  try{
+    const rows = await Bridge.Team.monthlyWageReport(ym);
+    wTb.innerHTML = rows.length ? rows.map(r=>`<tr>
+      <td>${esc(r.name)}</td><td>${esc(r.specialty)}</td>
+      <td style="color:var(--green)">${r.P}</td><td style="color:var(--red)">${r.A}</td><td style="color:var(--purple)">${r.V}</td>
+      <td>${r.dailyWage.toLocaleString('ar-DZ')} دج</td>
+      <td>${r.gross.toLocaleString('ar-DZ')} دج</td>
+      <td style="color:var(--red)">${r.ded.toLocaleString('ar-DZ')} دج</td>
+      <td style="color:var(--gold);font-weight:700">${r.net.toLocaleString('ar-DZ')} دج</td>
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">لا توجد بيانات لهذا الشهر</td></tr>';
+  }catch(err){ wTb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--red);padding:20px">تعذر تحميل البيانات</td></tr>'; }
+
+  const eTb = document.getElementById('execEngFees_tb');
+  const engineers = _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active');
+  if(!engineers.length){ eTb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">لا يوجد مهندسون نشطون</td></tr>'; return; }
+  eTb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">جارٍ التحميل...</td></tr>';
+  const rows = await Promise.all(engineers.map(async m=>{
+    const fees = await Bridge.ExecProjects.monthlyEngineerFees(m.uid, ym);
+    return `<tr><td>${esc(m.name)}</td><td>${fees.visits}</td><td>${(m.visitFee||0).toLocaleString('ar-DZ')} دج</td><td style="color:var(--gold);font-weight:700">${fees.total.toLocaleString('ar-DZ')} دج</td></tr>`;
+  }));
+  eTb.innerHTML = rows.join('');
+}
+window.renderExecWages = renderExecWages;
+
 window.saveMat = saveMat;
 window.saveMember = saveMember;
 window.saveProject = saveProject;

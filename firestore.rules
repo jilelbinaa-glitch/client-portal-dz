@@ -55,5 +55,47 @@ service cloud.firestore {
     match /notifications/{nId} {
       allow read, write, delete: if true;
     }
+
+    // ══════════════════════════════════════════════════════
+    //  مؤسسة جيل البناء للإنجاز
+    // ══════════════════════════════════════════════════════
+
+    // أعضاء الفريق (مهندسون وعمال) — تسجيل ذاتي، والمكتب يوافق لاحقاً
+    match /team_members/{uid} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+
+      match /attendance/{dateKey}  { allow read, write: if true; }
+      match /notifications/{nId}  { allow read, write, delete: if true; }
+    }
+
+    // مشاريع الإنجاز
+    match /exec_projects/{projectId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+
+      match /visits/{visitId}      { allow read, write: if true; }
+      match /notifications/{nId}   { allow read, write, delete: if true; }
+    }
+
+    // عروض العمل
+    match /work_offers/{offerId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    // طلبات الانضمام لعروض العمل
+    match /work_applications/{appId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
   }
 }
