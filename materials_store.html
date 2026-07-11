@@ -131,8 +131,8 @@ select option{background:var(--surface);}
   <!-- طلبيات المشاريع -->
   <div class="page" id="page-orders">
     <div class="sh"><div class="st">🧾 طلبيات المشاريع</div><button class="btn btn-gold" onclick="openOrderModal()">+ طلبية جديدة</button></div>
-    <div class="tw"><table><thead><tr><th>رقم الطلبية</th><th>المشروع</th><th>عدد البنود</th><th>التكلفة الإجمالية</th><th>الحالة</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
-    <tbody id="orders_tb"><tr><td colspan="7" class="empty">لا توجد طلبيات بعد</td></tr></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>رقم الطلبية</th><th>المصدر</th><th>المشروع/العميل</th><th>عدد البنود</th><th>التكلفة الإجمالية</th><th>الحالة</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+    <tbody id="orders_tb"><tr><td colspan="8" class="empty">لا توجد طلبيات بعد</td></tr></tbody></table></div>
   </div>
 
   <!-- تنبيهات النقص -->
@@ -372,8 +372,15 @@ function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br'}[
 
 function renderOrders(){
   const tb = document.getElementById('orders_tb');
-  tb.innerHTML = orders.length ? orders.map(o=>`<tr>
-    <td>${esc(o.id||o.orderId)}</td><td>${esc(o.projectLabel||'—')}</td><td>${(o.items||[]).length}</td>
+  tb.innerHTML = orders.length ? orders.map(o=>{
+    const isClient = o.source === 'client';
+    const who = isClient
+      ? `${esc(o.clientName||'—')}${o.clientPhone?' · 📞 '+esc(o.clientPhone):''}${o.address?'<br><span style="color:var(--muted);font-size:10px">📍 '+esc(o.address)+'</span>':''}`
+      : esc(o.projectLabel||'—');
+    return `<tr>
+    <td>${esc(o.id||o.orderId)}</td>
+    <td><span class="badge ${isClient?'bt':'bm'}">${isClient?'🧑 عميل':'🏢 مكتب'}</span></td>
+    <td>${who}</td><td>${(o.items||[]).length}</td>
     <td>${(o.totalCost||0).toLocaleString('ar-DZ')} دج</td>
     <td><span class="badge ${orderStatusClass(o.status)}">${orderStatusLabel(o.status)}</span></td>
     <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-DZ') : '—'}</td>
@@ -381,7 +388,8 @@ function renderOrders(){
       <button class="btn btn-teal btn-sm" onclick="confirmOrderBtn('${o.id}')">✅ تأكيد وصرف</button>
       <button class="btn btn-danger btn-sm" onclick="cancelOrderBtn('${o.id}')">إلغاء</button>
     </div>`:'—'}</td>
-  </tr>`).join('') : '<tr><td colspan="7" class="empty">لا توجد طلبيات بعد</td></tr>';
+  </tr>`;
+  }).join('') : '<tr><td colspan="8" class="empty">لا توجد طلبيات بعد</td></tr>';
 }
 
 async function confirmOrderBtn(id){

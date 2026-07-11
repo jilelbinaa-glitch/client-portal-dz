@@ -546,6 +546,26 @@ body{background:#000;}
       </div>
     </div>
 
+    <!-- MATERIALS (طلب مواد البناء) -->
+    <div class="screen" id="screen-materials">
+      <div class="screen-inner">
+        <div class="sec-title" style="margin-bottom:6px">🧱 طلب مواد البناء لورشتك</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7">اختر الكميات التي تحتاجها، سيراجع المكتب طلبك ويتواصل معك لتأكيد التسليم.</div>
+        <div id="materialsCatalog"></div>
+
+        <div id="cartBar" style="display:none;position:sticky;bottom:0;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-top:14px;box-shadow:0 -4px 16px rgba(0,0,0,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:11px;color:var(--muted)">الإجمالي (<span id="cartCount">0</span> بند)</span>
+            <span style="font-size:16px;font-weight:800;color:var(--gold)" id="cartTotal">0 دج</span>
+          </div>
+          <button class="btn-submit-f" onclick="openMaterialsCheckout()">📨 إرسال طلب المواد</button>
+        </div>
+
+        <div class="sec-title" style="margin:22px 0 10px">📦 طلبياتي السابقة</div>
+        <div id="myMaterialOrdersList"><div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبيات مواد بعد</div></div></div>
+      </div>
+    </div>
+
     <!-- CHAT -->
     <div class="screen" id="screen-chat">
       <div class="screen-inner" style="padding-bottom:calc(56px + var(--nav-h) + var(--safe-bot))">
@@ -589,10 +609,35 @@ body{background:#000;}
     <button class="ntab" id="ntab-request" onclick="goNewRequest()"><div class="ntab-ico">📋</div><div>طلب جديد</div></button>
     <button class="ntab" id="ntab-track" onclick="goTab('track')"><div class="ntab-ico">🔍</div><div>طلباتي</div><span class="nbadge" id="nbadge-track"></span></button>
     <button class="ntab" id="ntab-exec" onclick="goTab('exec')" style="display:none"><div class="ntab-ico">🏗️</div><div>الإنجاز</div><span class="nbadge" id="nbadge-exec"></span></button>
+    <button class="ntab" id="ntab-materials" onclick="goTab('materials')"><div class="ntab-ico">🧱</div><div>المواد</div><span class="nbadge" id="nbadge-materials"></span></button>
     <button class="ntab" id="ntab-chat" onclick="goTab('chat')"><div class="ntab-ico">💬</div><div>الدردشة</div><span class="nbadge" id="nbadge-chat"></span></button>
     <button class="ntab" id="ntab-profile" onclick="goTab('profile')"><div class="ntab-ico">👤</div><div>حسابي</div></button>
   </nav>
 
+</div>
+
+<!-- MODAL: تأكيد طلب المواد -->
+<div id="matCheckoutOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:92%;max-width:420px;max-height:88vh;overflow-y:auto">
+    <div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:14px">📨 تأكيد طلب المواد</div>
+    <div id="matCheckoutItems" style="margin-bottom:14px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--s2);border-radius:var(--rsm);padding:11px 14px;margin-bottom:14px">
+      <span style="font-size:12px;color:var(--muted);font-weight:700">الإجمالي</span>
+      <span style="font-size:16px;font-weight:800;color:var(--gold)" id="matCheckoutTotal">0 دج</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">عنوان الورشة / موقع التسليم</label>
+      <input id="matAddress" placeholder="مثال: حي النصر، ولاية سطيف" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">ملاحظات (اختياري)</label>
+      <textarea id="matNotes" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%;min-height:60px;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button style="flex:1;background:none;border:1px solid var(--border);color:var(--muted);padding:12px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer" onclick="closeMaterialsCheckout()">إلغاء</button>
+      <button class="btn-submit-f" style="flex:2" onclick="submitMaterialsOrder()">✅ تأكيد الطلب</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -614,6 +659,11 @@ let chatUnsub = null;
 let reqsUnsub = null;
 let execProjects = [];
 let execUnsub = null;
+let materialsCatalog = [];
+let materialsCatalogUnsub = null;
+let materialsCart = {}; // materialId -> qty
+let myMaterialOrders = [];
+let matOrdersUnsub = null;
 
 // ═══ UTILS ═══════════════════════════════════════════
 function toast(msg, d=3200) {
@@ -705,13 +755,20 @@ async function doLogout() {
   if (!confirm('تأكيد تسجيل الخروج؟')) return;
   await Bridge.Auth.signOut();
   currentUser = null; clientProfile = null; myRequests = []; execProjects = [];
+  materialsCart = {}; myMaterialOrders = [];
   if (reqsUnsub) { reqsUnsub(); reqsUnsub=null; }
   if (execUnsub) { execUnsub(); execUnsub=null; }
+  if (materialsCatalogUnsub) { materialsCatalogUnsub(); materialsCatalogUnsub=null; }
+  if (matOrdersUnsub) { matOrdersUnsub(); matOrdersUnsub=null; }
   showAuthScreen();
 }
 window.doLogout = doLogout;
 
 // ═══ AUTH STATE ═══════════════════════════════════════
+const _urlParams = new URLSearchParams(location.search);
+const _preselectService = _urlParams.get('service'); // 'execution' من رابط الصفحة الرئيسية
+const _preselectTab = _urlParams.get('tab'); // 'materials' من رابط الصفحة الرئيسية
+
 Bridge.Auth.onChange(async user => {
   if (user && !user.isAnonymous) {
     currentUser = user;
@@ -720,8 +777,10 @@ Bridge.Auth.onChange(async user => {
     if (!clientProfile) {
       clientProfile = { uid:user.uid, name:user.displayName||'عميل', email:user.email, phone:'—', nin:'—' };
     }
-    // إذا لم يختر خدمة بعد — أظهر شاشة الاختيار
-    if (!selectedService) { showSvcSelection(); }
+    if (_preselectTab === 'materials') { showMainApp(); goTab('materials'); }
+    // إذا لم يختر خدمة بعد — أظهر شاشة الاختيار (أو فعّلها تلقائياً من رابط خارجي)
+    else if (!selectedService && _preselectService === 'execution') { selectService('execution'); }
+    else if (!selectedService) { showSvcSelection(); }
     else { showMainApp(); }
   } else if (!user || user.isAnonymous) {
     // غير مسجّل — أظهر شاشة تسجيل الدخول
@@ -770,6 +829,7 @@ function showMainApp() {
   // تحميل الطلبات
   loadMyRequests();
   loadExecTab();
+  loadMaterialsTab();
   populateWilayas();
   buildStep0();
 }
@@ -858,6 +918,7 @@ function goTab(tab) {
   document.getElementById('ntab-'+tab)?.classList.add('active');
   if (tab==='track') loadTrackScreen();
   if (tab==='chat') loadChatScreen();
+  if (tab==='materials') { renderMaterialsCatalog(); renderMyMaterialOrders(); }
 }
 window.goTab = goTab;
 
@@ -1134,6 +1195,131 @@ async function renderExecCard(p) {
     ` : ''}
   </div>`;
 }
+
+// ═══ MATERIALS TAB (طلب مواد البناء) ══════════════════
+function loadMaterialsTab() {
+  if (!currentUser) return;
+  if (materialsCatalogUnsub) { materialsCatalogUnsub(); materialsCatalogUnsub = null; }
+  if (matOrdersUnsub) { matOrdersUnsub(); matOrdersUnsub = null; }
+  materialsCatalogUnsub = Bridge.Materials.watchAll(list => {
+    materialsCatalog = list;
+    if (document.getElementById('screen-materials')?.classList.contains('active')) renderMaterialsCatalog();
+  });
+  matOrdersUnsub = Bridge.MaterialOrders.watchByClient(currentUser.uid, list => {
+    myMaterialOrders = list.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    if (document.getElementById('screen-materials')?.classList.contains('active')) renderMyMaterialOrders();
+  });
+}
+
+function renderMaterialsCatalog() {
+  const el = document.getElementById('materialsCatalog');
+  if (!materialsCatalog.length) {
+    el.innerHTML = '<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد مواد متاحة حالياً</div></div>';
+    updateCartBar();
+    return;
+  }
+  el.innerHTML = materialsCatalog.map(m => {
+    const qty = materialsCart[m.id] || 0;
+    const outOfStock = (Number(m.stockQty)||0) <= 0;
+    return `<div class="req-card" style="cursor:default;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(m.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${(m.unitPrice||0).toLocaleString('ar-DZ')} دج / ${esc(m.unit)} ${outOfStock?' · <span style="color:var(--red)">غير متوفر حالياً</span>':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button onclick="changeCartQty('${m.id}',-1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:15px;cursor:pointer">−</button>
+        <span style="width:22px;text-align:center;font-size:13px;font-weight:700">${qty}</span>
+        <button onclick="changeCartQty('${m.id}',1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:15px;cursor:pointer" ${outOfStock?'disabled':''}>+</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateCartBar();
+}
+
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function changeCartQty(materialId, delta) {
+  const cur = materialsCart[materialId] || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) delete materialsCart[materialId]; else materialsCart[materialId] = next;
+  renderMaterialsCatalog();
+}
+window.changeCartQty = changeCartQty;
+
+function updateCartBar() {
+  const ids = Object.keys(materialsCart);
+  const bar = document.getElementById('cartBar');
+  if (!ids.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  let total = 0;
+  ids.forEach(id => { const m = materialsCatalog.find(x=>x.id===id); if (m) total += (m.unitPrice||0) * materialsCart[id]; });
+  document.getElementById('cartCount').textContent = ids.length;
+  document.getElementById('cartTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
+}
+
+function openMaterialsCheckout() {
+  const ids = Object.keys(materialsCart);
+  if (!ids.length) return;
+  const el = document.getElementById('matCheckoutItems');
+  let total = 0;
+  el.innerHTML = ids.map(id => {
+    const m = materialsCatalog.find(x=>x.id===id);
+    if (!m) return '';
+    const sub = (m.unitPrice||0) * materialsCart[id];
+    total += sub;
+    return `<div class="dates-row"><span class="k">${esc(m.name)} × ${materialsCart[id]}</span><span class="v">${sub.toLocaleString('ar-DZ')} دج</span></div>`;
+  }).join('');
+  document.getElementById('matCheckoutTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
+  document.getElementById('matAddress').value = '';
+  document.getElementById('matNotes').value = '';
+  document.getElementById('matCheckoutOverlay').style.display = 'flex';
+}
+window.openMaterialsCheckout = openMaterialsCheckout;
+
+function closeMaterialsCheckout() { document.getElementById('matCheckoutOverlay').style.display = 'none'; }
+window.closeMaterialsCheckout = closeMaterialsCheckout;
+
+async function submitMaterialsOrder() {
+  const ids = Object.keys(materialsCart);
+  if (!ids.length) return;
+  const items = ids.map(id => {
+    const m = materialsCatalog.find(x=>x.id===id);
+    return { materialId: id, name: m?.name||'', unit: m?.unit||'', qty: materialsCart[id], unitPrice: m?.unitPrice||0 };
+  });
+  const address = document.getElementById('matAddress').value.trim();
+  const notes = document.getElementById('matNotes').value.trim();
+  try {
+    await Bridge.MaterialOrders.create({
+      clientId: currentUser.uid,
+      clientName: clientProfile?.name || currentUser.displayName || '',
+      clientPhone: clientProfile?.phone || '',
+      address, items, notes, source: 'client',
+    });
+    materialsCart = {};
+    closeMaterialsCheckout();
+    renderMaterialsCatalog();
+    toast('✅ تم إرسال طلبك، سيتواصل معك المكتب لتأكيد التسليم');
+  } catch(err) { toast('❌ تعذر إرسال الطلب: ' + (err?.message||'')); }
+}
+window.submitMaterialsOrder = submitMaterialsOrder;
+
+const MAT_ORDER_STATUS = { draft:{label:'قيد المراجعة',color:'var(--amber)',bg:'rgba(251,191,36,.15)'}, confirmed:{label:'تم التأكيد والتجهيز',color:'var(--green)',bg:'rgba(74,222,128,.12)'}, cancelled:{label:'ملغاة',color:'var(--red)',bg:'rgba(248,113,113,.12)'} };
+
+function renderMyMaterialOrders() {
+  const el = document.getElementById('myMaterialOrdersList');
+  if (!myMaterialOrders.length) { el.innerHTML = '<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبيات مواد بعد</div></div>'; return; }
+  el.innerHTML = myMaterialOrders.map(o => {
+    const sm = MAT_ORDER_STATUS[o.status] || MAT_ORDER_STATUS.draft;
+    return `<div class="status-card">
+      <div class="status-hdr">
+        <div><div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--text)">${esc(o.id||o.orderId)}</div><div style="font-size:10px;color:var(--muted)">${(o.items||[]).length} بند</div></div>
+        <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+      </div>
+      <div class="dates-row"><span class="k">💰 الإجمالي</span><span class="v">${(o.totalCost||0).toLocaleString('ar-DZ')} دج</span></div>
+    </div>`;
+  }).join('');
+}
+
 
 function renderQuoteForReq(req) {
   if (!['quoted','payment_pending','accepted'].includes(req.status)) return '';

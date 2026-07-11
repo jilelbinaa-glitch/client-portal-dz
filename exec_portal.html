@@ -355,6 +355,16 @@ function switchRoleTab(role) {
 }
 window.switchRoleTab = switchRoleTab;
 
+// ═══ رابط خارجي: ?role=engineer أو ?role=worker يفتح تبويب الانضمام مباشرة ═══
+(function applyRoleFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const role = params.get('role');
+  if (role === 'engineer' || role === 'worker') {
+    switchAuthTab('register');
+    switchRoleTab(role);
+  }
+})();
+
 // شرائح التخصصات للعامل
 let selectedSpecialties = [];
 (function initSpecialtyChips(){

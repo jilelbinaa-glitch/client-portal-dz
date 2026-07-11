@@ -1038,17 +1038,33 @@ const Materials = {
 const MaterialOrders = {
 
   // items: [{materialId, name, unit, qty, unitPrice}]
-  async create({ projectLabel, clientName, items, notes }) {
+  async create({ projectLabel, clientId, clientName, clientPhone, address, items, notes, source }) {
     const orderId = await matTicketNum();
     const priced = (items || []).map(it => ({ ...it, subtotal: (Number(it.qty)||0) * (Number(it.unitPrice)||0) }));
     const totalCost = priced.reduce((s, it) => s + it.subtotal, 0);
     const order = clean({
-      orderId, projectLabel: projectLabel || '', clientName: clientName || '',
+      orderId, projectLabel: projectLabel || '', clientId: clientId || null, clientName: clientName || '',
+      clientPhone: clientPhone || '', address: address || '',
       items: priced, totalCost, notes: notes || '',
-      status: 'draft', createdAt: serverTimestamp(),
+      source: source || 'office', status: 'draft', createdAt: serverTimestamp(),
     });
     await setDoc(doc(db, COL.materialOrders, orderId), order);
+    if ((source || 'office') === 'client') {
+      await Notifs.add('office', { type:'material_order_new', icon:'📦', title:'طلبية مواد جديدة من عميل', body:`${clientName||''} — ${priced.length} بند — ${totalCost.toLocaleString('ar-DZ')} دج` });
+    }
     return order;
+  },
+
+  // طلبيات عميل معيّن — فلترة بشرط واحد فقط
+  async getByClient(clientId) {
+    const snap = await getDocs(query(collection(db, COL.materialOrders), where('clientId', '==', clientId)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  watchByClient(clientId, cb) {
+    return onSnapshot(query(collection(db, COL.materialOrders), where('clientId', '==', clientId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
   },
 
   async get(id) {
