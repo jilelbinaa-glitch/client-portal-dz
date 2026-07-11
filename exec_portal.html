@@ -417,9 +417,13 @@ async function doRegister() {
       await Bridge.Team.registerWorker(name, phone, nin, email, pass, selectedSpecialties, payType, 0);
     }
     showOk('reg-ok','✅ تم إرسال طلب انضمامك! بانتظار موافقة المكتب.');
+    btn.disabled=false; btn.textContent='إرسال طلب الانضمام';
   } catch(err) {
-    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح','permission-denied':'⛔ تعذّر حفظ بيانات التسجيل (صلاحيات قاعدة البيانات). أبلغ المكتب بأن قواعد Firestore تحتاج تحديثاً.'};
-    showErr('reg-err', msgs[err.code] || 'خطأ: ' + err.message);
+    console.error('exec_portal registration error:', err);
+    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح','auth/operation-not-allowed':'⛔ تسجيل الدخول بالبريد/كلمة السر غير مُفعَّل في إعدادات Firebase — أبلغ المكتب.','permission-denied':'⛔ تعذّر حفظ بيانات التسجيل (صلاحيات قاعدة البيانات). أبلغ المكتب بأن قواعد Firestore تحتاج تحديثاً.'};
+    const msg = msgs[err.code] || `خطأ (${err.code||'غير معروف'}): ${err.message}`;
+    showErr('reg-err', msg);
+    try { document.getElementById('reg-err').scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
     btn.disabled=false; btn.textContent='إرسال طلب الانضمام';
   }
 }
