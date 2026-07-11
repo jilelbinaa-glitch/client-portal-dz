@@ -23,7 +23,7 @@ import {
 import {
   getAuth, signInAnonymously, onAuthStateChanged,
   signInWithEmailAndPassword, signOut as fbSignOut,
-  createUserWithEmailAndPassword, updateProfile,
+  createUserWithEmailAndPassword, updateProfile, deleteUser,
   sendPasswordResetEmail, sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -627,40 +627,51 @@ const Team = {
 
   async registerEngineer(name, phone, nin, email, password, specialty, visitFee) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName: name });
-    const member = clean({
-      uid: cred.user.uid, name, phone, nin, email,
-      role: 'engineer', specialty: specialty || 'إشراف عام',
-      visitFee: Number(visitFee) || 0,
-      status: 'pending', currentProjectId: null,
-      createdAt: serverTimestamp(),
-    });
-    await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
-    await Notifs.add('office', {
-      type: 'team_join_request', icon: '👷',
-      title: 'طلب انضمام مهندس', body: `${name} — ${specialty || 'إشراف عام'}`,
-    });
+    try {
+      await updateProfile(cred.user, { displayName: name });
+      const member = clean({
+        uid: cred.user.uid, name, phone, nin, email,
+        role: 'engineer', specialty: specialty || 'إشراف عام',
+        visitFee: Number(visitFee) || 0,
+        status: 'pending', currentProjectId: null,
+        createdAt: serverTimestamp(),
+      });
+      await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
+      await Notifs.add('office', {
+        type: 'team_join_request', icon: '👷',
+        title: 'طلب انضمام مهندس', body: `${name} — ${specialty || 'إشراف عام'}`,
+      });
+    } catch (err) {
+      // فشل حفظ الملف — تراجع عن إنشاء الحساب حتى يمكن إعادة المحاولة بنفس البريد
+      try { await deleteUser(cred.user); } catch (e2) {}
+      throw err;
+    }
     emit('auth:changed', cred.user);
     return cred.user;
   },
 
   async registerWorker(name, phone, nin, email, password, specialties, payType, rate) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName: name });
-    const member = clean({
-      uid: cred.user.uid, name, phone, nin, email,
-      role: 'worker', specialties: specialties || [],
-      payType: payType || 'daily',                 // 'daily' | 'piece'
-      dailyWage: payType === 'daily' ? (Number(rate) || 0) : 0,
-      phaseRate: payType === 'piece' ? (Number(rate) || 0) : 0,
-      status: 'pending', currentProjectId: null, currentPhase: null,
-      createdAt: serverTimestamp(),
-    });
-    await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
-    await Notifs.add('office', {
-      type: 'team_join_request', icon: '🔨',
-      title: 'طلب انضمام عامل', body: `${name} — ${(specialties||[]).join('، ')}`,
-    });
+    try {
+      await updateProfile(cred.user, { displayName: name });
+      const member = clean({
+        uid: cred.user.uid, name, phone, nin, email,
+        role: 'worker', specialties: specialties || [],
+        payType: payType || 'daily',                 // 'daily' | 'piece'
+        dailyWage: payType === 'daily' ? (Number(rate) || 0) : 0,
+        phaseRate: payType === 'piece' ? (Number(rate) || 0) : 0,
+        status: 'pending', currentProjectId: null, currentPhase: null,
+        createdAt: serverTimestamp(),
+      });
+      await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
+      await Notifs.add('office', {
+        type: 'team_join_request', icon: '🔨',
+        title: 'طلب انضمام عامل', body: `${name} — ${(specialties||[]).join('، ')}`,
+      });
+    } catch (err) {
+      try { await deleteUser(cred.user); } catch (e2) {}
+      throw err;
+    }
     emit('auth:changed', cred.user);
     return cred.user;
   },

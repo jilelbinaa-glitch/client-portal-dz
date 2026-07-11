@@ -418,7 +418,7 @@ async function doRegister() {
     }
     showOk('reg-ok','✅ تم إرسال طلب انضمامك! بانتظار موافقة المكتب.');
   } catch(err) {
-    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح'};
+    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح','permission-denied':'⛔ تعذّر حفظ بيانات التسجيل (صلاحيات قاعدة البيانات). أبلغ المكتب بأن قواعد Firestore تحتاج تحديثاً.'};
     showErr('reg-err', msgs[err.code] || 'خطأ: ' + err.message);
     btn.disabled=false; btn.textContent='إرسال طلب الانضمام';
   }
