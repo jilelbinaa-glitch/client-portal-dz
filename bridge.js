@@ -138,6 +138,12 @@ const Auth = {
     return snap.exists() ? { uid: snap.id, ...snap.data() } : null;
   },
 
+  // كل العملاء المسجّلين — للمكتب فقط (اختيار عميل عند إنشاء مشروع إنجاز مثلاً)
+  async getAllClients() {
+    const snap = await getDocs(collection(db, 'clients'));
+    return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  },
+
   // ── تحديث بيانات العميل ────────────────────────────────
   async updateClientProfile(data) {
     const uid = auth.currentUser?.uid; if (!uid) throw new Error('Not logged in');

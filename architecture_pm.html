@@ -317,11 +317,11 @@ select option{background:var(--surface);}
 <div class="modal-overlay" id="execProjModal">
   <div class="modal"><h3>🏗️ مشروع إنجاز جديد</h3>
     <div class="fg">
-      <div class="fgi full"><label>اختر طلب/عميل (من الطلبات المقبولة) *</label>
-        <select id="ep_req"><option value="">— اختر —</option></select>
+      <div class="fgi full"><label>اختر العميل *</label>
+        <select id="ep_client" onchange="onExecClientChange()"><option value="">— اختر عميلاً —</option></select>
       </div>
-      <div class="fgi full"><label>أو أدخل معرّف عميل (uid) يدوياً — اختياري إن لم يوجد طلب</label>
-        <input id="ep_manualUid" placeholder="uid العميل في Firebase (اختياري)">
+      <div class="fgi full"><label>ربط بطلب دراسة سابق لهذا العميل (اختياري)</label>
+        <select id="ep_req"><option value="">— بدون ربط —</option></select>
       </div>
     </div>
     <div class="mf"><button class="btn btn-outline" onclick="closeModal('execProjModal')">إلغاء</button><button class="btn btn-gold" onclick="saveExecProj()">إنشاء المشروع</button></div>
@@ -2136,28 +2136,49 @@ function renderExecProjects(){
   }).join('');
 }
 
+let _execAllClients = [];
+
 async function openExecProjModal(){
-  const sel = document.getElementById('ep_req');
-  sel.innerHTML = '<option value="">— اختر —</option>';
-  const reqs = window._cachedRequests || await Bridge.Requests.getAll();
-  reqs.filter(r=>['accepted','project_created'].includes(r.status)).forEach(r=>{
-    const o=document.createElement('option'); o.value=r.ticket; o.textContent=`${r.name} — ${r.building||''} — ${r.ticket}`; sel.appendChild(o);
-  });
-  document.getElementById('ep_manualUid').value='';
+  const clientSel = document.getElementById('ep_client');
+  clientSel.innerHTML = '<option value="">جارٍ التحميل...</option>';
   openModal('execProjModal');
+  try {
+    _execAllClients = await Bridge.Auth.getAllClients();
+    _execAllClients.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ar'));
+  } catch(err) { _execAllClients = []; }
+  clientSel.innerHTML = '<option value="">— اختر عميلاً —</option>' +
+    (_execAllClients.length
+      ? _execAllClients.map(c => `<option value="${c.uid}">${esc(c.name||'بدون اسم')} — ${esc(c.phone||'')}</option>`).join('')
+      : '');
+  if (!_execAllClients.length) clientSel.innerHTML += '<option disabled>لا يوجد عملاء مسجّلون بعد</option>';
+  document.getElementById('ep_req').innerHTML = '<option value="">— بدون ربط —</option>';
 }
 window.openExecProjModal = openExecProjModal;
 
+async function onExecClientChange(){
+  const uid = document.getElementById('ep_client').value;
+  const reqSel = document.getElementById('ep_req');
+  reqSel.innerHTML = '<option value="">— بدون ربط —</option>';
+  if (!uid) return;
+  const reqs = window._cachedRequests || await Bridge.Requests.getAll();
+  const clientReqs = reqs.filter(r => r.uid === uid);
+  if (!clientReqs.length) { reqSel.innerHTML += '<option disabled>لا توجد طلبات دراسة لهذا العميل</option>'; return; }
+  clientReqs.forEach(r => {
+    const o = document.createElement('option'); o.value = r.ticket; o.textContent = `${r.building||''} — ${r.ticket} — ${r.status||''}`; reqSel.appendChild(o);
+  });
+}
+window.onExecClientChange = onExecClientChange;
+
 async function saveExecProj(){
+  const clientId = document.getElementById('ep_client').value;
   const ticket = document.getElementById('ep_req').value;
-  const manualUid = document.getElementById('ep_manualUid').value.trim();
-  let clientId = manualUid, clientName = '', sourceTicket = null;
+  if(!clientId){ showToast('⚠️ اختر عميلاً أولاً'); return; }
+  const client = _execAllClients.find(c => c.uid === clientId);
+  let clientName = client?.name || '', sourceTicket = null;
   if(ticket){
     const req = await Bridge.Requests.get(ticket);
-    if(!req){ showToast('⚠️ تعذر إيجاد الطلب'); return; }
-    clientId = req.uid; clientName = req.name; sourceTicket = req.ticket;
+    if(req) sourceTicket = req.ticket;
   }
-  if(!clientId){ showToast('⚠️ اختر طلباً أو أدخل معرّف عميل'); return; }
   try{
     await Bridge.ExecProjects.create({ clientId, clientName, sourceTicket });
     closeModal('execProjModal');
