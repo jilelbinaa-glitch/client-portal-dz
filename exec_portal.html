@@ -324,6 +324,20 @@ let myProjects = [];
 let myOffers = [];
 let myApplications = [];
 
+// ═══ شبكة أمان: أي خطأ غير متوقع يظهر بشكل مرئي بدل الفشل الصامت ═══
+function showFatalError(msg) {
+  let el = document.getElementById('fatalErrBox');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fatalErrBox';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;padding:12px 16px;font-family:Cairo,sans-serif;font-size:12px;text-align:center;line-height:1.6;direction:rtl;';
+    document.body.prepend(el);
+  }
+  el.textContent = '⚠️ حدث خطأ تقني: ' + msg + ' — أرسل هذه الرسالة للمكتب.';
+}
+window.addEventListener('error', e => { console.error('Uncaught error:', e.error||e.message); showFatalError((e.error&&e.error.message)||e.message||'غير معروف'); });
+window.addEventListener('unhandledrejection', e => { console.error('Unhandled promise rejection:', e.reason); showFatalError((e.reason&&e.reason.message)||String(e.reason)); });
+
 // ═══ HELPERS ═══════════════════════════════════════════
 function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
 function showErr(id, msg) { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
@@ -356,20 +370,22 @@ function switchRoleTab(role) {
 window.switchRoleTab = switchRoleTab;
 
 // ═══ رابط خارجي: ?role=engineer أو ?role=worker يفتح تبويب الانضمام مباشرة ═══
-(function applyRoleFromUrl(){
+try {
   const params = new URLSearchParams(location.search);
   const role = params.get('role');
   if (role === 'engineer' || role === 'worker') {
     switchAuthTab('register');
     switchRoleTab(role);
   }
-})();
+} catch(e) { console.error('applyRoleFromUrl failed:', e); }
 
 // شرائح التخصصات للعامل
 let selectedSpecialties = [];
-(function initSpecialtyChips(){
+try {
   const box = document.getElementById('r-worker-specialties');
-  Bridge.SPECIALTIES.forEach(s => {
+  const specialtyList = (Bridge.SPECIALTIES && Bridge.SPECIALTIES.length) ? Bridge.SPECIALTIES
+    : ['بناء','حديد وخرسانة','كهرباء','سباكة','نجارة وألمنيوم','دهان','بلاط وتكسية','عزل وتهيئة'];
+  specialtyList.forEach(s => {
     const chip = document.createElement('div');
     chip.className = 'chip'; chip.textContent = s;
     chip.onclick = () => {
@@ -379,7 +395,7 @@ let selectedSpecialties = [];
     };
     box.appendChild(chip);
   });
-})();
+} catch(e) { console.error('initSpecialtyChips failed:', e); }
 
 // ═══ AUTH ACTIONS ══════════════════════════════════════
 async function doLogin() {
