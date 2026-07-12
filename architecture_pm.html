@@ -1054,7 +1054,8 @@ function recalcAll(pid){
       if(qEl) qEl.style.borderColor = ((r.qty||0)===0 && (r.up||0)>0) ? 'var(--red)' : '';
     });
     grand+=cs; grandR+=cr;
-    const cel=document.getElementById('chT_'+ch.id); if(cel) cel.textContent=fmt(cr);
+    const cel=document.getElementById('chT_'+ch.id);
+    if(cel){ cel.textContent=fmt(cr); cel.style.transition='none'; cel.style.background='rgba(45,212,191,.35)'; setTimeout(()=>{ cel.style.transition='background 0.6s'; cel.style.background='transparent'; },0); }
   });
   data.grandRealTotal = grandR;
   const hasOverride = data.realTotalOverride !== null && data.realTotalOverride !== undefined && data.realTotalOverride !== '';
@@ -1062,7 +1063,11 @@ function recalcAll(pid){
   const area=parseFloat(document.getElementById('c_area')?.value)||0;
   const G=id=>document.getElementById(id);
   if(G('c_real')) G('c_real').value = fmt(grandR);
-  if(G('c_real_d')){G('c_real_d').textContent=fmt(realT)+' دج';}
+  if(G('c_real_d')){
+    G('c_real_d').textContent=fmt(realT)+' دج';
+    const box=G('c_real_d').parentElement;
+    if(box){ box.style.transition='none'; box.style.boxShadow='0 0 0 2px var(--teal)'; setTimeout(()=>{ box.style.transition='box-shadow 0.6s'; box.style.boxShadow='none'; },0); }
+  }
   if(G('c_m2')) G('c_m2').textContent=area>0?fmt(Math.round(realT/area))+' دج/م²':'—';
   const noteEl = G('realCostNote');
   if(noteEl){
