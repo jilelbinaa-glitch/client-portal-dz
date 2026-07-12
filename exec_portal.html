@@ -311,8 +311,33 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
 
 </div>
 
+<script>
+// شبكة أمان مستقلة عن الوحدة (module) — تعمل حتى لو فشل تحميل bridge.js نفسه
+(function(){
+  function showFatalError(msg){
+    let el = document.getElementById('fatalErrBox');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'fatalErrBox';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;padding:12px 16px;font-family:Cairo,sans-serif;font-size:12px;text-align:center;line-height:1.6;direction:rtl;';
+      document.body.prepend(el);
+    }
+    el.textContent = '⚠️ حدث خطأ تقني: ' + msg + ' — أرسل هذه الرسالة للمكتب.';
+  }
+  window.__showFatalError = showFatalError;
+  window.addEventListener('error', function(e){ console.error('Uncaught error:', e.error||e.message); showFatalError((e.error&&e.error.message)||e.message||'غير معروف'); });
+  window.addEventListener('unhandledrejection', function(e){ console.error('Unhandled promise rejection:', e.reason); showFatalError((e.reason&&e.reason.message)||String(e.reason)); });
+  // مراقب: إن لم تُحمَّل الوحدة الرئيسية (bridge.js) خلال 4 ثوانٍ، أظهر تحذيراً صريحاً
+  setTimeout(function(){
+    if (!window.__execPortalReady) {
+      showFatalError('لم يتم تحميل bridge.js بنجاح (قد يكون الملف مفقوداً من نفس المجلد، أو فشل الاتصال بالشبكة). تأكد أن bridge.js موجود بنفس مسار exec_portal.html.');
+    }
+  }, 4000);
+})();
+</script>
 <script type="module">
-import Bridge from './bridge.js';
+import Bridge from './bridge.js?v=20260712c';
+window.__execPortalReady = true;
 
 let currentUser = null;
 let profile = null;      // team_members doc
@@ -325,16 +350,7 @@ let myOffers = [];
 let myApplications = [];
 
 // ═══ شبكة أمان: أي خطأ غير متوقع يظهر بشكل مرئي بدل الفشل الصامت ═══
-function showFatalError(msg) {
-  let el = document.getElementById('fatalErrBox');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'fatalErrBox';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#fff;padding:12px 16px;font-family:Cairo,sans-serif;font-size:12px;text-align:center;line-height:1.6;direction:rtl;';
-    document.body.prepend(el);
-  }
-  el.textContent = '⚠️ حدث خطأ تقني: ' + msg + ' — أرسل هذه الرسالة للمكتب.';
-}
+function showFatalError(msg) { (window.__showFatalError || function(m){ alert('خطأ: '+m); })(msg); }
 window.addEventListener('error', e => { console.error('Uncaught error:', e.error||e.message); showFatalError((e.error&&e.error.message)||e.message||'غير معروف'); });
 window.addEventListener('unhandledrejection', e => { console.error('Unhandled promise rejection:', e.reason); showFatalError((e.reason&&e.reason.message)||String(e.reason)); });
 
