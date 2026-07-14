@@ -482,11 +482,11 @@ body{background:#000;}
             </div>
           </div>
           <div class="field">
-            <label>إرفاق ملفات (اختياري)</label>
+            <label id="upLabel">إرفاق ملفات (اختياري)</label>
             <div class="upload-zone">
               <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.dwg" onchange="handleUp(this.files)">
               <div style="font-size:24px;margin-bottom:5px">📎</div>
-              <div style="font-size:12px;color:var(--muted)">PDF, JPG, DWG</div>
+              <div style="font-size:12px;color:var(--muted)" id="upHint">PDF, JPG, DWG</div>
             </div>
             <div class="upload-list" id="upList"></div>
           </div>
@@ -624,6 +624,17 @@ body{background:#000;}
     <div style="display:flex;justify-content:space-between;align-items:center;background:var(--s2);border-radius:var(--rsm);padding:11px 14px;margin-bottom:14px">
       <span style="font-size:12px;color:var(--muted);font-weight:700">الإجمالي</span>
       <span style="font-size:16px;font-weight:800;color:var(--gold)" id="matCheckoutTotal">0 دج</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">ربط الطلب بمشروع إنجاز (اختياري)</label>
+      <select id="matProject" onchange="onMatProjectChange()" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%">
+        <option value="">— طلب مستقل (بدون ربط) —</option>
+      </select>
+    </div>
+    <div id="matPhaseWrap" style="display:none;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">لأي مرحلة هذه المواد؟</label>
+      <select id="matPhase" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%"></select>
+      <div style="font-size:10px;color:var(--muted);line-height:1.6">سيراجع مهندس المتابعة هذا الطلب أولاً قبل تحويله للمستودع.</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
       <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">عنوان الورشة / موقع التسليم</label>
@@ -779,7 +790,7 @@ Bridge.Auth.onChange(async user => {
     }
     if (_preselectTab === 'materials') { showMainApp(); goTab('materials'); }
     // إذا لم يختر خدمة بعد — أظهر شاشة الاختيار (أو فعّلها تلقائياً من رابط خارجي)
-    else if (!selectedService && _preselectService === 'execution') { selectService('execution'); }
+    else if (!selectedService && (_preselectService === 'execution' || _preselectService === 'study')) { selectService(_preselectService); }
     else if (!selectedService) { showSvcSelection(); }
     else { showMainApp(); }
   } else if (!user || user.isAnonymous) {
@@ -962,6 +973,16 @@ function goFormStep(n) {
   document.getElementById('fstep-'+n)?.classList.add('active');
   updateFormProg(n);
   document.getElementById('screen-request').scrollTop = 0;
+  if (n===2) {
+    const lbl = document.getElementById('upLabel'), hint = document.getElementById('upHint');
+    if (formServiceType==='execution') {
+      if (lbl) lbl.textContent = 'صور المشروع الحالي ومخططاتك (إن وجدت)';
+      if (hint) hint.textContent = 'JPG, PNG, PDF, DWG';
+    } else {
+      if (lbl) lbl.textContent = 'إرفاق ملفات (اختياري)';
+      if (hint) hint.textContent = 'PDF, JPG, DWG';
+    }
+  }
 }
 window.goFormStep = goFormStep;
 
@@ -1020,7 +1041,7 @@ async function submitReq() {
       desc: gv('f_desc'),
       timeline: gv('f_timeline'),
       budget: gv('f_budget'),
-      files: upFiles.map(f=>f.name),
+      files: [],
     };
     const req = await Bridge.Requests.submit(data);
     document.getElementById('doneTicket').textContent = req.ticket;
@@ -1029,6 +1050,13 @@ async function submitReq() {
     document.querySelectorAll('.fp-s').forEach(s=>s.className='fp-s done');
     toast('✅ تم إرسال طلبك! رقمك: '+req.ticket, 5000);
     loadMyRequests();
+    if (upFiles.length) {
+      try {
+        const metas = [];
+        for (const f of upFiles) metas.push(await Bridge.Requests.uploadFile(req.ticket, f));
+        await Bridge.Requests.attachFiles(req.ticket, metas);
+      } catch (e) { console.error('file upload failed', e); }
+    }
   } catch(err) {
     const c=err?.code||'';
     const msgs={'permission-denied':'خطأ في الصلاحيات — تحقق من firestore.rules','auth/requires-recent-login':'يرجى تسجيل الدخول مجدداً'};
@@ -1066,6 +1094,11 @@ const STATUS_LABELS = {
   accepted:{label:'مقبول',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
   rejected:{label:'مرفوض',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
   project_created:{label:'مشروع نشط',color:'#a78bfa',bg:'rgba(167,139,250,.12)'},
+  engineer_assigned:{label:'قيد إعداد الدراسة',color:'var(--teal)',bg:'rgba(45,212,191,.12)'},
+  client_review:{label:'🎨 التصميم جاهز للمراجعة',color:'var(--gold)',bg:'rgba(201,168,76,.15)'},
+  revisions_requested:{label:'بانتظار تعديل المهندس',color:'var(--amber)',bg:'rgba(251,191,36,.15)'},
+  study_approved:{label:'تمت الموافقة على الدراسة',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+  execution:{label:'🏗️ قيد الإنجاز',color:'#a78bfa',bg:'rgba(167,139,250,.12)'},
 };
 
 function renderHomeRequests() {
@@ -1118,6 +1151,8 @@ function renderTrackRequests() {
         ${allSteps.map((s,i)=>`<div style="display:flex;gap:11px"><div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0"><div class="tl-dot ${s.done?'done':'pend'}"></div>${i<allSteps.length-1?'<div class="tl-line"></div>':''}</div><div class="tl-content"><div class="tl-lbl" style="color:${s.done?'var(--green)':'var(--muted)'}">${s.label||s.step}</div>${s.ts?`<div class="tl-date">${fmtD(s.ts)}</div>`:''}</div></div>`).join('')}
       </div>
       ${renderQuoteForReq(r)}
+      ${renderDesignReviewForReq(r)}
+      ${renderExecTrackingForReq(r)}
     </div>`;
   }).join('');
 }
@@ -1272,9 +1307,30 @@ function openMaterialsCheckout() {
   document.getElementById('matCheckoutTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
   document.getElementById('matAddress').value = '';
   document.getElementById('matNotes').value = '';
+  const projSel = document.getElementById('matProject');
+  projSel.innerHTML = '<option value="">— طلب مستقل (بدون ربط) —</option>' +
+    execProjects.map(p => `<option value="${p.id}">${esc(p.building||p.id)} — ${esc(p.projWilaya||'')}</option>`).join('');
+  if (pendingMatProjectId && execProjects.find(p=>p.id===pendingMatProjectId)) {
+    projSel.value = pendingMatProjectId;
+  }
+  pendingMatProjectId = null;
+  onMatProjectChange();
   document.getElementById('matCheckoutOverlay').style.display = 'flex';
 }
 window.openMaterialsCheckout = openMaterialsCheckout;
+
+function onMatProjectChange() {
+  const projId = document.getElementById('matProject').value;
+  const wrap = document.getElementById('matPhaseWrap');
+  if (!projId) { wrap.style.display = 'none'; return; }
+  const proj = execProjects.find(p => p.id === projId);
+  const phaseSel = document.getElementById('matPhase');
+  phaseSel.innerHTML = (proj?.phases || []).map(ph => `<option value="${esc(ph.label)}">${esc(ph.label)}${ph.status==='done'?' (مكتملة)':ph.status==='active'?' (الحالية)':''}</option>`).join('');
+  const curIdx = proj?.currentPhaseIndex || 0;
+  if (phaseSel.options[curIdx]) phaseSel.selectedIndex = curIdx;
+  wrap.style.display = 'flex';
+}
+window.onMatProjectChange = onMatProjectChange;
 
 function closeMaterialsCheckout() { document.getElementById('matCheckoutOverlay').style.display = 'none'; }
 window.closeMaterialsCheckout = closeMaterialsCheckout;
@@ -1288,22 +1344,32 @@ async function submitMaterialsOrder() {
   });
   const address = document.getElementById('matAddress').value.trim();
   const notes = document.getElementById('matNotes').value.trim();
+  const execProjectId = document.getElementById('matProject').value || null;
+  const phaseLabel = execProjectId ? (document.getElementById('matPhase').value || null) : null;
+  const supervisorId = execProjectId ? (execProjects.find(p=>p.id===execProjectId)?.team?.engineerId || null) : null;
   try {
     await Bridge.MaterialOrders.create({
       clientId: currentUser.uid,
       clientName: clientProfile?.name || currentUser.displayName || '',
       clientPhone: clientProfile?.phone || '',
       address, items, notes, source: 'client',
+      execProjectId, phaseLabel, supervisorId,
     });
     materialsCart = {};
     closeMaterialsCheckout();
     renderMaterialsCatalog();
-    toast('✅ تم إرسال طلبك، سيتواصل معك المكتب لتأكيد التسليم');
+    toast(execProjectId ? '✅ تم إرسال طلبك — بانتظار موافقة مهندس المتابعة' : '✅ تم إرسال طلبك، سيتواصل معك المكتب لتأكيد التسليم');
   } catch(err) { toast('❌ تعذر إرسال الطلب: ' + (err?.message||'')); }
 }
 window.submitMaterialsOrder = submitMaterialsOrder;
 
-const MAT_ORDER_STATUS = { draft:{label:'قيد المراجعة',color:'var(--amber)',bg:'rgba(251,191,36,.15)'}, confirmed:{label:'تم التأكيد والتجهيز',color:'var(--green)',bg:'rgba(74,222,128,.12)'}, cancelled:{label:'ملغاة',color:'var(--red)',bg:'rgba(248,113,113,.12)'} };
+const MAT_ORDER_STATUS = {
+  draft:{label:'قيد المراجعة',color:'var(--amber)',bg:'rgba(251,191,36,.15)'},
+  confirmed:{label:'تم التأكيد والتجهيز',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+  cancelled:{label:'ملغاة',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
+  pending_supervisor:{label:'بانتظار موافقة مهندس المتابعة',color:'var(--teal)',bg:'rgba(45,212,191,.12)'},
+  rejected_by_supervisor:{label:'رفضها مهندس المتابعة',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
+};
 
 function renderMyMaterialOrders() {
   const el = document.getElementById('myMaterialOrdersList');
@@ -1316,6 +1382,8 @@ function renderMyMaterialOrders() {
         <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
       </div>
       <div class="dates-row"><span class="k">💰 الإجمالي</span><span class="v">${(o.totalCost||0).toLocaleString('ar-DZ')} دج</span></div>
+      ${o.execProjectId ? `<div class="dates-row"><span class="k">🏗️ مرتبط بمشروع</span><span class="v">${esc(o.phaseLabel||'')}</span></div>` : ''}
+      ${o.status==='rejected_by_supervisor' && o.supervisorNote ? `<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px;font-size:11px;color:var(--text);margin-top:6px">✏️ ملاحظة المهندس: ${esc(o.supervisorNote)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -1374,6 +1442,150 @@ async function rejectQuote(qid, ticket) {
   } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
 }
 window.rejectQuote = rejectQuote;
+
+// ═══ مراجعة التصميم (بعد إسناد المشروع لمهندس دراسات) ═══
+function renderDesignReviewForReq(req) {
+  if (!['engineer_assigned','client_review','revisions_requested','study_approved','execution'].includes(req.status)) return '';
+  loadDesignReviewForReq(req.ticket);
+  return `<div id="dpanel-${req.ticket}"></div>`;
+}
+
+async function loadDesignReviewForReq(ticket) {
+  try {
+    const o = await Bridge.StudyOffers.get(ticket);
+    const panel = document.getElementById('dpanel-'+ticket);
+    if (!panel || !o) return;
+    if (o.status==='assigned') {
+      panel.innerHTML = `<div class="quote-card"><div style="font-size:12px;color:var(--muted)">📐 مهندسنا يعمل على تصميم مشروعك حالياً...</div></div>`;
+      return;
+    }
+    if (o.status==='submitted') {
+      panel.innerHTML = `<div class="quote-card"><div style="font-size:12px;color:var(--muted)">📋 المكتب يراجع الدراسة حالياً قبل إرسالها إليك.</div></div>`;
+      return;
+    }
+    if (o.status==='client_review' || o.status==='revisions_requested') {
+      const lastNote = (o.revisionNotes||[]).slice(-1)[0];
+      panel.innerHTML = `<div class="quote-card">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px">🎨 تصميم مشروعك جاهز للمراجعة</div>
+        ${(o.files||[]).length ? `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${o.files.map(f=>`<a href="${f.url}" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:underline">📎 ${f.name}</a>`).join('')}</div>` : ''}
+        ${o.status==='revisions_requested' && lastNote ? `<div style="background:var(--s3);border-radius:6px;padding:9px;font-size:11px;color:var(--muted);margin-bottom:9px"><strong style="color:var(--text)">ملاحظتك السابقة:</strong> ${lastNote.text}</div>` : ''}
+        <textarea id="revNote-${ticket}" placeholder="اكتب ملاحظاتك أو طلب التعديل هنا..." style="width:100%;min-height:60px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:12px;margin-bottom:8px"></textarea>
+        <div class="q-actions">
+          <button class="btn-reject-q" onclick="requestDesignRevision('${ticket}')">✏️ طلب تعديل</button>
+          <button class="btn-accept" onclick="approveDesign('${ticket}')">✅ موافقة نهائية على التصميم</button>
+        </div>
+      </div>`;
+      return;
+    }
+    if (o.status==='approved' || o.status==='paid') {
+      panel.innerHTML = `<div class="quote-card"><div style="text-align:center;padding:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:var(--rsm);font-weight:700;font-size:12px;color:var(--green)">✅ وافقتَ على التصميم النهائي — المشروع في طريقه لمرحلة الإنجاز</div></div>`;
+      return;
+    }
+    if (o.status==='handed_to_execution') {
+      panel.innerHTML = `<div class="quote-card"><div style="text-align:center;padding:10px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:var(--rsm);font-weight:700;font-size:12px;color:#a78bfa">🏗️ انتقل مشروعك لمرحلة الإنجاز</div></div>`;
+    }
+  } catch(e) { console.error(e); }
+}
+window.loadDesignReviewForReq = loadDesignReviewForReq;
+
+async function requestDesignRevision(ticket) {
+  const note = document.getElementById('revNote-'+ticket)?.value?.trim();
+  if (!note) { toast('⚠️ يرجى كتابة ملاحظتك أولاً'); return; }
+  try {
+    await Bridge.StudyOffers.requestRevision(ticket, note);
+    toast('✏️ تم إرسال ملاحظاتك للمهندس');
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.requestDesignRevision = requestDesignRevision;
+
+async function approveDesign(ticket) {
+  if (!confirm('هل أنت متأكد من الموافقة النهائية على التصميم؟')) return;
+  try {
+    await Bridge.StudyOffers.approve(ticket);
+    toast('✅ تمت الموافقة على التصميم النهائي!', 5000);
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.approveDesign = approveDesign;
+
+// ═══ متابعة الإنجاز (بعد إنشاء مشروع فعلي) ═══
+let _execTrackUnsubs = {};
+function renderExecTrackingForReq(req) {
+  if (!req.projectId) return '';
+  loadExecTracking(req.ticket, req.projectId);
+  return `<div id="exec-track-${req.ticket}"><div style="font-size:11px;color:var(--muted);padding:8px">⏳ جارٍ تحميل تتبع الإنجاز...</div></div>`;
+}
+
+async function loadExecTracking(ticket, projectId) {
+  const panel = document.getElementById('exec-track-'+ticket);
+  if (!panel) return;
+  try {
+    const proj = await Bridge.ExecProjects.get(projectId);
+    if (!proj) { panel.innerHTML = ''; return; }
+    const phases = proj.phases || [];
+    const doneCount = phases.filter(p=>p.status==='done').length;
+    const pct = phases.length ? Math.round((doneCount/phases.length)*100) : 0;
+    const curPhase = phases[proj.currentPhaseIndex||0];
+
+    if (_execTrackUnsubs[ticket]) _execTrackUnsubs[ticket]();
+    _execTrackUnsubs[ticket] = Bridge.ExecProjects.watchVisits(projectId, visits => {
+      const visitsHtml = !visits.length ? '<div style="font-size:11px;color:var(--muted)">لا توجد محاضر زيارة بعد</div>' :
+        visits.map(v => `<div style="background:var(--s3);border-radius:8px;padding:9px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px"><span>📅 ${v.date}</span><span>تقدّم: ${v.progress||0}%</span></div>
+          ${v.notes?`<div style="font-size:12px;color:var(--text);margin-bottom:5px">${esc(v.notes)}</div>`:''}
+          ${(v.photos||[]).length ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${v.photos.map(ph=>`<a href="${ph.url}" target="_blank"><img src="${ph.url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>`).join('')}</div>` : ''}
+        </div>`).join('');
+      const bodyEl = panel.querySelector('.exec-visits-slot');
+      if (bodyEl) bodyEl.innerHTML = visitsHtml;
+    });
+
+    panel.innerHTML = `<div class="quote-card">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">🏗️ متابعة الإنجاز</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">المرحلة الحالية: <strong style="color:var(--gold)">${curPhase?esc(curPhase.label):'—'}</strong></div>
+      <div class="pw" style="margin-bottom:12px"><div class="pb" style="width:${pct}%"></div></div>
+      <button class="btn-block" style="margin-bottom:12px" onclick="goToMaterialsForProject('${projectId}')">📦 طلب مواد بناء لهذه المرحلة</button>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">📋 محاضر الزيارة والصور</div>
+      <div class="exec-visits-slot" style="margin-bottom:12px"><div style="font-size:11px;color:var(--muted)">⏳ تحميل...</div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">💬 ملاحظاتك</div>
+      <div id="ectc-${ticket}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:180px;overflow-y:auto"></div>
+      <textarea id="ecti-${ticket}" placeholder="اكتب ملاحظتك للمكتب..." style="width:100%;min-height:50px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:12px;margin-bottom:8px"></textarea>
+      <button class="btn-accept" style="width:100%" onclick="sendClientExecComment('${ticket}','${projectId}')">📨 إرسال للمكتب</button>
+    </div>`;
+
+    Bridge.ExecProjects.watchComments(projectId, comments => {
+      const el = document.getElementById('ectc-'+ticket);
+      if (!el) return;
+      el.innerHTML = !comments.length ? '<div style="font-size:11px;color:var(--muted)">لا توجد ملاحظات بعد</div>' :
+        comments.map(c => `<div style="align-self:${c.from==='client'?'flex-end':'flex-start'};max-width:85%;background:${c.from==='client'?'var(--gold-glow)':'var(--s3)'};border-radius:8px;padding:7px 9px;font-size:11px">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${c.from==='client'?'أنت':'🏢 المكتب'}</div>${esc(c.text)}
+        </div>`).join('');
+      el.scrollTop = el.scrollHeight;
+    });
+  } catch(e) { console.error(e); }
+}
+window.loadExecTracking = loadExecTracking;
+
+async function sendClientExecComment(ticket, projectId) {
+  const input = document.getElementById('ecti-'+ticket);
+  const text = input?.value?.trim();
+  if (!text) return;
+  try {
+    await Bridge.ExecProjects.addComment(projectId, { from:'client', text });
+    input.value = '';
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.sendClientExecComment = sendClientExecComment;
+
+let pendingMatProjectId = null;
+function goToMaterialsForProject(projectId) {
+  pendingMatProjectId = projectId;
+  goTab('materials');
+  toast('💡 اختر المواد المطلوبة ثم أكمل الطلب — سيُربط تلقائياً بمشروعك');
+}
+window.goToMaterialsForProject = goToMaterialsForProject;
 
 // ═══ CHAT ════════════════════════════════════════════
 function loadChatScreen() { populateChatSelect(); }

@@ -367,15 +367,15 @@ function renderLowStock(){
 }
 
 // ═══ ORDERS ════════════════════════════════════════════
-function orderStatusLabel(s){ return {draft:'مسوّدة',confirmed:'مؤكَّدة',cancelled:'ملغاة'}[s]||s; }
-function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br'}[s]||'bm'; }
+function orderStatusLabel(s){ return {draft:'مسوّدة',confirmed:'مؤكَّدة',cancelled:'ملغاة',pending_supervisor:'بانتظار موافقة المهندس',rejected_by_supervisor:'رفضها المهندس'}[s]||s; }
+function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br',pending_supervisor:'bt',rejected_by_supervisor:'br'}[s]||'bm'; }
 
 function renderOrders(){
   const tb = document.getElementById('orders_tb');
   tb.innerHTML = orders.length ? orders.map(o=>{
     const isClient = o.source === 'client';
     const who = isClient
-      ? `${esc(o.clientName||'—')}${o.clientPhone?' · 📞 '+esc(o.clientPhone):''}${o.address?'<br><span style="color:var(--muted);font-size:10px">📍 '+esc(o.address)+'</span>':''}`
+      ? `${esc(o.clientName||'—')}${o.clientPhone?' · 📞 '+esc(o.clientPhone):''}${o.address?'<br><span style="color:var(--muted);font-size:10px">📍 '+esc(o.address)+'</span>':''}${o.execProjectId?'<br><span style="color:var(--teal);font-size:10px">🏗️ '+esc(o.phaseLabel||'')+'</span>':''}`
       : esc(o.projectLabel||'—');
     return `<tr>
     <td>${esc(o.id||o.orderId)}</td>

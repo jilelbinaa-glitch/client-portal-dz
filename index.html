@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="جيل البناء">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo-180.png">
 <title>مكتب جيل البناء للدراسات — بوابة العملاء</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cairo:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -52,8 +59,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 6
 
 .hero-bg{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 70% 60% at 15% 60%,rgba(201,168,76,0.08),transparent 55%);}
 .hero-grid{display:none;}
-.hero-inner{flex:1;display:flex;align-items:center;max-width:1300px;margin:0 auto;padding:60px 60px;gap:80px;position:relative;z-index:5;}
-.hero-left{flex:1;}
+.hero-inner{flex:1;display:flex;align-items:center;justify-content:center;max-width:1300px;margin:0 auto;padding:60px 60px;gap:80px;position:relative;z-index:5;}
+.hero-left{flex:1;max-width:760px;}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:99px;padding:6px 16px;margin-bottom:30px;}
 .hero-eyebrow span{font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:600;}
 .hero-title{font-family:'Cairo',sans-serif;font-size:clamp(36px,5vw,68px);color:var(--text);line-height:1.08;margin-bottom:8px;font-weight:900;}
@@ -82,6 +89,27 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 6
 .hc-t{font-size:11px;font-weight:600;color:var(--text);}
 .hc-d{font-size:10px;color:var(--muted);}
 .hc-check{margin-right:auto;width:20px;height:20px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--green);}
+
+/* ACTION GRID — 5 unified entry points */
+.action-section{background:var(--ink);padding:70px 60px 90px;border-bottom:1px solid var(--border);}
+.action-head{max-width:1200px;margin:0 auto 40px;text-align:center;}
+.action-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
+.action-title{font-family:'Cairo',sans-serif;font-size:clamp(22px,3vw,32px);font-weight:900;color:var(--text);margin-bottom:10px;}
+.action-sub{font-size:13px;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.8;}
+.action-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+.act-card{--c:var(--gold);--cg:var(--gold-glow);background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 16px;text-align:center;text-decoration:none;color:var(--text);position:relative;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.act-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c);transform:scaleX(0);transition:transform .3s;}
+.act-card:hover{transform:translateY(-6px);border-color:var(--c);box-shadow:0 14px 30px -10px var(--cg);}
+.act-card:hover::before{transform:scaleX(1);}
+.act-ring{width:58px;height:58px;border-radius:50%;background:var(--cg);border:1.5px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:8px;transition:transform .25s;}
+.act-card:hover .act-ring{transform:scale(1.08);}
+.act-title{font-size:13.5px;font-weight:700;line-height:1.4;}
+.act-title-en{font-family:'Space Grotesk',sans-serif;font-size:9px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase;margin-top:1px;}
+.act-desc{font-size:11px;color:var(--muted);line-height:1.6;margin-top:5px;}
+.act-arrow{margin-top:auto;padding-top:12px;font-size:11px;font-weight:700;color:var(--c);opacity:0;transform:translateY(4px);transition:all .25s;}
+.act-card:hover .act-arrow{opacity:1;transform:translateY(0);}
+@media (max-width:980px){.action-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.action-grid{grid-template-columns:1fr;}.action-section{padding:50px 20px 60px;}}
 
 /* SERVICES STRIP */
 .sstrip{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -285,11 +313,9 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
   </div>
   <div class="nav-links">
     <a href="#services">خدماتنا / Services</a>
-    <a href="#how">كيف نعمل / How</a>
-    <a href="#request">طلب / Request</a>
-    <a href="#status">متابعة / Track</a>
+    <a href="client_portal.html">تسجيل الدخول / Login</a>
   </div>
-  <button class="nav-cta" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">ابدأ مشروعك</button>
+  <button class="nav-cta" onclick="location.href='client_portal.html?service=study'">ابدأ مشروعك</button>
 </nav>
 
 <!-- HERO -->
@@ -310,49 +336,12 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
       <div class="hero-eyebrow"><span>🏛️ خبرة معمارية 15 سنة — Est. 2010</span></div>
       <div class="hero-title">جيل البناء<br>للهندسة المعمارية <span class="accent">والعمرانية</span></div>
       <div class="hero-title-en">Jel Al-Bina'a — Architecture &amp; Urban Design Studies Office</div>
-      <p class="hero-sub">من الفكرة الأولى حتى تسليم المفتاح. دراسة معمارية احترافية، ملف رخصة البناء، وإشراف ميداني متكامل عبر 68 ولاية وبلدياتها.</p>
-      <div class="hero-btns">
-        <a href="#request" class="btn-primary">📋 أطلب دراسة مجانية</a>
-        <a href="client_portal.html?service=execution" class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px">🏗️ <span>أطلب إنجاز</span></a>
-        <a href="client_portal.html?tab=materials" class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px">📦 <span>أطلب مواد البناء</span></a>
-        <a href="exec_portal.html?role=engineer" class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px">👷 <span>انضمام مهندس</span></a>
-        <a href="exec_portal.html?role=worker" class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px">🔨 <span>انضمام عامل</span></a>
-        <a href="#status" class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px">🔍 <span>تتبع طلبك</span></a>
-        <a href="#how" class="btn-ghost">كيف يعمل ذلك ←</a>
-      </div>
+      <p class="hero-sub">من الفكرة الأولى حتى تسليم المفتاح. دراسة معمارية احترافية، ملف رخصة البناء، وإشراف ميداني متكامل عبر 65 ولاية وبلدياتها.</p>
       <div class="hero-stats">
         <div class="hstat"><div class="hstat-n">+250</div><div class="hstat-l">مشروع منجز / Projects</div></div>
         <div class="hstat"><div class="hstat-n">15</div><div class="hstat-l">سنة خبرة / Years Exp.</div></div>
-        <div class="hstat"><div class="hstat-n">68</div><div class="hstat-l">ولاية / Wilayas</div></div>
+        <div class="hstat"><div class="hstat-n">65</div><div class="hstat-l">ولاية / Wilayas</div></div>
         <div class="hstat"><div class="hstat-n">24h</div><div class="hstat-l">وقت الرد / Response</div></div>
-      </div>
-    </div>
-    <div class="hero-right">
-      <div class="hero-card">
-        <div class="hc-badge"><span>✦ متابعة مباشرة — Live Tracking</span></div>
-        <div class="hc-title">مراحل طلبك / Your Request Journey</div>
-        <div class="hc-steps">
-          <div class="hc-step">
-            <div class="hc-ico">📋</div>
-            <div><div class="hc-t">تقديم الطلب / Submit</div><div class="hc-d">نموذج إلكتروني شامل</div></div>
-            <div class="hc-check">✓</div>
-          </div>
-          <div class="hc-step">
-            <div class="hc-ico">📞</div>
-            <div><div class="hc-t">التواصل / Contact</div><div class="hc-d">مهندس يتصل خلال 24 ساعة</div></div>
-            <div class="hc-check">✓</div>
-          </div>
-          <div class="hc-step">
-            <div class="hc-ico">💰</div>
-            <div><div class="hc-t">عرض السعر / Quote</div><div class="hc-d">مفصّل عبر البوابة مباشرة</div></div>
-            <div class="hc-check" style="background:var(--gold-glow);border-color:rgba(201,168,76,0.3);color:var(--gold)">●</div>
-          </div>
-          <div class="hc-step" style="opacity:0.45">
-            <div class="hc-ico">🏗️</div>
-            <div><div class="hc-t">الإنجاز / Execution</div><div class="hc-d">فريق معتمد، متابعة ميدانية</div></div>
-            <div class="hc-check" style="background:var(--border);border-color:var(--border)"></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -371,6 +360,58 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
   </div>
 </div>
 
+<!-- ACTION GRID: 5 unified entry points -->
+<div class="action-section">
+  <div class="action-head">
+    <div class="action-eyebrow">Start Here — ابدأ من هنا</div>
+    <div class="action-title">ماذا تريد أن تفعل اليوم؟</div>
+    <div class="action-sub">اختر بوابتك — سواء كنت عميلاً، مهندساً، أو عاملاً، لكل طرف مساره الخاص داخل منصة جيل البناء.</div>
+  </div>
+  <div class="action-grid">
+
+    <a href="client_portal.html?service=study" class="act-card" style="--c:var(--gold);--cg:var(--gold-glow)">
+      <div class="act-ring">📐</div>
+      <div class="act-title">أطلب دراسة<br>و متابعة</div>
+      <div class="act-title-en">Study &amp; Follow-up</div>
+      <div class="act-desc">مخططات، رخصة بناء، ودراسة هيكلية معتمدة</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="client_portal.html?service=execution" class="act-card" style="--c:var(--teal);--cg:rgba(45,212,191,0.12)">
+      <div class="act-ring">🏗️</div>
+      <div class="act-title">أطلب<br>إنجاز</div>
+      <div class="act-title-en">Execution</div>
+      <div class="act-desc">إشراف ميداني ومتابعة ورشة البناء يومياً</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="client_portal.html?tab=materials" class="act-card" style="--c:var(--amber);--cg:rgba(251,191,36,0.12)">
+      <div class="act-ring">📦</div>
+      <div class="act-title">أطلب مواد<br>البناء</div>
+      <div class="act-title-en">Materials</div>
+      <div class="act-desc">تموين المشروع من مستودع جيل البناء</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="exec_portal.html?role=engineer" class="act-card" style="--c:var(--green);--cg:rgba(74,222,128,0.12)">
+      <div class="act-ring">👷</div>
+      <div class="act-title">انضمام<br>مهندس</div>
+      <div class="act-title-en">Join as Engineer</div>
+      <div class="act-desc">انضم كمهندس أو تقني لفريق مكتب الدراسات</div>
+      <div class="act-arrow">سجّل الآن ←</div>
+    </a>
+
+    <a href="exec_portal.html?role=worker" class="act-card" style="--c:var(--red);--cg:rgba(248,113,113,0.12)">
+      <div class="act-ring">🔨</div>
+      <div class="act-title">انضمام<br>عامل</div>
+      <div class="act-title-en">Join as Worker</div>
+      <div class="act-desc">انضم كعامل بناء لفريق مؤسسة الإنجاز</div>
+      <div class="act-arrow">سجّل الآن ←</div>
+    </a>
+
+  </div>
+</div>
+
 <!-- SERVICES -->
 <div class="sstrip" id="services">
   <div class="sstrip-inner">
@@ -381,212 +422,14 @@ footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
   </div>
 </div>
 
-<!-- HOW IT WORKS -->
-<div class="hw" id="how">
-  <div class="hw-inner">
-    <div class="sl-ar">كيف نعمل</div>
-    <div class="sl-en">How We Work</div>
-    <div class="stitle">أربع خطوات من الطلب إلى التسليم</div>
-    <div class="stitle-en">Four Steps — From Request to Delivery</div>
-    <div class="hg">
-      <div class="hstep"><div class="sc2" style="position:relative"><span class="snum">1</span>🖊️</div><div class="hstep-en">Submit</div><div class="hstep-t">تقديم الطلب</div><div class="hstep-d">أدخل بياناتك ومعلومات مشروعك عبر النموذج</div></div>
-      <div class="hstep"><div class="sc2" style="position:relative"><span class="snum">2</span>📞</div><div class="hstep-en">Contact</div><div class="hstep-t">التواصل والتقييم</div><div class="hstep-d">يتصل بك مهندسنا خلال 24 ساعة لمناقشة مشروعك</div></div>
-      <div class="hstep"><div class="sc2" style="position:relative"><span class="snum">3</span>💰</div><div class="hstep-en">Quote</div><div class="hstep-t">عرض التكلفة</div><div class="hstep-d">نرسل عرض السعر المفصّل مباشرة عبر البوابة</div></div>
-      <div class="hstep"><div class="sc2" style="position:relative"><span class="snum">4</span>🏛️</div><div class="hstep-en">Execute</div><div class="hstep-t">بداية المشروع</div><div class="hstep-d">بعد موافقتك يبدأ فريقنا في إنجاز مشروعك</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- REQUEST FORM -->
-<div class="fw" id="request">
-  <div class="fi">
-    <div class="fintro">
-      <div class="sl-ar">طلب خدمة</div>
-      <div class="sl-en">Request a Service</div>
-      <div class="stitle">ابدأ مشروعك<br>معنا اليوم</div>
-      <p style="font-size:14px;color:var(--muted-text);line-height:1.85;margin-top:12px">أرسل لنا طلبك وسيتواصل معك أحد مهندسينا خلال يوم عمل. الاستشارة الأولى مجانية.</p>
-      <div class="cchips">
-        <div class="cchip"><div class="ci">📞</div><div><div class="cl">اتصال مباشر / Direct Call</div><div class="cv">0796 532 884</div></div></div>
-        <div class="cchip"><div class="ci">📞</div><div><div class="cl">رقم إضافي / Also Call</div><div class="cv">0670 158 793</div></div></div>
-        <div class="cchip"><div class="ci">📧</div><div><div class="cl">البريد / Email</div><div class="cv">jil.elbinaa@gmail.com</div></div></div>
-        <div class="cchip"><div class="ci">🕐</div><div><div class="cl">أوقات العمل / Office Hours</div><div class="cv">الأحد — الخميس، 8ص — 5م</div></div></div>
-        <div class="cchip"><div class="ci">⚡</div><div><div class="cl">وقت الرد / Response Time</div><div class="cv">أقل من 24 ساعة</div></div></div>
-      </div>
-    </div>
-    <div id="requestForm">
-      <div class="fpr">
-        <div class="fps active" id="fp1"><div class="fpd">1</div>بياناتك</div>
-        <div class="fps" id="fp2"><div class="fpd">2</div>المشروع</div>
-        <div class="fps" id="fp3"><div class="fpd">3</div>الموقع</div>
-        <div class="fps" id="fp4"><div class="fpd">4</div>التفاصيل</div>
-        <div class="fps" id="fp5"><div class="fpd">5</div>إرسال</div>
-      </div>
-
-      <div class="fstep active" id="step1">
-        <div class="step-h">بياناتك الشخصية</div>
-        <div class="step-sub">Your Personal Information — معلوماتك الأساسية للتواصل</div>
-        <div class="fg">
-          <div class="fd req"><label>الاسم الكامل / Full Name</label><input id="f_name" placeholder="الاسم واللقب"></div>
-          <div class="fd req"><label>رقم الهاتف / Phone</label><input id="f_phone" placeholder="0555 000 000" type="tel"></div>
-        </div>
-        <div class="fg">
-          <div class="fd req"><label>رقم التعريف الوطني / National ID</label><input id="f_nin" placeholder="رقم بطاقة التعريف الوطنية" inputmode="numeric"></div>
-          <div class="fd"><label>البريد الإلكتروني / Email</label><input id="f_email" placeholder="example@email.com" type="email"></div>
-        </div>
-        <div class="fg">
-          <div class="fd req"><label>الولاية / Wilaya</label>
-            <select id="f_wilaya"><option value="">— اختر / Choose —</option>
-<option value="01-أدرار">01 — أدرار</option><option value="02-الشلف">02 — الشلف</option><option value="03-الأغواط">03 — الأغواط</option><option value="04-أم البواقي">04 — أم البواقي</option><option value="05-باتنة">05 — باتنة</option><option value="06-بجاية">06 — بجاية</option><option value="07-بسكرة">07 — بسكرة</option><option value="08-بشار">08 — بشار</option><option value="09-البليدة">09 — البليدة</option><option value="10-البويرة">10 — البويرة</option><option value="11-تمنراست">11 — تمنراست</option><option value="12-تبسة">12 — تبسة</option><option value="13-تلمسان">13 — تلمسان</option><option value="14-تيارت">14 — تيارت</option><option value="15-تيزي وزو">15 — تيزي وزو</option><option value="16-الجزائر">16 — الجزائر</option><option value="17-الجلفة">17 — الجلفة</option><option value="18-جيجل">18 — جيجل</option><option value="19-سطيف">19 — سطيف</option><option value="20-سعيدة">20 — سعيدة</option><option value="21-سكيكدة">21 — سكيكدة</option><option value="22-سيدي بلعباس">22 — سيدي بلعباس</option><option value="23-عنابة">23 — عنابة</option><option value="24-قالمة">24 — قالمة</option><option value="25-قسنطينة">25 — قسنطينة</option><option value="26-المدية">26 — المدية</option><option value="27-مستغانم">27 — مستغانم</option><option value="28-المسيلة">28 — المسيلة</option><option value="29-معسكر">29 — معسكر</option><option value="30-ورقلة">30 — ورقلة</option><option value="31-وهران">31 — وهران</option><option value="32-البيض">32 — البيض</option><option value="33-إليزي">33 — إليزي</option><option value="34-برج بوعريريج">34 — برج بوعريريج</option><option value="35-بومرداس">35 — بومرداس</option><option value="36-الطارف">36 — الطارف</option><option value="37-تندوف">37 — تندوف</option><option value="38-تيسمسيلت">38 — تيسمسيلت</option><option value="39-الوادي">39 — الوادي</option><option value="40-خنشلة">40 — خنشلة</option><option value="41-سوق أهراس">41 — سوق أهراس</option><option value="42-تيبازة">42 — تيبازة</option><option value="43-ميلة">43 — ميلة</option><option value="44-عين الدفلى">44 — عين الدفلى</option><option value="45-النعامة">45 — النعامة</option><option value="46-عين تموشنت">46 — عين تموشنت</option><option value="47-غرداية">47 — غرداية</option><option value="48-غليزان">48 — غليزان</option><option value="49-تيميمون">49 — تيميمون</option><option value="50-برج باجي مختار">50 — برج باجي مختار</option><option value="51-أولاد جلال">51 — أولاد جلال</option><option value="52-بني عباس">52 — بني عباس</option><option value="53-عين صالح">53 — عين صالح (إن قزام)</option><option value="54-عين قزام">54 — عين قزام</option><option value="55-تقرت">55 — تقرت</option><option value="56-جانت">56 — جانت</option><option value="57-المغير">57 — المغير</option><option value="58-المنيعة">58 — المنيعة</option>
-            </select>
-          </div>
-          <div></div>
-        </div>
-        <div class="fn"><div></div><button class="btn-next" onclick="goStep(2)">التالي ←</button></div>
-      </div>
-
-      <div class="fstep" id="step2">
-        <div class="step-h">نوع المشروع والخدمة</div>
-        <div class="step-sub">Project Type &amp; Services — اختر خدمة أو أكثر</div>
-        <div class="svcards">
-          <div class="svc" data-s="study" onclick="togSvc(this)"><div class="svc-ico">📐</div><div class="svc-t">الدراسة المعمارية</div><div class="svc-d">مخططات معمارية كاملة</div><div class="svc-p">From 30,000 DA</div></div>
-          <div class="svc" data-s="permit" onclick="togSvc(this)"><div class="svc-ico">📋</div><div class="svc-t">ملف رخصة البناء</div><div class="svc-d">جميع الوثائق الرسمية</div><div class="svc-p">From 15,000 DA</div></div>
-          <div class="svc" data-s="structure" onclick="togSvc(this)"><div class="svc-ico">🔩</div><div class="svc-t">الدراسة الهيكلية</div><div class="svc-d">حسابات هيكلية معتمدة</div><div class="svc-p">From 25,000 DA</div></div>
-          <div class="svc" data-s="supervision" onclick="togSvc(this)"><div class="svc-ico">🏗️</div><div class="svc-t">إشراف على الإنجاز</div><div class="svc-d">زيارات دورية للورشة</div><div class="svc-p">On Request</div></div>
-          <div class="svc" data-s="interior" onclick="togSvc(this)"><div class="svc-ico">🛋️</div><div class="svc-t">التصميم الداخلي</div><div class="svc-d">تصميم الفضاءات والمواد</div><div class="svc-p">From 20,000 DA</div></div>
-          <div class="svc" data-s="estimate" onclick="togSvc(this)"><div class="svc-ico">💰</div><div class="svc-t">تقدير التكاليف</div><div class="svc-d">تقرير تفصيلي للتكاليف</div><div class="svc-p">From 8,000 DA</div></div>
-        </div>
-        <div class="fg">
-          <div class="fd req"><label>نوع المبنى / Building Type</label><select id="f_building"><option value="">— اختر —</option><option>فيلا سكنية</option><option>شقة سكنية</option><option>عمارة سكنية</option><option>محل تجاري</option><option>عمارة تجارية</option><option>مكاتب إدارية</option><option>ورشة صناعية</option><option>مستودع</option><option>مشروع سياحي</option><option>أخرى</option></select></div>
-          <div class="fd req"><label>عدد الطوابق / Floors</label><select id="f_floors"><option value="">— اختر —</option><option>طابق واحد</option><option>طابقان</option><option>3 طوابق</option><option>4 طوابق</option><option>5 طوابق وأكثر</option><option>غير محدد</option></select></div>
-        </div>
-        <div class="fg fgt">
-          <div class="fd"><label>المساحة / Area (m²)</label><input id="f_area" type="number" placeholder="200"></div>
-          <div class="fd"><label>الغرف / Rooms</label><input id="f_rooms" type="number" placeholder="4"></div>
-          <div class="fd"><label>الميزانية / Budget (DA)</label><input id="f_budget" type="number" placeholder="اختياري"></div>
-        </div>
-        <div class="fn"><button class="btn-back" onclick="goStep(1)">← السابق</button><button class="btn-next" onclick="goStep(3)">التالي ←</button></div>
-      </div>
-
-      <div class="fstep" id="step3">
-        <div class="step-h">موقع المشروع</div>
-        <div class="step-sub">Project Location — حدد موقع قطعة الأرض أو العقار</div>
-        <div class="fg">
-          <div class="fd req"><label>ولاية المشروع / Wilaya</label><select id="f_pwilaya"><option value="">— اختر —</option>
-<option value="01-أدرار">01 — أدرار</option><option value="02-الشلف">02 — الشلف</option><option value="03-الأغواط">03 — الأغواط</option><option value="04-أم البواقي">04 — أم البواقي</option><option value="05-باتنة">05 — باتنة</option><option value="06-بجاية">06 — بجاية</option><option value="07-بسكرة">07 — بسكرة</option><option value="08-بشار">08 — بشار</option><option value="09-البليدة">09 — البليدة</option><option value="10-البويرة">10 — البويرة</option><option value="11-تمنراست">11 — تمنراست</option><option value="12-تبسة">12 — تبسة</option><option value="13-تلمسان">13 — تلمسان</option><option value="14-تيارت">14 — تيارت</option><option value="15-تيزي وزو">15 — تيزي وزو</option><option value="16-الجزائر">16 — الجزائر</option><option value="17-الجلفة">17 — الجلفة</option><option value="18-جيجل">18 — جيجل</option><option value="19-سطيف">19 — سطيف</option><option value="20-سعيدة">20 — سعيدة</option><option value="21-سكيكدة">21 — سكيكدة</option><option value="22-سيدي بلعباس">22 — سيدي بلعباس</option><option value="23-عنابة">23 — عنابة</option><option value="24-قالمة">24 — قالمة</option><option value="25-قسنطينة">25 — قسنطينة</option><option value="26-المدية">26 — المدية</option><option value="27-مستغانم">27 — مستغانم</option><option value="28-المسيلة">28 — المسيلة</option><option value="29-معسكر">29 — معسكر</option><option value="30-ورقلة">30 — ورقلة</option><option value="31-وهران">31 — وهران</option><option value="32-البيض">32 — البيض</option><option value="33-إليزي">33 — إليزي</option><option value="34-برج بوعريريج">34 — برج بوعريريج</option><option value="35-بومرداس">35 — بومرداس</option><option value="36-الطارف">36 — الطارف</option><option value="37-تندوف">37 — تندوف</option><option value="38-تيسمسيلت">38 — تيسمسيلت</option><option value="39-الوادي">39 — الوادي</option><option value="40-خنشلة">40 — خنشلة</option><option value="41-سوق أهراس">41 — سوق أهراس</option><option value="42-تيبازة">42 — تيبازة</option><option value="43-ميلة">43 — ميلة</option><option value="44-عين الدفلى">44 — عين الدفلى</option><option value="45-النعامة">45 — النعامة</option><option value="46-عين تموشنت">46 — عين تموشنت</option><option value="47-غرداية">47 — غرداية</option><option value="48-غليزان">48 — غليزان</option><option value="49-تيميمون">49 — تيميمون</option><option value="50-برج باجي مختار">50 — برج باجي مختار</option><option value="51-أولاد جلال">51 — أولاد جلال</option><option value="52-بني عباس">52 — بني عباس</option><option value="53-عين صالح">53 — عين صالح</option><option value="54-عين قزام">54 — عين قزام</option><option value="55-تقرت">55 — تقرت</option><option value="56-جانت">56 — جانت</option><option value="57-المغير">57 — المغير</option><option value="58-المنيعة">58 — المنيعة</option>
-          </select></div>
-          <div class="fd req"><label>البلدية / Municipality</label>
-            <select id="f_commune"><option value="">— اختر الولاية أولاً —</option></select>
-          </div>
-        </div>
-        <div class="fg fgs"><div class="fd req"><label>العنوان التفصيلي / Address</label><input id="f_address" placeholder="الحي، الشارع، رقم القطعة"></div></div>
-        <div style="margin-bottom:13px">
-          <label style="font-size:9px;font-weight:700;color:var(--ink-text);letter-spacing:.6px;text-transform:uppercase;display:block;margin-bottom:7px">الموقع على الخريطة / Map (اختياري)</label>
-          <div class="mp" id="mapPicker"><div class="mo" id="mapOverlay" onclick="loadMap()"><div style="font-size:32px">📍</div><div style="font-size:13px;color:var(--muted-text);font-weight:600">انقر لتحديد الموقع / Click to locate</div></div></div>
-          <div class="fg" style="margin-top:7px">
-            <div class="fd"><label>Latitude / خط العرض</label><input id="f_lat" type="number" step="0.000001" placeholder="36.737232" oninput="updateMap()"></div>
-            <div class="fd"><label>Longitude / خط الطول</label><input id="f_lng" type="number" step="0.000001" placeholder="3.086472" oninput="updateMap()"></div>
-          </div>
-        </div>
-        <div class="fg fgs"><div class="fd"><label>ملاحظات عن القطعة / Land Notes</label><textarea id="f_land" placeholder="مساحة القطعة، حالة الموقع..."></textarea></div></div>
-        <div class="fn"><button class="btn-back" onclick="goStep(2)">← السابق</button><button class="btn-next" onclick="goStep(4)">التالي ←</button></div>
-      </div>
-
-      <div class="fstep" id="step4">
-        <div class="step-h">تفاصيل المشروع</div>
-        <div class="step-sub">Project Details — كلما أعطيتنا تفاصيل أكثر، كان عرضنا أدق</div>
-        <div class="fg fgs"><div class="fd"><label>وصف المشروع / Project Description</label><textarea id="f_desc" placeholder="الطابع المعماري، الأولويات، أفكارك..." style="min-height:95px"></textarea></div></div>
-        <div class="fg">
-          <div class="fd"><label>الجدول الزمني / Timeline</label><select id="f_timeline"><option value="">— اختر —</option><option>أقل من شهر (عاجل)</option><option>1 إلى 3 أشهر</option><option>3 إلى 6 أشهر</option><option>أكثر من 6 أشهر</option><option>غير محدد</option></select></div>
-          <div class="fd"><label>المرحلة الحالية / Current Phase</label><select id="f_phase"><option value="">— اختر —</option><option>فكرة فقط</option><option>امتلك قطعة الأرض</option><option>لديّ مخطط قديم</option><option>البناء جارٍ</option><option>مشروع موقوف</option></select></div>
-        </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:9px;font-weight:700;color:var(--ink-text);letter-spacing:.6px;text-transform:uppercase;display:block;margin-bottom:7px">إرفاق ملفات / Attachments (اختياري)</label>
-          <div class="uz"><input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.dwg,.doc,.docx" onchange="handleFiles(this.files)">
-            <div style="font-size:28px;margin-bottom:7px">📎</div>
-            <div style="font-size:12px;color:var(--muted-text)">اسحب الملفات أو انقر — PDF, JPG, PNG, DWG</div>
-          </div>
-          <div class="ul" id="uploadList"></div>
-        </div>
-        <div class="fg fgs"><div class="fd"><label>ملاحظات إضافية / Additional Notes</label><textarea id="f_extra" placeholder="أي شيء آخر تريد إخبارنا به..."></textarea></div></div>
-        <div class="fn"><button class="btn-back" onclick="goStep(3)">← السابق</button><button class="btn-next" onclick="goStep(5)">المراجعة والإرسال ←</button></div>
-      </div>
-
-      <div class="fstep" id="step5">
-        <div class="step-h">مراجعة الطلب / Review</div>
-        <div class="step-sub">Verify your details before submitting — تحقق من البيانات ثم أرسل</div>
-        <div id="reviewBox" style="background:#f9f7f3;border:1px solid rgba(0,0,0,0.07);border-radius:10px;padding:18px;margin-bottom:14px;font-size:12px;line-height:2"></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:13px;background:rgba(90,107,82,0.06);border:1px solid rgba(90,107,82,0.2);border-radius:8px;margin-bottom:8px">
-          <input type="checkbox" id="f_agree" style="width:17px;height:17px;margin-top:3px;flex-shrink:0;accent-color:#5a6b52">
-          <label for="f_agree" style="font-size:12px;cursor:pointer;line-height:1.6;color:var(--muted-text)">أوافق على معالجة بياناتي الشخصية لأغراض معالجة الطلب والتواصل معي من قبل مكتب جيل البناء للدراسات. / I agree to the processing of my personal data by Jil El Bina Architecture Office.</label>
-        </div>
-        <div class="fn"><button class="btn-back" onclick="goStep(4)">← السابق</button><button class="btn-submit" onclick="submitReq()">📨 إرسال الطلب / Submit</button></div>
-      </div>
-
-      <div class="success-state" id="successState">
-        <div class="sico2">✅</div>
-        <div style="font-family:'Cairo',sans-serif;font-size:22px;font-weight:900;color:var(--ink-text);margin-bottom:5px">تم إرسال طلبك بنجاح!</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--muted-text);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px">Request Submitted Successfully</div>
-        <div style="font-size:14px;color:var(--muted-text);line-height:1.8;max-width:380px;margin:0 auto 22px">شكراً لثقتك في مكتب جيل البناء. سيتواصل معك مهندسنا خلال يوم عمل واحد.</div>
-        <div class="tb">
-          <div class="tl-label">رقم الطلب / Reference Number</div>
-          <div class="tn" id="ticketNum">—</div>
-          <div style="font-size:11px;color:var(--muted-text);margin-top:7px">احتفظ بهذا الرقم لمتابعة طلبك / Keep this number to track your request</div>
-        </div>
-        <button class="btn-primary" onclick="document.getElementById('status').scrollIntoView({behavior:'smooth'})">📍 متابعة حالة الطلب / Track Request</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- STATUS TRACKER -->
-<div class="sw" id="status">
-  <div class="sw-inner">
-    <div class="sl-ar" style="color:var(--gold) !important">متابعة الطلب</div>
-    <div class="sl-en" style="color:var(--muted) !important;margin-bottom:14px">Track Your Request</div>
-    <div class="stitle" style="color:var(--text) !important">تتبّع حالة<br>طلبك</div>
-    <p style="font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin-top:12px">أدخل رقم الطلب المرجعي ورقم التعريف الوطني لمعرفة آخر التحديثات وعرض الأسعار والتواصل مع مكتبنا.</p>
-    <div class="sf" style="flex-wrap:wrap">
-      <input id="statusIn" placeholder="مثال: JIL-2025-07-01-001">
-      <input id="statusNin" placeholder="رقم التعريف الوطني" style="min-width:160px">
-      <button onclick="checkSt()">🔍 بحث / Search</button>
-    </div>
-    <div class="sr" id="statusRes">
-      <div class="scard">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--border)">
-          <div>
-            <div style="font-size:9px;color:var(--muted);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:1.5px;text-transform:uppercase">رقم الطلب / Request Number</div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--text);font-weight:600" id="sr_name">—</div>
-          </div>
-          <span id="sr_badge" style="padding:5px 14px;border-radius:99px;font-size:11px;font-weight:700;background:rgba(251,191,36,0.15);color:var(--amber);border:1px solid rgba(251,191,36,0.3)">قيد المعالجة</span>
-        </div>
-        <div id="sr_tl"></div>
-        <div id="sr_dates" style="display:none"></div>
-      </div>
-      <div id="quotePanel" style="display:none;margin-top:14px"></div>
-      <div style="margin-top:14px">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">💬 التواصل مع المكتب / Contact Office</div>
-        <div class="cbox">
-          <div class="cms" id="chatMsgs"><div style="text-align:center;color:var(--muted);font-size:12px;padding:18px">ابدأ محادثة مع فريق مكتب جيل البناء / Start a conversation with our team</div></div>
-          <div class="cir">
-            <input id="chatIn" placeholder="اكتب رسالتك... / Type your message" onkeydown="if(event.key==='Enter')sendMsg()">
-            <button onclick="sendMsg()">إرسال ←</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- FOOTER -->
 <footer>
   <div class="flogo-ar">جيل البناء للهندسة المعمارية والعمرانية</div>
   <div class="flogo-en">Jel Al-Bina'a — Architecture &amp; Urban Design Studies Office</div>
-  <p>خبرة 15 سنة في الدراسات المعمارية والعمرانية عبر 68 ولاية جزائرية — من التصميم إلى الإنجاز<br>15 years of expertise across 68 Algerian wilayas — from design to delivery</p>
+  <p>خبرة 15 سنة في الدراسات المعمارية والعمرانية عبر 65 ولاية جزائرية — من التصميم إلى الإنجاز<br>15 years of expertise across 65 Algerian wilayas — from design to delivery</p>
   <div class="flinks">
     <a href="#services">خدماتنا / Services</a>
-    <a href="#how">كيف نعمل / How It Works</a>
-    <a href="#request">طلب / Request</a>
-    <a href="#status">متابعة / Track</a>
+    <a href="client_portal.html">تسجيل الدخول / Login</a>
     <a href="tel:0796532884">📞 0796 532 884</a>
     <a href="tel:0670158793">📞 0670 158 793</a>
     <a href="mailto:jil.elbinaa@gmail.com">📧 jil.elbinaa@gmail.com</a>
@@ -607,7 +450,7 @@ function toast(msg,d=3500){const t=document.getElementById('toast');t.textConten
 function gv(id){const e=document.getElementById(id);return e?e.value.trim():'';}
 function fmtD(iso){return Bridge.fmtDate(iso);}
 
-function selSvc(s){document.getElementById('request').scrollIntoView({behavior:'smooth'});setTimeout(()=>{const c=document.querySelector(`.svc[data-s="${s}"]`);if(c&&!c.classList.contains('sel'))togSvc(c);goStep(2);},400);}
+function selSvc(s){location.href='client_portal.html?service=study';}
 function togSvc(card){card.classList.toggle('sel');const s=card.dataset.s;if(card.classList.contains('sel')){if(!selSvcs.includes(s))selSvcs.push(s);}else selSvcs=selSvcs.filter(x=>x!==s);}
 
 function goStep(n){
@@ -1058,6 +901,8 @@ slideTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
 </div>
 
 <script>
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
 // ═══════════════════════════════════════
 //  PAYMENT SYSTEM — index.html
 // ═══════════════════════════════════════

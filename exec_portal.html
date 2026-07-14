@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#2dd4bf">
-<title>مؤسسة جيل البناء للإنجاز — بوابة الفريق</title>
+<title>جيل البناء — بوابة الفريق (مكتب الدراسات و مؤسسة الإنجاز)</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -152,8 +152,8 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
   <div class="auth-wrap" id="authWrap">
     <div class="auth-hero">
       <div style="font-size:44px;margin-bottom:10px">🏢</div>
-      <div class="auth-title">مؤسسة جيل البناء للإنجاز</div>
-      <div class="auth-sub">بوابة المهندسين والعمال — انضم لفريق التنفيذ</div>
+      <div class="auth-title">جيل البناء — بوابة الفريق</div>
+      <div class="auth-sub">مهندسون وتقنيون لفريق مكتب الدراسات — عمال لفريق مؤسسة الإنجاز</div>
     </div>
     <div class="auth-body">
       <div class="auth-tabs">
@@ -177,7 +177,8 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
         <div class="auth-ok" id="reg-ok"></div>
 
         <div class="role-tabs">
-          <button class="role-tab active" id="rtab-engineer" onclick="switchRoleTab('engineer')">👷 مهندس إشراف</button>
+          <button class="role-tab active" id="rtab-engineer" onclick="switchRoleTab('engineer')">📐 مهندس دراسات</button>
+          <button class="role-tab" id="rtab-supervisor" onclick="switchRoleTab('supervisor')">🏗️ مهندس متابعة تنفيذ</button>
           <button class="role-tab" id="rtab-worker" onclick="switchRoleTab('worker')">🔨 عامل ورشة</button>
         </div>
 
@@ -194,12 +195,13 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
 
         <!-- حقول المهندس -->
         <div id="reg-engineer-fields">
-          <div class="afield"><label>نوع الإشراف</label>
+          <div class="afield"><label>نوع الدراسة</label>
             <select id="r-eng-specialty">
-              <option value="إشراف عام">إشراف عام</option>
-              <option value="بناء">إشراف بناء</option>
-              <option value="كهرباء وسباكة">إشراف كهرباء وسباكة</option>
-              <option value="تشطيبات">إشراف تشطيبات</option>
+              <option value="دراسة معمارية">دراسة معمارية</option>
+              <option value="دراسة هيكلية">دراسة هيكلية</option>
+              <option value="دراسة أرضية">دراسة أرضية (جيوتقنية)</option>
+              <option value="كهرباء وسباكة">دراسة كهرباء وسباكة</option>
+              <option value="ملف رخصة البناء">ملف رخصة البناء</option>
             </select>
           </div>
         </div>
@@ -217,6 +219,19 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
           </div>
         </div>
 
+        <!-- حقول مهندس متابعة التنفيذ (دائم) -->
+        <div id="reg-supervisor-fields" style="display:none">
+          <div class="afield"><label>نوع الإشراف</label>
+            <select id="r-sup-specialty">
+              <option value="إشراف عام">إشراف عام</option>
+              <option value="إشراف بناء">إشراف بناء</option>
+              <option value="إشراف كهرباء وسباكة">إشراف كهرباء وسباكة</option>
+              <option value="إشراف تشطيبات">إشراف تشطيبات</option>
+            </select>
+          </div>
+          <div class="afield"><label>أتعاب الزيارة الميدانية (دج)</label><input id="r-sup-fee" type="number" min="0" placeholder="مثال: 3000"></div>
+        </div>
+
         <button class="btn-auth" id="btnReg" onclick="doRegister()">إرسال طلب الانضمام</button>
       </div>
     </div>
@@ -232,7 +247,7 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
 
   <!-- ══ MAIN APP ══ -->
   <div class="hdr" id="mainHdr" style="display:none">
-    <div class="hdr-brand"><div class="hdr-name">مؤسسة جيل البناء للإنجاز</div><div class="hdr-sub" id="hdrRoleLbl">EXECUTION TEAM PORTAL</div></div>
+    <div class="hdr-brand"><div class="hdr-name" id="hdrBrandName">جيل البناء</div><div class="hdr-sub" id="hdrRoleLbl">TEAM PORTAL</div></div>
     <button class="hdr-btn" onclick="doLogout()">🚪</button>
   </div>
 
@@ -294,6 +309,7 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
       <div class="field"><label>نسبة التقدم %</label><input id="vm_progress" type="number" min="0" max="100" value="0"></div>
       <div class="field"><label>ملاحظات</label><textarea id="vm_notes"></textarea></div>
       <div class="field"><label>مشاكل/عوائق</label><textarea id="vm_issues"></textarea></div>
+      <div class="field"><label>صور الزيارة</label><input type="file" id="vm_photos" multiple accept=".jpg,.jpeg,.png"></div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn-outline-sm" style="flex:1" onclick="closeVisitModal()">إلغاء</button>
         <button class="btn-block" style="flex:1;margin-top:0" onclick="submitVisit()">حفظ المحضر</button>
@@ -345,9 +361,15 @@ let profileUnsub = null;
 let projectsUnsub = null;
 let offersUnsub = null;
 let appsUnsub = null;
+let studyOpenUnsub = null;
+let studyMineUnsub = null;
 let myProjects = [];
+let pendingMatOrders = [];
+let matOrdersUnsub = null;
 let myOffers = [];
 let myApplications = [];
+let studyOffersOpen = [];
+let myStudyOffers = [];
 
 // ═══ شبكة أمان: أي خطأ غير متوقع يظهر بشكل مرئي بدل الفشل الصامت ═══
 function showFatalError(msg) { (window.__showFatalError || function(m){ alert('خطأ: '+m); })(msg); }
@@ -379,17 +401,19 @@ let regRole = 'engineer';
 function switchRoleTab(role) {
   regRole = role;
   document.getElementById('rtab-engineer').classList.toggle('active', role==='engineer');
+  document.getElementById('rtab-supervisor').classList.toggle('active', role==='supervisor');
   document.getElementById('rtab-worker').classList.toggle('active', role==='worker');
   document.getElementById('reg-engineer-fields').style.display = role==='engineer' ? '' : 'none';
+  document.getElementById('reg-supervisor-fields').style.display = role==='supervisor' ? '' : 'none';
   document.getElementById('reg-worker-fields').style.display = role==='worker' ? '' : 'none';
 }
 window.switchRoleTab = switchRoleTab;
 
-// ═══ رابط خارجي: ?role=engineer أو ?role=worker يفتح تبويب الانضمام مباشرة ═══
+// ═══ رابط خارجي: ?role=engineer/supervisor/worker يفتح تبويب الانضمام مباشرة ═══
 try {
   const params = new URLSearchParams(location.search);
   const role = params.get('role');
-  if (role === 'engineer' || role === 'worker') {
+  if (role === 'engineer' || role === 'supervisor' || role === 'worker') {
     switchAuthTab('register');
     switchRoleTab(role);
   }
@@ -444,6 +468,10 @@ async function doRegister() {
     if (regRole === 'engineer') {
       const specialty = gv('r-eng-specialty');
       await Bridge.Team.registerEngineer(name, phone, nin, email, pass, specialty, 0);
+    } else if (regRole === 'supervisor') {
+      const specialty = gv('r-sup-specialty');
+      const visitFee = gv('r-sup-fee');
+      await Bridge.Team.registerSupervisor(name, phone, nin, email, pass, specialty, visitFee);
     } else {
       const payType = gv('r-worker-paytype');
       await Bridge.Team.registerWorker(name, phone, nin, email, pass, selectedSpecialties, payType, 0);
@@ -498,7 +526,7 @@ Bridge.Auth.onChange(async user => {
 function handleProfileState() {
   if (!profile) {
     // حساب مسجّل لكن ليس ضمن أعضاء الفريق (قد يكون حساب عميل مثلاً)
-    showStatusScreen('⚠️', 'هذا الحساب غير مسجّل كعضو فريق', 'يبدو أن البريد المستخدم غير مسجّل كمهندس أو عامل في مؤسسة الإنجاز. سجّل خروجاً وأنشئ حساب انضمام جديداً.');
+    showStatusScreen('⚠️', 'هذا الحساب غير مسجّل كعضو فريق', 'يبدو أن البريد المستخدم غير مسجّل كمهندس دراسات، أو مهندس متابعة تنفيذ، أو عامل في مؤسسة الإنجاز. سجّل خروجاً وأنشئ حساب انضمام جديداً.');
     return;
   }
   if (profile.status === 'pending') {
@@ -542,29 +570,38 @@ function showMainApp() {
   document.getElementById('mainNav').style.display='flex';
 
   const isEng = profile.role === 'engineer';
-  document.getElementById('hdrRoleLbl').textContent = isEng ? 'ENGINEER PORTAL' : 'WORKER PORTAL';
-  document.getElementById('ntabWorkIco').textContent = isEng ? '🏗️' : '📢';
-  document.getElementById('ntabWorkLbl').textContent = isEng ? 'مشاريعي' : 'العروض';
-  document.getElementById('workTitle').textContent = isEng ? '🏗️ مشاريعي' : '📢 عروض العمل';
+  const isSup = profile.role === 'supervisor';
+  document.getElementById('hdrBrandName').textContent = isEng ? 'مكتب جيل البناء للدراسات' : isSup ? 'مؤسسة جيل البناء للإنجاز' : 'مؤسسة جيل البناء للإنجاز';
+  document.getElementById('hdrRoleLbl').textContent = isEng ? 'ENGINEER PORTAL' : isSup ? 'SUPERVISOR PORTAL' : 'WORKER PORTAL';
+  document.getElementById('ntabWorkIco').textContent = isEng ? '📐' : isSup ? '🏗️' : '📢';
+  document.getElementById('ntabWorkLbl').textContent = isEng ? 'مشاريعي' : isSup ? 'مشاريعي' : 'العروض';
+  document.getElementById('workTitle').textContent = isEng ? '📐 مشاريعي' : isSup ? '🏗️ مشاريع المتابعة' : '📢 عروض العمل';
 
   document.getElementById('homeName').textContent = profile.name;
-  document.getElementById('homeRole').textContent = isEng ? `مهندس إشراف — ${profile.specialty||''}` : `عامل — ${(profile.specialties||[]).join('، ')}`;
+  document.getElementById('homeRole').textContent = isEng ? `مهندس دراسات — ${profile.specialty||''}` : isSup ? `مهندس متابعة تنفيذ — ${profile.specialty||''}` : `عامل — ${(profile.specialties||[]).join('، ')}`;
 
   document.getElementById('profName').textContent = profile.name;
-  document.getElementById('profRole').textContent = isEng ? 'مهندس إشراف' : 'عامل ورشة';
+  document.getElementById('profRole').textContent = isEng ? 'مهندس دراسات' : isSup ? 'مهندس متابعة تنفيذ' : 'عامل ورشة';
   document.getElementById('profPhone').textContent = profile.phone || '—';
   document.getElementById('profNin').textContent = profile.nin || '—';
   document.getElementById('profEmail').textContent = profile.email || '—';
-  document.getElementById('profSpecialty').textContent = isEng ? (profile.specialty||'—') : (profile.specialties||[]).join('، ') || '—';
+  document.getElementById('profSpecialty').textContent = (isEng || isSup) ? (profile.specialty||'—') : (profile.specialties||[]).join('، ') || '—';
 
   document.getElementById('earnMonth').value = new Date().toISOString().slice(0,7);
 
   if (projectsUnsub) projectsUnsub();
   if (offersUnsub) offersUnsub();
   if (appsUnsub) appsUnsub();
+  if (studyOpenUnsub) studyOpenUnsub();
+  if (studyMineUnsub) studyMineUnsub();
+  if (matOrdersUnsub) matOrdersUnsub();
 
   if (isEng) {
+    studyOpenUnsub = Bridge.StudyOffers.watchOpen(list => { studyOffersOpen = list; renderHomeStats(); if(isWorkActive()) renderWork(); });
+    studyMineUnsub = Bridge.StudyOffers.watchMine(currentUser.uid, list => { myStudyOffers = list; if(isWorkActive()) renderWork(); });
+  } else if (isSup) {
     projectsUnsub = Bridge.ExecProjects.watchByEngineer(currentUser.uid, list => { myProjects = list; renderHomeStats(); if(isWorkActive()) renderWork(); });
+    matOrdersUnsub = Bridge.MaterialOrders.watchPendingForSupervisor(currentUser.uid, list => { pendingMatOrders = list; if(isWorkActive()) renderWork(); });
   } else {
     projectsUnsub = profile.currentProjectId ? Bridge.ExecProjects.watchOne(profile.currentProjectId, p => { myProjects=[p]; renderHomeStats(); if(isWorkActive()) renderWork(); }) : null;
     offersUnsub = Bridge.Offers.watchAll(list => { myOffers = list; renderHomeStats(); if(isWorkActive()) renderWork(); });
@@ -578,10 +615,14 @@ function isWorkActive(){ return document.getElementById('screen-work')?.classLis
 
 function renderHomeStats() {
   const isEng = profile.role === 'engineer';
+  const isSup = profile.role === 'supervisor';
   const el = document.getElementById('homeStats');
   if (isEng) {
-    el.innerHTML = `<div class="stat-c"><div class="stat-n">${myProjects.length}</div><div class="stat-l">مشروع مُسند إليّ</div></div>
-      <div class="stat-c"><div class="stat-n">${(profile.visitFee||0).toLocaleString('ar-DZ')}</div><div class="stat-l">أتعاب الزيارة (دج)</div></div>`;
+    el.innerHTML = `<div class="stat-c"><div class="stat-n">${studyOffersOpen.length}</div><div class="stat-l">مشروع متاح بالسوق</div></div>
+      <div class="stat-c"><div class="stat-n">${myStudyOffers.length}</div><div class="stat-l">مشروع مُسند إليّ</div></div>`;
+  } else if (isSup) {
+    el.innerHTML = `<div class="stat-c"><div class="stat-n">${myProjects.length}</div><div class="stat-l">مشروع متابعة إنجاز</div></div>
+      <div class="stat-c"><div class="stat-n">${pendingMatOrders.length}</div><div class="stat-l">طلب مواد بانتظار موافقتك</div></div>`;
   } else {
     const openCount = myOffers.filter(o=>o.status==='open' && (profile.specialties||[]).includes(o.specialty)).length;
     el.innerHTML = `<div class="stat-c"><div class="stat-n">${openCount}</div><div class="stat-l">عروض متاحة لتخصصك</div></div>
@@ -604,15 +645,29 @@ window.goTab = goTab;
 function renderWork() {
   const el = document.getElementById('workContent');
   if (profile.role === 'engineer') { renderEngineerProjects(el); }
+  else if (profile.role === 'supervisor') { renderSupervisorProjects(el); }
   else { renderWorkerOffers(el); }
 }
 
 function execPhaseLabel(key){ return (Bridge.EXEC_PHASES.find(p=>p.key===key)||{}).label || key; }
 function execStatusLabel(s){ return {awaiting_start:'بانتظار الانطلاق', in_progress:'قيد التنفيذ', paused:'متوقف', completed:'مكتمل'}[s] || s; }
 
-function renderEngineerProjects(el) {
-  if (!myProjects.length) { el.innerHTML = '<div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا توجد مشاريع مُسندة إليك بعد</div><div class="empty-d">سيقوم المكتب بإسناد مشروع إليك قريباً</div></div>'; return; }
-  el.innerHTML = myProjects.map(p => {
+function renderSupervisorProjects(el) {
+  const matHtml = `
+    <div class="sec-title" style="margin-bottom:10px">📦 طلبات مواد بانتظار موافقتك</div>
+    ${!pendingMatOrders.length ? '<div class="empty-card"><div class="empty-ico">📦</div><div class="empty-t">لا توجد طلبات مواد بانتظار المراجعة</div></div>' :
+    pendingMatOrders.map(o => `<div class="pcard">
+      <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.phaseLabel||'')}</div><div class="pcard-name">${(o.items||[]).length} بند — ${(o.totalCost||0).toLocaleString('ar-DZ')} دج</div></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${(o.items||[]).map(it=>esc(it.name)+' × '+it.qty).join('، ')}</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-block" style="background:rgba(74,222,128,.15);color:var(--green);border-color:rgba(74,222,128,.3)" onclick="approveMatOrder('${o.id}')">✅ موافقة</button>
+        <button class="btn-block" style="background:rgba(248,113,113,.15);color:var(--red);border-color:rgba(248,113,113,.3)" onclick="rejectMatOrder('${o.id}')">✕ رفض</button>
+      </div>
+    </div>`).join('')}
+  `;
+
+  if (!myProjects.length) { el.innerHTML = matHtml + '<div class="empty-card" style="margin-top:18px"><div class="empty-ico">🏗️</div><div class="empty-t">لا توجد مشاريع متابعة مُسندة إليك بعد</div><div class="empty-d">سيقوم المكتب بإسناد مشروع إنجاز إليك قريباً</div></div>'; return; }
+  const projectsHtml = myProjects.map(p => {
     const phases = p.phases||[];
     const cur = phases[p.currentPhaseIndex||0];
     const done = phases.filter(ph=>ph.status==='done').length;
@@ -626,6 +681,68 @@ function renderEngineerProjects(el) {
       <button class="btn-block" onclick="openVisitModal('${p.id}')">📋 تسجيل محضر زيارة</button>
     </div>`;
   }).join('');
+  el.innerHTML = matHtml + `<div class="sec-title" style="margin:18px 0 10px">🏗️ مشاريعي</div>` + projectsHtml;
+}
+
+async function approveMatOrder(orderId) {
+  try { await Bridge.MaterialOrders.approveBySupervisor(orderId); showToast('✅ تمت الموافقة — تم إرسالها للمستودع'); }
+  catch(err) { showToast('❌ تعذر: '+(err?.message||'')); }
+}
+window.approveMatOrder = approveMatOrder;
+
+async function rejectMatOrder(orderId) {
+  const note = prompt('سبب الرفض (اختياري):') || '';
+  try { await Bridge.MaterialOrders.rejectBySupervisor(orderId, note); showToast('تم رفض الطلب'); }
+  catch(err) { showToast('❌ تعذر: '+(err?.message||'')); }
+}
+window.rejectMatOrder = rejectMatOrder;
+
+function renderEngineerProjects(el) {
+  const sortedOpen = studyOffersOpen.slice().sort((a,b) =>
+    (a.projWilaya||'').localeCompare(b.projWilaya||'','ar') || (a.commune||'').localeCompare(b.commune||'','ar'));
+
+  const marketHtml = `
+    <div class="sec-title" style="margin-bottom:10px">🔍 مشاريع دراسة متاحة</div>
+    ${!sortedOpen.length ? '<div class="empty-card"><div class="empty-ico">🔍</div><div class="empty-t">لا توجد مشاريع متاحة حالياً</div><div class="empty-d">سيُعرض هنا كل مشروع دراسة يوافق عليه العميل ويدفع أتعابه</div></div>' :
+    sortedOpen.map(o => {
+      const svcs = (o.services||[]).map(s => (Bridge.SVC_NAMES && Bridge.SVC_NAMES[s]) || s).join(' + ');
+      return `<div class="pcard">
+        <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.building||'مشروع')} — ${esc(o.floors||'')}</div><div class="pcard-name">📍 ${esc(o.projWilaya||'—')} — ${esc(o.commune||'—')}</div></div>
+          <span class="badge" style="background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3)">${(o.feeAmount||0).toLocaleString('ar-DZ')} دج</span>
+        </div>
+        ${o.area?`<div style="font-size:11px;color:var(--muted);margin-bottom:2px">المساحة: ${esc(o.area)} م²${o.rooms?' — الغرف: '+esc(o.rooms):''}</div>`:''}
+        ${svcs?`<div style="font-size:11px;color:var(--muted);margin-bottom:4px">الخدمات: ${esc(svcs)}</div>`:''}
+        ${o.desc?`<div style="font-size:11px;color:var(--text);margin-bottom:6px;line-height:1.6">${esc(o.desc)}</div>`:''}
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">نسبة الأتعاب: ${o.feePercent||0}%</div>
+        <button class="btn-block" onclick="acceptStudyOffer('${o.id}')">✅ قبول المشروع والأتعاب</button>
+      </div>`;
+    }).join('')}
+  `;
+
+  const mineHtml = `
+    <div class="sec-title" style="margin:18px 0 10px">📐 مشاريع الدراسة المسندة إليّ</div>
+    ${!myStudyOffers.length ? '<div class="empty-card"><div class="empty-ico">📐</div><div class="empty-t">لا توجد مشاريع دراسة مسندة إليك بعد</div><div class="empty-d">اقبل مشروعاً من القائمة أعلاه ليظهر هنا</div></div>' :
+    myStudyOffers.map(o => {
+      const statusLbl = {assigned:'قيد الدراسة', submitted:'بانتظار مراجعة المكتب', client_review:'قيد مراجعة العميل',
+        revisions_requested:'مطلوب تعديل ✏️', approved:'✅ وافق العميل', paid:'💰 تم صرف الأتعاب', handed_to_execution:'🏗️ انتقل للإنجاز'}[o.status] || o.status;
+      const lastNote = (o.revisionNotes||[]).slice(-1)[0];
+      const canUpload = o.status==='assigned' || o.status==='revisions_requested';
+      return `<div class="pcard">
+        <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.building||'مشروع')} — ${esc(o.floors||'')}</div><div class="pcard-name">📍 ${esc(o.projWilaya||'—')} — ${esc(o.commune||'—')}</div></div>
+          <span class="badge" style="background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3)">${statusLbl}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">أتعابك: <strong style="color:var(--gold)">${(o.feeAmount||0).toLocaleString('ar-DZ')} دج</strong> (${o.feePercent||0}%)</div>
+        ${o.status==='revisions_requested' && lastNote ? `<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text);margin-bottom:8px">✏️ ملاحظة العميل: ${esc(lastNote.text)}</div>` : ''}
+        ${o.files?.length ? `<div style="font-size:10px;color:var(--muted);margin-bottom:6px">آخر ملفات مرفوعة: ${o.files.map(f=>esc(f.name)).join('، ')}</div>` : ''}
+        ${canUpload ? `
+          <input type="file" id="studyFileInput_${o.id}" multiple accept=".pdf,.dwg,.jpg,.jpeg,.png" style="font-size:10px;margin-bottom:8px;width:100%">
+          <button class="btn-block" onclick="uploadStudyFiles('${o.id}')">📎 رفع ملفات الدراسة</button>
+        ` : ''}
+      </div>`;
+    }).join('')}
+  `;
+
+  el.innerHTML = marketHtml + mineHtml;
 }
 
 function renderWorkerOffers(el) {
@@ -669,6 +786,35 @@ async function applyToOffer(offerId) {
 }
 window.applyToOffer = applyToOffer;
 
+async function acceptStudyOffer(offerId) {
+  try {
+    const ok = await Bridge.StudyOffers.acceptFee(offerId, currentUser.uid, profile?.name || '');
+    if (ok) showToast('✅ تم قبول المشروع — يمكنك الآن العمل عليه من "مشاريعي"');
+    else showToast('⚠️ تم إسناد هذا المشروع لمهندس آخر للتو');
+  } catch(err) { console.error(err); showToast('❌ تعذر قبول المشروع'); }
+}
+window.acceptStudyOffer = acceptStudyOffer;
+
+async function uploadStudyFiles(offerId) {
+  const input = document.getElementById('studyFileInput_'+offerId);
+  if (!input || !input.files.length) { showToast('⚠️ اختر ملفاً واحداً على الأقل'); return; }
+  const btn = event?.target; if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ الرفع...'; }
+  try {
+    const metas = [];
+    for (const file of input.files) {
+      const meta = await Bridge.StudyOffers.uploadFile(offerId, file);
+      metas.push(meta);
+    }
+    await Bridge.StudyOffers.submitFiles(offerId, metas);
+    showToast('✅ تم رفع ملفات الدراسة — بانتظار مراجعة المكتب');
+  } catch(err) {
+    console.error(err);
+    showToast('❌ تعذر رفع الملفات: '+(err?.message||''));
+    if (btn) { btn.disabled = false; btn.textContent = '📎 رفع ملفات الدراسة'; }
+  }
+}
+window.uploadStudyFiles = uploadStudyFiles;
+
 // ═══ محضر الزيارة (مهندس) ══════════════════════════════
 function openVisitModal(projectId) {
   document.getElementById('vm_projectId').value = projectId;
@@ -683,14 +829,23 @@ window.closeVisitModal = closeVisitModal;
 
 async function submitVisit() {
   const projectId = document.getElementById('vm_projectId').value;
+  const photoInput = document.getElementById('vm_photos');
   const data = {
     engineerId: currentUser.uid,
     date: document.getElementById('vm_date').value,
     progress: Number(document.getElementById('vm_progress').value)||0,
     notes: document.getElementById('vm_notes').value,
     issues: document.getElementById('vm_issues').value,
+    photos: [],
   };
-  try { await Bridge.ExecProjects.addVisit(projectId, data); closeVisitModal(); showToast('✅ تم حفظ محضر الزيارة'); }
+  try {
+    if (photoInput?.files?.length) {
+      for (const f of photoInput.files) data.photos.push(await Bridge.ExecProjects.uploadVisitPhoto(projectId, f));
+    }
+    await Bridge.ExecProjects.addVisit(projectId, data);
+    closeVisitModal();
+    showToast('✅ تم حفظ محضر الزيارة');
+  }
   catch(err) { showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
 }
 window.submitVisit = submitVisit;
@@ -703,6 +858,11 @@ async function loadEarnings() {
   el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px">جارٍ التحميل...</div>';
 
   if (profile.role === 'engineer') {
+    el.innerHTML = `<div class="empty-card"><div class="empty-ico">📐</div><div class="empty-t">أتعابك تُحتسب لكل مشروع دراسة</div><div class="empty-d">راجع تبويب "مشاريعي" لمعرفة أتعاب كل مشروع دراسة على حدة.</div></div>`;
+    return;
+  }
+
+  if (profile.role === 'supervisor') {
     try {
       const fees = await Bridge.ExecProjects.monthlyEngineerFees(currentUser.uid, ym);
       el.innerHTML = `<div class="tw"><table><tbody>

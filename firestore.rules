@@ -79,11 +79,19 @@ service cloud.firestore {
       allow delete: if false;
 
       match /visits/{visitId}      { allow read, write: if true; }
+      match /comments/{commentId}  { allow read, write: if true; }
       match /notifications/{nId}   { allow read, write, delete: if true; }
     }
 
     // عروض العمل
     match /work_offers/{offerId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /study_offers/{offerId} {
       allow read:   if true;
       allow create: if true;
       allow update: if true;

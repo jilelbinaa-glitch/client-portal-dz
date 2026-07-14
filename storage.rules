@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════
+//  STORAGE RULES — ملفات دراسة المشاريع (study_files/{offerId}/...)
+//  ملاحظة: هذا الملف غير موجود سابقاً في المشروع — يجب نشره يدوياً
+//  عبر Firebase Console أو Firebase CLI (firebase deploy --only storage)
+//  حتى يعمل رفع ملفات الدراسة من exec_portal.html.
+// ══════════════════════════════════════════════════════════
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /study_files/{offerId}/{fileName} {
+      allow read:   if true;
+      allow write:  if true;
+      allow delete: if true;
+    }
+    match /request_files/{ticket}/{fileName} {
+      allow read:   if true;
+      allow write:  if true;
+      allow delete: if true;
+    }
+    match /visit_photos/{projectId}/{fileName} {
+      allow read:   if true;
+      allow write:  if true;
+      allow delete: if true;
+    }
+  }
+}

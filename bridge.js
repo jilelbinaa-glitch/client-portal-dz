@@ -26,6 +26,9 @@ import {
   createUserWithEmailAndPassword, updateProfile, deleteUser,
   sendPasswordResetEmail, sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2W3B4F-elXqMYpzTTyUY-elBR29hgWc8",
@@ -40,6 +43,7 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // ── مفاتيح المجموعات ────────────────────────────────────
 const COL = {
@@ -53,6 +57,7 @@ const COL = {
   workApps:     'work_applications',
   materials:      'materials',
   materialOrders: 'material_orders',
+  studyOffers:    'study_offers',
 };
 
 // ── مراحل الإنجاز الموحّدة (10 مراحل) ───────────────────
@@ -351,6 +356,19 @@ const Requests = {
 
     emit('request:updated', updated);
     return updated;
+  },
+
+  // رفع مرفق حقيقي (صور/مخططات) إلى Firebase Storage → {name,url,size}
+  async uploadFile(ticket, file) {
+    const path = `request_files/${ticket}/${Date.now()}_${file.name}`;
+    const ref = storageRef(storage, path);
+    await uploadBytes(ref, file);
+    const url = await getDownloadURL(ref);
+    return { name: file.name, url, size: file.size };
+  },
+
+  async attachFiles(ticket, fileMetas) {
+    await updateDoc(doc(db, COL.requests, ticket), clean({ files: fileMetas, updatedAt: serverTimestamp() }));
   },
 
   async convertToProject(reqId, projectId) {
@@ -656,6 +674,31 @@ const Team = {
     return cred.user;
   },
 
+  // مهندس متابعة تنفيذ دائم — تصنيف منفصل تماماً عن مهندس الدراسات الفريلانسر
+  async registerSupervisor(name, phone, nin, email, password, specialty, visitFee) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    try {
+      await updateProfile(cred.user, { displayName: name });
+      const member = clean({
+        uid: cred.user.uid, name, phone, nin, email,
+        role: 'supervisor', specialty: specialty || 'إشراف عام',
+        visitFee: Number(visitFee) || 0,
+        status: 'pending', currentProjectId: null,
+        createdAt: serverTimestamp(),
+      });
+      await setDoc(doc(db, COL.teamMembers, cred.user.uid), member);
+      await Notifs.add('office', {
+        type: 'team_join_request', icon: '🏗️',
+        title: 'طلب انضمام مهندس متابعة تنفيذ', body: `${name} — ${specialty || 'إشراف عام'}`,
+      });
+    } catch (err) {
+      try { await deleteUser(cred.user); } catch (e2) {}
+      throw err;
+    }
+    emit('auth:changed', cred.user);
+    return cred.user;
+  },
+
   async registerWorker(name, phone, nin, email, password, specialties, payType, rate) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     try {
@@ -837,6 +880,7 @@ const ExecProjects = {
     if (engineerId !== undefined) update['team.engineerId'] = engineerId;
     if (workerIds  !== undefined) update['team.workerIds']  = workerIds;
     await updateDoc(doc(db, COL.execProjects, id), { ...update, updatedAt: serverTimestamp() });
+    if (engineerId) { try { await Team.updateProfile_(engineerId, { currentProjectId: id }); } catch(e) {} }
     emit('exec:teamAssigned', { id, engineerId, workerIds });
   },
 
@@ -866,22 +910,57 @@ const ExecProjects = {
 
   // ── محاضر زيارة الورشة (مرتبطة بأتعاب المهندس) ──────────
   // exec_projects/{id}/visits/{autoId}
-  async addVisit(projectId, { engineerId, date, notes, progress, issues }) {
+  async addVisit(projectId, { engineerId, date, notes, progress, issues, photos }) {
     const eng = await Team.getProfile(engineerId);
     const visit = clean({
       engineerId, engineerName: eng?.name || '', date: date || new Date().toISOString().slice(0,10),
-      notes: notes || '', progress: progress || 0, issues: issues || '',
+      notes: notes || '', progress: progress || 0, issues: issues || '', photos: photos || [],
       feeCharged: eng?.visitFee || 0,
       createdAt: serverTimestamp(),
     });
     const ref = await addDoc(collection(db, COL.execProjects, projectId, 'visits'), visit);
+    await Notifs.add('client_exec_' + projectId, { type:'visit_added', icon:'📋', title:'محضر زيارة جديد', body: notes || '' });
     emit('exec:visitAdded', { projectId, id: ref.id, ...visit });
     return { id: ref.id, ...visit };
+  },
+
+  async uploadVisitPhoto(projectId, file) {
+    const path = `visit_photos/${projectId}/${Date.now()}_${file.name}`;
+    const ref = storageRef(storage, path);
+    await uploadBytes(ref, file);
+    const url = await getDownloadURL(ref);
+    return { name: file.name, url };
   },
 
   async getVisits(projectId) {
     const snap = await getDocs(collection(db, COL.execProjects, projectId, 'visits'));
     return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+  },
+
+  watchVisits(projectId, cb) {
+    return onSnapshot(collection(db, COL.execProjects, projectId, 'visits'), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => toMillis(b.createdAt) - toMillis(a.createdAt)));
+    });
+  },
+
+  // ── ملاحظات العميل على سير الإنجاز + ردّ المكتب ─────────
+  // exec_projects/{id}/comments/{autoId}
+  async addComment(projectId, { from, text }) {
+    const comment = clean({ from, text, createdAt: serverTimestamp() });
+    const ref = await addDoc(collection(db, COL.execProjects, projectId, 'comments'), comment);
+    if (from === 'client') {
+      await Notifs.add('office', { type:'exec_comment', icon:'💬', title:'ملاحظة جديدة من العميل', body: text });
+    } else {
+      await Notifs.add('client_exec_' + projectId, { type:'exec_comment_reply', icon:'💬', title:'رد المكتب على ملاحظتك', body: text });
+    }
+    emit('exec:comment', { projectId, id: ref.id, ...comment });
+    return { id: ref.id, ...comment };
+  },
+
+  watchComments(projectId, cb) {
+    return onSnapshot(query(collection(db, COL.execProjects, projectId, 'comments'), orderBy('createdAt','asc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
   },
 
   // أتعاب مهندس معيّن خلال شهر معيّن — تُجمع بتصفّح مشاريعه فقط (بدون collectionGroup)
@@ -1004,6 +1083,128 @@ const Applications = {
 };
 
 // ══════════════════════════════════════════════════════════
+//  STUDY OFFERS — سوق مشاريع الدراسة للمهندسين الفريلانسر
+//  study_offers/{requestId}: نسخة "آمنة" من الطلب بدون أي بيانات
+//  شخصية عن العميل (لا اسم، لا هاتف، لا بريد، لا رقم تعريف) —
+//  فقط متطلبات المشروع، لعرضها للمهندسين قبل قبولهم للمشروع.
+// ══════════════════════════════════════════════════════════
+const StudyOffers = {
+
+  // ينشرها المكتب بعد موافقة العميل على عرض السعر ودفعه
+  async publish(reqId, offerData) {
+    const ref = doc(db, COL.studyOffers, reqId);
+    const offer = clean({
+      reqId,
+      ...offerData, // building, floors, area, rooms, services, projWilaya, commune, landInfo, desc, timeline
+      feePercent: Number(offerData.feePercent) || 0,
+      feeAmount:  Number(offerData.feeAmount)  || 0,
+      status: 'open',
+      assignedEngineer: null,
+      assignedEngineerName: null,
+      createdAt: serverTimestamp(),
+    });
+    await setDoc(ref, offer);
+    await updateDoc(doc(db, COL.requests, reqId), clean({ studyOfferPublished: true, updatedAt: serverTimestamp() }));
+    emit('studyOffer:published', { id: reqId, ...offer });
+    return { id: reqId, ...offer };
+  },
+
+  async get(id) {
+    const snap = await getDoc(doc(db, COL.studyOffers, id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  // المشاريع المتاحة للمهندسين (لم تُسنَد بعد) — مرتّبة الأحدث أولاً
+  watchOpen(cb) {
+    return onSnapshot(query(collection(db, COL.studyOffers), orderBy('createdAt', 'desc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => o.status === 'open'));
+    });
+  },
+
+  // المشاريع المسندة لمهندس معيّن
+  watchMine(engineerUid, cb) {
+    return onSnapshot(query(collection(db, COL.studyOffers), where('assignedEngineer', '==', engineerUid)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // المهندس يقبل المشروع + الأتعاب المقترحة معاً (خطوة واحدة)
+  async acceptFee(offerId, engineerUid, engineerName) {
+    const ref = doc(db, COL.studyOffers, offerId);
+    const snap = await getDoc(ref);
+    if (!snap.exists() || snap.data().status !== 'open') return null;
+    await updateDoc(ref, clean({
+      status: 'assigned', assignedEngineer: engineerUid, assignedEngineerName: engineerName || '', assignedAt: serverTimestamp(),
+    }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({
+      assignedEngineer: engineerUid, assignedEngineerName: engineerName || '',
+      status: 'engineer_assigned', statusLabel: 'تم إسناد المشروع لمهندس دراسات', updatedAt: serverTimestamp(),
+    }));
+    await Notifs.add('office', { type: 'study_offer_accepted', icon: '📐', title: 'مهندس قبل مشروع دراسة', body: engineerName || '' });
+    emit('studyOffer:accepted', { id: offerId, engineerUid });
+    return true;
+  },
+
+  // رفع ملف دراسة إلى Firebase Storage → يرجع {name,url,size}
+  async uploadFile(offerId, file) {
+    const path = `study_files/${offerId}/${Date.now()}_${file.name}`;
+    const ref = storageRef(storage, path);
+    await uploadBytes(ref, file);
+    const url = await getDownloadURL(ref);
+    return { name: file.name, url, size: file.size };
+  },
+
+  // المهندس يرسل ملفات الدراسة للمراجعة (يستبدل أي ملفات سابقة بأحدث نسخة)
+  async submitFiles(offerId, fileMetas) {
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({
+      files: fileMetas, status: 'submitted', submittedAt: serverTimestamp(),
+    }));
+    await Notifs.add('office', { type: 'study_files_submitted', icon: '📎', title: 'المهندس رفع ملفات الدراسة', body: '' });
+    emit('studyOffer:filesSubmitted', { id: offerId });
+  },
+
+  // المكتب يطّلع على الملفات ثم يرسلها للعميل للمراجعة النهائية
+  async sendToClient(offerId) {
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'client_review', sentToClientAt: serverTimestamp() }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({ studyReviewReady: true, status: 'client_review', statusLabel: 'التصميم بانتظار مراجعتك', updatedAt: serverTimestamp() }));
+    await Notifs.add('client_' + offerId, { type: 'design_ready', icon: '🎨', title: 'تصميمك جاهز للمراجعة', body: 'يمكنك الاطّلاع عليه وإبداء ملاحظاتك' });
+  },
+
+  // العميل يطلب تعديلاً (رفع تحفظات) — مفتوح بلا حد لعدد الجولات
+  async requestRevision(offerId, note) {
+    const ref = doc(db, COL.studyOffers, offerId);
+    const snap = await getDoc(ref); if (!snap.exists()) return;
+    const notes = snap.data().revisionNotes || [];
+    notes.push({ text: note, ts: new Date().toISOString(), from: 'client' });
+    await updateDoc(ref, clean({ status: 'revisions_requested', revisionNotes: notes }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({ status: 'revisions_requested', statusLabel: 'العميل طلب تعديلات على التصميم', updatedAt: serverTimestamp() }));
+    await Notifs.add('office', { type: 'study_revision', icon: '✏️', title: 'العميل طلب تعديلات على التصميم', body: note });
+  },
+
+  // العميل يوافق نهائياً على التصميم
+  async approve(offerId) {
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'approved', approvedAt: serverTimestamp() }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({ status: 'study_approved', statusLabel: 'تمت الموافقة على الدراسة', updatedAt: serverTimestamp() }));
+    await Notifs.add('office', { type: 'study_approved', icon: '✅', title: 'العميل وافق على التصميم النهائي', body: '' });
+  },
+
+  // المكتب يدفع أتعاب المهندس بعد موافقة العميل
+  async markPaid(offerId) {
+    const offer = await this.get(offerId);
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'paid', paidAt: serverTimestamp() }));
+    if (offer?.assignedEngineer) {
+      await Notifs.add('team_' + offer.assignedEngineer, { type: 'fee_paid', icon: '💰', title: 'تم دفع أتعابك', body: (offer.feeAmount||0).toLocaleString('ar-DZ') + ' دج' });
+    }
+  },
+
+  // انتقال المشروع لمؤسسة الإنجاز بعد اكتمال الدراسة والدفع
+  async handToExecution(offerId) {
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'handed_to_execution', handedAt: serverTimestamp() }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({ status: 'execution', statusLabel: 'انتقل المشروع لمؤسسة الإنجاز', updatedAt: serverTimestamp() }));
+  },
+};
+
+// ══════════════════════════════════════════════════════════
 //  MATERIALS — مستودع بيع مواد البناء
 //  materials/{id}: كتالوج مركزي بالأسعار الوحدوية + المخزون الفعلي.
 // ══════════════════════════════════════════════════════════
@@ -1055,21 +1256,52 @@ const Materials = {
 const MaterialOrders = {
 
   // items: [{materialId, name, unit, qty, unitPrice}]
-  async create({ projectLabel, clientId, clientName, clientPhone, address, items, notes, source }) {
+  // execProjectId + phaseLabel + supervisorId: عند ربط الطلب بمشروع إنجاز نشط —
+  // الطلب حينها يمر أولاً على مهندس المتابعة قبل أن يصل للمستودع
+  async create({ projectLabel, clientId, clientName, clientPhone, address, items, notes, source, execProjectId, phaseLabel, supervisorId }) {
     const orderId = await matTicketNum();
     const priced = (items || []).map(it => ({ ...it, subtotal: (Number(it.qty)||0) * (Number(it.unitPrice)||0) }));
     const totalCost = priced.reduce((s, it) => s + it.subtotal, 0);
+    const linked = !!execProjectId;
     const order = clean({
       orderId, projectLabel: projectLabel || '', clientId: clientId || null, clientName: clientName || '',
       clientPhone: clientPhone || '', address: address || '',
       items: priced, totalCost, notes: notes || '',
-      source: source || 'office', status: 'draft', createdAt: serverTimestamp(),
+      execProjectId: execProjectId || null, phaseLabel: phaseLabel || null, supervisorId: supervisorId || null,
+      source: source || 'office', status: linked ? 'pending_supervisor' : 'draft', createdAt: serverTimestamp(),
     });
     await setDoc(doc(db, COL.materialOrders, orderId), order);
-    if ((source || 'office') === 'client') {
+    if (linked && supervisorId) {
+      await Notifs.add('team_' + supervisorId, { type:'material_review', icon:'📦', title:'طلب مواد بانتظار موافقتك', body:`${phaseLabel||''} — ${priced.length} بند` });
+    } else if ((source || 'office') === 'client') {
       await Notifs.add('office', { type:'material_order_new', icon:'📦', title:'طلبية مواد جديدة من عميل', body:`${clientName||''} — ${priced.length} بند — ${totalCost.toLocaleString('ar-DZ')} دج` });
     }
     return order;
+  },
+
+  // مهندس المتابعة يوافق على الطلب (يصبح جاهزاً للمستودع كأي طلبية عادية)
+  async approveBySupervisor(orderId) {
+    await updateDoc(doc(db, COL.materialOrders, orderId), clean({ status: 'draft', supervisorApprovedAt: serverTimestamp() }));
+    await Notifs.add('office', { type:'material_order_new', icon:'📦', title:'طلبية مواد وافق عليها مهندس المتابعة', body:'' });
+  },
+
+  // مهندس المتابعة يرفض الطلب (غير مناسب للمرحلة الحالية مثلاً)
+  async rejectBySupervisor(orderId, note) {
+    await updateDoc(doc(db, COL.materialOrders, orderId), clean({ status: 'rejected_by_supervisor', supervisorNote: note || '' }));
+  },
+
+  // طلبيات مشروع إنجاز معيّن (لعرضها للعميل ولمهندس المتابعة)
+  watchByProject(execProjectId, cb) {
+    return onSnapshot(query(collection(db, COL.materialOrders), where('execProjectId', '==', execProjectId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // الطلبيات بانتظار موافقة مهندس متابعة معيّن
+  watchPendingForSupervisor(supervisorId, cb) {
+    return onSnapshot(query(collection(db, COL.materialOrders), where('supervisorId', '==', supervisorId)), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => o.status === 'pending_supervisor'));
+    });
   },
 
   // طلبيات عميل معيّن — فلترة بشرط واحد فقط
@@ -1149,7 +1381,7 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('ar-DZ'); }
 // ══════════════════════════════════════════════════════════
 const Bridge = {
   Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db,
-  Team, ExecProjects, Offers, Applications, EXEC_PHASES, SPECIALTIES,
+  Team, ExecProjects, Offers, Applications, StudyOffers, EXEC_PHASES, SPECIALTIES,
   Materials, MaterialOrders,
 };
 window.Bridge = Bridge;

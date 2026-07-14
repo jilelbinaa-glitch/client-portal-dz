@@ -32,6 +32,43 @@ nav{display:flex;gap:2px;flex-wrap:wrap;}
 .hdate{font-size:10px;color:var(--muted);}
 main{padding:20px;max-width:1500px;margin:0 auto;}
 .page{display:none;}.page.active{display:block;}
+
+/* ═══ SIDEBAR — قائمة جانبية عصرية ═══ */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:299;backdrop-filter:blur(2px);}
+.sidebar-overlay.show{display:block;}
+.sidebar{position:fixed;top:0;right:0;height:100vh;width:252px;background:linear-gradient(180deg,#141824,#0f1117 60%);border-left:1px solid var(--border);z-index:300;display:flex;flex-direction:column;transition:transform .28s ease,width .22s ease;box-shadow:-8px 0 24px -12px rgba(0,0,0,.5);}
+.sb-brand{display:flex;align-items:center;gap:12px;padding:20px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-brand .logo-icon{width:42px;height:42px;}
+.sb-brand-text h1{font-size:14px;font-weight:800;color:var(--gold);white-space:nowrap;}
+.sb-brand-text p{font-size:9.5px;color:var(--muted);white-space:nowrap;}
+.sb-close{display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;margin-right:auto;}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:4px;}
+.sb-item{position:relative;display:flex;align-items:center;gap:14px;background:none;border:none;color:var(--muted);padding:13px 14px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;transition:all .18s;white-space:nowrap;width:100%;text-align:right;}
+.sb-item .sb-ico{font-size:22px;width:26px;text-align:center;flex-shrink:0;filter:grayscale(.15);}
+.sb-item:hover{background:var(--card);color:var(--text);}
+.sb-item.active{background:var(--gold-glow);color:var(--gold);box-shadow:inset 3px 0 0 var(--gold);}
+.sb-item .sb-badge{margin-right:auto;background:var(--red);color:#fff;border-radius:50%;min-width:18px;height:18px;padding:0 4px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.sb-item .sb-badge.teal{background:var(--teal);color:var(--ink);}
+.sb-item .sb-badge.green{background:var(--green);color:var(--ink);}
+.sb-item .sb-badge.amber{background:var(--amber);color:var(--ink);}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0;}
+.sb-toggle{background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:var(--rsm);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-toggle:hover{border-color:var(--gold);color:var(--gold);}
+
+body.has-sidebar header, body.has-sidebar main{margin-right:252px;transition:margin .22s ease;}
+body.sidebar-collapsed .sidebar{width:76px;}
+body.sidebar-collapsed .sb-brand-text,body.sidebar-collapsed .sb-item span:not(.sb-ico){display:none;}
+body.sidebar-collapsed .sb-item{justify-content:center;padding:13px 0;}
+body.sidebar-collapsed .sb-item .sb-badge{position:absolute;top:6px;left:10px;margin:0;}
+body.sidebar-collapsed.has-sidebar header,body.sidebar-collapsed.has-sidebar main{margin-right:76px;}
+
+@media (max-width:960px){
+  body.has-sidebar header,body.has-sidebar main,body.sidebar-collapsed.has-sidebar header,body.sidebar-collapsed.has-sidebar main{margin-right:0;}
+  .sidebar{transform:translateX(100%);width:270px;}
+  body.sidebar-open .sidebar{transform:translateX(0);}
+  .sb-close{display:block;}
+  #hamburgerBtn{display:flex!important;}
+}
 .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s;}
 .sc:hover{border-color:var(--gold-dim);}
@@ -151,27 +188,45 @@ select option{background:var(--surface);}
   </div>
 </div>
 <div id="officeDashboardRoot" style="display:none;">
-<header>
-  <div class="logo"><div class="logo-icon"><img src="logo.png" alt="شعار جيل البناء"></div><div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div></div>
-  <nav>
-    <button class="nb active" onclick="showPage('dashboard')">📊 لوحة التحكم</button>
-    <button class="nb" onclick="showPage('requests')">📨 الطلبات
-      <span id="reqNavBadge" style="background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
-      <span id="msgNavBadge" style="background:var(--teal);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;display:none"></span>
-      <span id="acceptNavBadge" style="background:var(--green);color:var(--ink);border-radius:99px;padding:0 6px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:3px;display:none"></span>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarMobile()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="logo-icon"><img src="logo.png" alt="شعار جيل البناء"></div>
+    <div class="sb-brand-text"><h1 id="officeName2">مكتب الدراسات المعمارية</h1><p id="officeSubtitle2">نظام إدارة المشاريع المتكامل</p></div>
+    <button class="sb-close" onclick="closeSidebarMobile()">✕</button>
+  </div>
+  <nav class="sb-nav">
+    <button class="sb-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="sb-ico">📊</span><span>لوحة التحكم</span></button>
+    <button class="sb-item" data-page="requests" onclick="showPage('requests')"><span class="sb-ico">📨</span><span>الطلبات</span>
+      <span id="reqNavBadge" class="sb-badge" style="display:none"></span>
+      <span id="msgNavBadge" class="sb-badge teal" style="display:none"></span>
+      <span id="acceptNavBadge" class="sb-badge green" style="display:none"></span>
     </button>
-    <button class="nb" onclick="showPage('projects')">🏗️ المشاريع</button>
-    <button class="nb" onclick="showPage('execadmin')">🏢 مؤسسة الإنجاز
-      <span id="execNavBadge" style="background:var(--amber);color:var(--ink);border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:5px;display:none"></span>
+    <button class="sb-item" data-page="projects" onclick="showPage('projects')"><span class="sb-ico">🏗️</span><span>المشاريع</span></button>
+    <button class="sb-item" data-page="execadmin" onclick="showPage('execadmin')"><span class="sb-ico">🏢</span><span>مؤسسة الإنجاز</span>
+      <span id="execNavBadge" class="sb-badge amber" style="display:none"></span>
     </button>
-    <button class="nb" onclick="showPage('team')">👷 الفريق</button>
-    <button class="nb" onclick="window.open('materials_store.html','_blank')">📦 مستودع المواد</button>
-    <button class="nb" onclick="showPage('costs')">💰 التكاليف</button>
-    <button class="nb" onclick="showPage('logs')">📋 الورشة</button>
-    <button class="nb" onclick="showPage('reports')">📈 التقارير</button>
-    <button class="nb" onclick="showPage('materials')">🧱 المواد</button>
-    <button class="nb" onclick="showPage('map')">🗺️ الخريطة</button>
+    <button class="sb-item" data-page="team" onclick="showPage('team')"><span class="sb-ico">👷</span><span>الفريق</span></button>
+    <button class="sb-item" onclick="window.open('materials_store.html','_blank')"><span class="sb-ico">📦</span><span>مستودع المواد</span></button>
+    <button class="sb-item" data-page="costs" onclick="showPage('costs')"><span class="sb-ico">💰</span><span>التكاليف</span></button>
+    <button class="sb-item" data-page="logs" onclick="showPage('logs')"><span class="sb-ico">📋</span><span>الورشة</span></button>
+    <button class="sb-item" data-page="reports" onclick="showPage('reports')"><span class="sb-ico">📈</span><span>التقارير</span></button>
+    <button class="sb-item" data-page="materials" onclick="showPage('materials')"><span class="sb-ico">🧱</span><span>المواد</span></button>
+    <button class="sb-item" data-page="map" onclick="showPage('map')"><span class="sb-ico">🗺️</span><span>الخريطة</span></button>
   </nav>
+  <div class="sb-foot">
+    <button class="sb-toggle" style="width:100%;border-radius:var(--rsm);gap:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted)" onclick="toggleSidebarCollapse()">
+      <span id="sbCollapseIco">◀</span><span id="sbCollapseLbl">طي القائمة</span>
+    </button>
+  </div>
+</aside>
+
+<header>
+  <div class="logo">
+    <button class="sb-toggle" onclick="openSidebarMobile()" title="القائمة" style="display:none" id="hamburgerBtn">☰</button>
+    <div class="logo-icon"><img src="logo.png" alt="شعار جيل البناء"></div>
+    <div class="logo-text"><h1 id="officeName">مكتب الدراسات المعمارية</h1><p id="officeSubtitle">نظام إدارة المشاريع المتكامل</p></div>
+  </div>
   <div class="hdr">
     <div class="hdate" id="headerDate"></div>
     <button class="icon-btn" onclick="togglePanel('notifPanel')" title="الإشعارات">🔔<span class="nbadge" id="notifBadge">0</span></button>
@@ -350,8 +405,18 @@ select option{background:var(--surface);}
       <div class="fgi"><label>نسبة التقدم %</label><input id="av_progress" type="number" min="0" max="100" value="0"></div>
       <div class="fgi full"><label>ملاحظات</label><textarea id="av_notes"></textarea></div>
       <div class="fgi full"><label>مشاكل/عوائق</label><textarea id="av_issues"></textarea></div>
+      <div class="fgi full"><label>صور الزيارة</label><input type="file" id="av_photos" multiple accept=".jpg,.jpeg,.png"></div>
     </div>
     <div class="mf"><button class="btn btn-outline" onclick="closeModal('addVisitModal')">إلغاء</button><button class="btn btn-gold" onclick="saveExecVisit()">حفظ المحضر</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="execCommentsModal">
+  <div class="modal"><h3>💬 ملاحظات العميل على الإنجاز</h3>
+    <input type="hidden" id="ec_projectId">
+    <div id="ec_thread" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+    <textarea id="ec_reply" placeholder="اكتب ردّك على العميل..." style="width:100%;min-height:60px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:12px"></textarea>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('execCommentsModal')">إغلاق</button><button class="btn btn-gold" onclick="sendExecComment()">إرسال الرد</button></div>
   </div>
 </div>
 
@@ -596,11 +661,12 @@ function destroyCh(id){ if(charts[id]){charts[id].destroy();delete charts[id];} 
 // ── NAVIGATION ────────────────────────────────────────────────
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('.nb').forEach(b=>{
-    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
+  document.querySelectorAll('.sb-item[data-page]').forEach(b=>{
+    if(b.getAttribute('data-page')===id) b.classList.add('active');
   });
+  closeSidebarMobile();
   ({dashboard:()=>{renderDash();setTimeout(renderCharts,80);},
     projects:renderProjects,
     team:()=>{renderTeam();popAttSel();popWagesMonths();},
@@ -645,6 +711,8 @@ function applySettings(){
   const e=document.getElementById('set_eng').value||'';
   document.getElementById('officeName').textContent=n;
   document.getElementById('officeSubtitle').textContent=e?'م. '+e:'نظام إدارة المشاريع المتكامل';
+  document.getElementById('officeName2').textContent=n;
+  document.getElementById('officeSubtitle2').textContent=e?'م. '+e:'نظام إدارة المشاريع المتكامل';
 }
 function saveSettings(){
   settings={name:document.getElementById('set_name').value,eng:document.getElementById('set_eng').value,
@@ -1406,6 +1474,7 @@ async function __officeLogin() {
       _officeStarted = true;
       document.getElementById('officeLoginGate').style.display = 'none';
       document.getElementById('officeDashboardRoot').style.display = '';
+      document.body.classList.add('has-sidebar');
       startOfficeDashboard();
     }
   } catch (err) {
@@ -1430,6 +1499,28 @@ function startOfficeDashboard(){
   initBridgeInOffice();
 }
 
+function openSidebarMobile(){ document.body.classList.add('sidebar-open'); document.getElementById('sidebarOverlay').classList.add('show'); }
+function closeSidebarMobile(){ document.body.classList.remove('sidebar-open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+window.openSidebarMobile = openSidebarMobile;
+window.closeSidebarMobile = closeSidebarMobile;
+
+function toggleSidebarCollapse(){
+  const collapsed = document.body.classList.toggle('sidebar-collapsed');
+  document.getElementById('sbCollapseIco').textContent = collapsed ? '▶' : '◀';
+  document.getElementById('sbCollapseLbl').textContent = collapsed ? '' : 'طي القائمة';
+  try { localStorage.setItem('arch_sidebar_collapsed', collapsed ? '1':'0'); } catch(e){}
+}
+window.toggleSidebarCollapse = toggleSidebarCollapse;
+try {
+  if (localStorage.getItem('arch_sidebar_collapsed') === '1') {
+    document.body.classList.add('sidebar-collapsed');
+    document.addEventListener('DOMContentLoaded', () => {
+      const ico=document.getElementById('sbCollapseIco'), lbl=document.getElementById('sbCollapseLbl');
+      if(ico) ico.textContent='▶'; if(lbl) lbl.textContent='';
+    });
+  }
+} catch(e){}
+
 let _officeStarted = false;
 Bridge.Auth.onChange(user => {
   if (_officeStarted) return;
@@ -1437,6 +1528,7 @@ Bridge.Auth.onChange(user => {
     _officeStarted = true;
     document.getElementById('officeLoginGate').style.display = 'none';
     document.getElementById('officeDashboardRoot').style.display = '';
+    document.body.classList.add('has-sidebar');
     startOfficeDashboard();
   }
 });
@@ -1506,7 +1598,7 @@ async function initBridgeInOffice(){
     const pendingCount = members.filter(m => m.status === 'pending').length;
     const navBadge = document.getElementById('execNavBadge');
     if (navBadge) { navBadge.textContent = pendingCount || ''; navBadge.style.display = pendingCount ? 'inline-flex' : 'none'; }
-    newPending.forEach(m => addNavNotif(m.role === 'engineer' ? '👷' : '🔨', 'طلب انضمام جديد', `${m.name} — ${m.role === 'engineer' ? (m.specialty||'') : (m.specialties||[]).join('، ')}`, '', 'team'));
+    newPending.forEach(m => addNavNotif(m.role === 'engineer' ? '📐' : m.role === 'supervisor' ? '🏗️' : '🔨', 'طلب انضمام جديد', `${teamRoleLabel(m.role)} — ${m.role === 'worker' ? (m.specialties||[]).join('، ') : (m.specialty||'')}`, '', 'team'));
   });
   Bridge.ExecProjects.watchAll(projs => {
     _cachedExecProjects = projs;
@@ -1732,6 +1824,7 @@ async function openReqDetail(reqId){
   const sm=Bridge.STATUS_MAP[req.status]||Bridge.STATUS_MAP.pending;
   const svcs=(req.services||[]).map(s=>Bridge.SVC_NAMES[s]||s).join(' + ');
   const quote = await Bridge.Quotes.getByReq(reqId);
+  const studyOffer = req.studyOfferPublished ? await Bridge.StudyOffers.get(reqId) : null;
 
   const html=`
   <div class="modal-overlay open" id="reqDetailModal" onclick="if(event.target===this)closeModal('reqDetailModal')">
@@ -1818,6 +1911,50 @@ async function openReqDetail(reqId){
         <div style="font-size:10px;color:var(--muted);margin-top:4px">رُفض بتاريخ: ${Bridge.fmtDate(quote.respondedAt)}</div>
       </div>`:''}
 
+      ${studyOffer ? `
+      <div style="margin-top:16px;padding:14px;background:var(--surface);border-radius:var(--rsm);border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">📐 متابعة الدراسة${studyOffer.assignedEngineerName?` — المهندس: <span style="color:var(--gold)">${studyOffer.assignedEngineerName}</span>`:''}</div>
+
+        ${!studyOffer.assignedEngineer ? `<div style="font-size:12px;color:var(--muted)">بانتظار قبول أحد المهندسين للمشروع من سوق المهندسين.</div>` : ''}
+
+        ${studyOffer.status==='assigned' ? `<div style="font-size:12px;color:var(--muted)">المهندس يعمل على الدراسة حالياً.</div>` : ''}
+
+        ${studyOffer.status==='submitted' ? `
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">📎 ملفات مرفوعة من المهندس: ${(studyOffer.files||[]).map(f=>`<a href="${f.url}" target="_blank" style="color:var(--teal)">${f.name}</a>`).join('، ')}</div>
+          <button class="btn btn-gold btn-sm" style="width:100%" onclick="sendStudyToClient('${reqId}')">✅ إرسال للعميل للمراجعة</button>
+        ` : ''}
+
+        ${studyOffer.status==='client_review' ? `<div style="font-size:12px;color:var(--muted)">التصميم بانتظار مراجعة العميل حالياً.</div>` : ''}
+
+        ${studyOffer.status==='revisions_requested' ? `
+          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text);margin-bottom:8px">✏️ ملاحظة العميل الأخيرة: ${(studyOffer.revisionNotes||[]).slice(-1)[0]?.text||'—'}</div>
+          <div style="font-size:11px;color:var(--muted)">بانتظار قيام المهندس برفع نسخة معدّلة.</div>
+        ` : ''}
+
+        ${studyOffer.status==='approved' ? `
+          <div style="font-size:12px;color:var(--teal);margin-bottom:8px">✅ العميل وافق على التصميم النهائي.</div>
+          <button class="btn btn-gold btn-sm" style="width:100%" onclick="payEngineerFeeNow('${reqId}', ${studyOffer.feeAmount||0})">💰 دفع أتعاب المهندس (${(studyOffer.feeAmount||0).toLocaleString('ar-DZ')} دج)</button>
+        ` : ''}
+
+        ${studyOffer.status==='paid' ? `
+          <div style="font-size:12px;color:var(--teal);margin-bottom:8px">💰 تم دفع أتعاب المهندس.</div>
+          <button class="btn btn-teal btn-sm" style="width:100%" onclick="handToExecutionNow('${reqId}')">🏗️ نقل المشروع لمؤسسة الإنجاز</button>
+        ` : ''}
+
+        ${studyOffer.status==='handed_to_execution' ? `<div style="font-size:12px;color:var(--gold)">🏗️ انتقل المشروع لمؤسسة الإنجاز.</div>` : ''}
+      </div>` : ''}
+
+      ${req.status==='accepted' && !req.studyOfferPublished ? `
+      <div style="margin-top:16px;padding:14px;background:var(--gold-glow);border:1px solid var(--gold-dim);border-radius:var(--rsm)">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">📤 نشر المشروع في سوق المهندسين</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">حدّد نسبة أتعاب المهندس من إجمالي مبلغ الدراسة (${quote?.totalLabel||'—'})، ليظهر المشروع للمهندسين الفريلانسر — بدون أي بيانات عن العميل.</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <input id="engFeePercent" type="number" min="1" max="100" placeholder="النسبة %" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:8px 10px;color:var(--text);font-family:inherit;font-size:12px" oninput="updateEngFeePreview(${Number(quote?.total)||0})">
+          <span style="font-size:12px;color:var(--muted)">النسبة % ← <strong id="engFeePreview" style="color:var(--teal)">0 دج</strong></span>
+        </div>
+        <button class="btn btn-gold btn-sm" style="margin-top:10px;width:100%" onclick="publishStudyOffer('${reqId}', ${Number(quote?.total)||0})">📤 نشر في سوق المهندسين</button>
+      </div>` : ''}
+
       <div class="mf">
         <button class="btn btn-outline" onclick="closeModal('reqDetailModal')">إغلاق</button>
         ${req.status==='pending'||req.status==='reviewing'?`<button class="btn btn-teal" onclick="closeModal('reqDetailModal');openQuoteModal('${reqId}')">💰 إرسال عرض سعر</button>`:''}
@@ -1887,6 +2024,68 @@ async function updateReqStatus(reqId,status,label){
     showToast('❌ تعذر تحديث الحالة: '+(err?.message||''));
   }
 }
+window.updateReqStatus = updateReqStatus;
+
+function updateEngFeePreview(total){
+  const pct = Number(document.getElementById('engFeePercent')?.value) || 0;
+  const amount = Math.round((total||0) * pct / 100);
+  const el = document.getElementById('engFeePreview');
+  if (el) el.textContent = amount.toLocaleString('ar-DZ') + ' دج';
+}
+window.updateEngFeePreview = updateEngFeePreview;
+
+async function publishStudyOffer(reqId, total){
+  const pct = Number(document.getElementById('engFeePercent')?.value);
+  if (!pct || pct <= 0 || pct > 100) { showToast('⚠️ أدخل نسبة صحيحة بين 1 و100'); return; }
+  try {
+    const req = await Bridge.Requests.get(reqId); if (!req) return;
+    const feeAmount = Math.round((total||0) * pct / 100);
+    await Bridge.StudyOffers.publish(reqId, {
+      building: req.building, floors: req.floors, area: req.area, rooms: req.rooms,
+      services: req.services, projWilaya: req.projWilaya, commune: req.commune,
+      landInfo: req.landInfo, desc: req.desc, timeline: req.timeline,
+      feePercent: pct, feeAmount,
+    });
+    closeModal('reqDetailModal');
+    renderRequestsPage();
+    showToast('✅ تم نشر المشروع في سوق المهندسين — الأتعاب: '+feeAmount.toLocaleString('ar-DZ')+' دج');
+  } catch(err) {
+    console.error(err);
+    showToast('❌ تعذر النشر: '+(err?.message||''));
+  }
+}
+window.publishStudyOffer = publishStudyOffer;
+
+async function sendStudyToClient(reqId){
+  try {
+    await Bridge.StudyOffers.sendToClient(reqId);
+    closeModal('reqDetailModal');
+    renderRequestsPage();
+    showToast('✅ تم إرسال التصميم للعميل للمراجعة');
+  } catch(err) { console.error(err); showToast('❌ تعذر الإرسال: '+(err?.message||'')); }
+}
+window.sendStudyToClient = sendStudyToClient;
+
+async function payEngineerFeeNow(reqId, amount){
+  if (!confirm(`تأكيد دفع أتعاب المهندس: ${Number(amount).toLocaleString('ar-DZ')} دج؟`)) return;
+  try {
+    await Bridge.StudyOffers.markPaid(reqId);
+    closeModal('reqDetailModal');
+    renderRequestsPage();
+    showToast('✅ تم تسجيل دفع أتعاب المهندس');
+  } catch(err) { console.error(err); showToast('❌ تعذر تسجيل الدفع: '+(err?.message||'')); }
+}
+window.payEngineerFeeNow = payEngineerFeeNow;
+
+async function handToExecutionNow(reqId){
+  try {
+    await Bridge.StudyOffers.handToExecution(reqId);
+    closeModal('reqDetailModal');
+    renderRequestsPage();
+    showToast('🏗️ تم نقل المشروع لمؤسسة الإنجاز');
+  } catch(err) { console.error(err); showToast('❌ تعذر النقل: '+(err?.message||'')); }
+}
+window.handToExecutionNow = handToExecutionNow;
 
 // ── عرض السعر ─────────────────────────────────────
 async function openQuoteModal(reqId){
@@ -1969,8 +2168,22 @@ async function submitQuote(reqId){
 async function convertToProject(reqId){
   const req = await Bridge.Requests.get(reqId); if(!req) return;
   const name=req.building?req.building+' — '+req.name:req.name;
+
+  // 1) إنشاء مشروع إنجاز حقيقي في Firestore — هذا ما يظهر فعلياً للعميل
+  //    في بوابته، وللمهندس المتابع، وفي سوق عروض عمل العمال.
+  let execProject;
+  try {
+    execProject = await Bridge.ExecProjects.create({
+      clientId: req.uid || null, clientName: req.name, phone: req.phone,
+      reqId, building: req.building||'', floors: req.floors||'', area: req.area||'',
+      projWilaya: req.projWilaya||req.wilaya||'', commune: req.commune||'',
+      budget: req.budget||0, desc: req.desc||'',
+    });
+  } catch(err) { console.error(err); showToast('❌ تعذر إنشاء المشروع في قاعدة البيانات: '+(err?.message||'')); return; }
+
+  // 2) نسخة محلية لأدوات المكتب الداخلية (كشف التكاليف القديم) — نفس المعرّف
   const proj={
-    id:uid(), name, client:req.name, phone:req.phone,
+    id:execProject.projectId, name, client:req.name, phone:req.phone,
     type:req.building||'سكني فردي',
     phase:'الدراسة الأولية',
     status:'active', progress:0,
@@ -1982,12 +2195,12 @@ async function convertToProject(reqId){
   };
   projects.push(proj);
   try {
-    await Bridge.Requests.convertToProject(reqId,proj.id);
+    await Bridge.Requests.convertToProject(reqId, execProject.projectId);
   } catch(err) { console.error(err); }
   save();
   renderProjectsIfActive();
   renderDash();
-  showToast('🏗️ تم إنشاء المشروع بنجاح! يمكنك إدارته من صفحة المشاريع.');
+  showToast('🏗️ تم إنشاء المشروع بنجاح — أصبح مرئياً للعميل ولفريق الإنجاز.');
 }
 
 function renderProjectsIfActive(){
@@ -2102,6 +2315,7 @@ function renderExecProjects(){
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="openAssignTeamModal('${p.id}')">تعيين الفريق</button>
         <button class="btn btn-teal btn-sm" onclick="openAddVisitModal('${p.id}')">+ محضر زيارة</button>
+        <button class="btn btn-outline btn-sm" onclick="openExecCommentsModal('${p.id}')">💬 ملاحظات العميل</button>
         ${p.status!=='completed'?`<button class="btn btn-gold btn-sm" onclick="advanceExecPhase('${p.id}')">➡️ المرحلة التالية</button>`:''}
       </div>
     </div>`;
@@ -2165,7 +2379,7 @@ function openAssignTeamModal(projectId){
   const proj = _cachedExecProjects.find(p=>p.id===projectId);
   const engSel = document.getElementById('at_engineer');
   engSel.innerHTML = '<option value="">— بدون —</option>';
-  _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active').forEach(m=>{
+  _cachedTeamMembers.filter(m=>m.role==='supervisor' && m.status==='active').forEach(m=>{
     const o=document.createElement('option'); o.value=m.uid; o.textContent=`${m.name} — ${m.specialty||''}`;
     if(proj?.team?.engineerId===m.uid) o.selected=true;
     engSel.appendChild(o);
@@ -2195,6 +2409,35 @@ async function saveAssignTeam(){
 }
 window.saveAssignTeam = saveAssignTeam;
 
+let _ecUnsub = null;
+function openExecCommentsModal(projectId){
+  document.getElementById('ec_projectId').value = projectId;
+  document.getElementById('ec_reply').value = '';
+  if (_ecUnsub) _ecUnsub();
+  _ecUnsub = Bridge.ExecProjects.watchComments(projectId, comments => {
+    const el = document.getElementById('ec_thread');
+    if (!comments.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:14px">لا توجد ملاحظات بعد</div>'; return; }
+    el.innerHTML = comments.map(c => `<div style="align-self:${c.from==='client'?'flex-start':'flex-end'};max-width:80%;background:${c.from==='client'?'var(--surface)':'var(--gold-glow)'};border:1px solid ${c.from==='client'?'var(--border)':'rgba(201,168,76,.3)'};border-radius:10px;padding:8px 10px;font-size:12px">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${c.from==='client'?'👤 العميل':'🏢 المكتب'}</div>
+      ${esc(c.text)}
+    </div>`).join('');
+    el.scrollTop = el.scrollHeight;
+  });
+  openModal('execCommentsModal');
+}
+window.openExecCommentsModal = openExecCommentsModal;
+
+async function sendExecComment(){
+  const projectId = document.getElementById('ec_projectId').value;
+  const text = document.getElementById('ec_reply').value.trim();
+  if (!text) return;
+  try {
+    await Bridge.ExecProjects.addComment(projectId, { from:'office', text });
+    document.getElementById('ec_reply').value = '';
+  } catch(err) { showToast('❌ تعذر الإرسال: '+(err?.message||'')); }
+}
+window.sendExecComment = sendExecComment;
+
 async function advanceExecPhase(projectId){
   if(!confirm('تأكيد الانتقال للمرحلة التالية؟')) return;
   try{
@@ -2213,7 +2456,7 @@ function openAddVisitModal(projectId){
   const proj = _cachedExecProjects.find(p=>p.id===projectId);
   const sel = document.getElementById('av_engineer');
   sel.innerHTML = '<option value="">— اختر —</option>';
-  _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active').forEach(m=>{
+  _cachedTeamMembers.filter(m=>m.role==='supervisor' && m.status==='active').forEach(m=>{
     const o=document.createElement('option'); o.value=m.uid; o.textContent=`${m.name} — ${(m.visitFee||0).toLocaleString('ar-DZ')} دج/زيارة`;
     if(proj?.team?.engineerId===m.uid) o.selected=true;
     sel.appendChild(o);
@@ -2226,14 +2469,21 @@ async function saveExecVisit(){
   const projectId = document.getElementById('av_projectId').value;
   const engineerId = document.getElementById('av_engineer').value;
   if(!engineerId){ showToast('⚠️ اختر المهندس الزائر'); return; }
+  const photoInput = document.getElementById('av_photos');
   const data = {
     engineerId,
     date: document.getElementById('av_date').value,
     progress: Number(document.getElementById('av_progress').value)||0,
     notes: document.getElementById('av_notes').value,
     issues: document.getElementById('av_issues').value,
+    photos: [],
   };
   try{
+    if (photoInput?.files?.length) {
+      for (const f of photoInput.files) {
+        data.photos.push(await Bridge.ExecProjects.uploadVisitPhoto(projectId, f));
+      }
+    }
     await Bridge.ExecProjects.addVisit(projectId, data);
     closeModal('addVisitModal');
     showToast('✅ تم حفظ محضر الزيارة');
@@ -2242,14 +2492,16 @@ async function saveExecVisit(){
 window.saveExecVisit = saveExecVisit;
 
 // ── الانضمام والفريق ─────────────────────────────────
+function teamRoleLabel(role){ return role==='engineer' ? 'مهندس دراسات' : role==='supervisor' ? 'مهندس متابعة تنفيذ' : 'عامل'; }
+
 function renderExecTeam(){
   const pending = _cachedTeamMembers.filter(m=>m.status==='pending');
   const active  = _cachedTeamMembers.filter(m=>m.status==='active');
 
   const pTb = document.getElementById('execPending_tb');
   pTb.innerHTML = pending.length ? pending.map(m=>`<tr>
-    <td>${esc(m.name)}</td><td>${m.role==='engineer'?'مهندس':'عامل'}</td>
-    <td>${esc(m.role==='engineer'?(m.specialty||''):(m.specialties||[]).join('، '))}</td>
+    <td>${esc(m.name)}</td><td>${teamRoleLabel(m.role)}</td>
+    <td>${esc(m.role==='worker'?(m.specialties||[]).join('، '):(m.specialty||''))}</td>
     <td>${esc(m.phone||'')}</td><td>${esc(m.nin||'')}</td>
     <td><div style="display:flex;gap:6px">
       <button class="btn btn-teal btn-sm" onclick="approveTeamMember('${m.uid}')">✅ قبول</button>
@@ -2260,12 +2512,13 @@ function renderExecTeam(){
   const aTb = document.getElementById('execActive_tb');
   aTb.innerHTML = active.length ? active.map(m=>{
     const proj = _cachedExecProjects.find(p=>p.id===m.currentProjectId);
-    const payInfo = m.role==='engineer'
+    const payInfo = m.role==='supervisor'
       ? (m.visitFee||0).toLocaleString('ar-DZ')+' دج/زيارة'
+      : m.role==='engineer' ? 'نسبة % لكل مشروع دراسة'
       : (m.payType==='daily' ? (m.dailyWage||0).toLocaleString('ar-DZ')+' دج/يوم' : (m.phaseRate||0).toLocaleString('ar-DZ')+' دج/مرحلة');
     return `<tr>
-    <td>${esc(m.name)}</td><td>${m.role==='engineer'?'مهندس':'عامل'}</td>
-    <td>${esc(m.role==='engineer'?(m.specialty||''):(m.specialties||[]).join('، '))}</td>
+    <td>${esc(m.name)}</td><td>${teamRoleLabel(m.role)}</td>
+    <td>${esc(m.role==='worker'?(m.specialties||[]).join('، '):(m.specialty||''))}</td>
     <td>${payInfo}</td>
     <td>${proj?esc(proj.id):'—'}</td>
     <td><button class="btn btn-danger btn-sm" onclick="suspendTeamMember('${m.uid}')">إيقاف</button></td>
@@ -2392,7 +2645,7 @@ async function renderExecWages(){
   }catch(err){ wTb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--red);padding:20px">تعذر تحميل البيانات</td></tr>'; }
 
   const eTb = document.getElementById('execEngFees_tb');
-  const engineers = _cachedTeamMembers.filter(m=>m.role==='engineer' && m.status==='active');
+  const engineers = _cachedTeamMembers.filter(m=>m.role==='supervisor' && m.status==='active');
   if(!engineers.length){ eTb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">لا يوجد مهندسون نشطون</td></tr>'; return; }
   eTb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">جارٍ التحميل...</td></tr>';
   const rows = await Promise.all(engineers.map(async m=>{
