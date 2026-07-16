@@ -61,6 +61,26 @@ service cloud.firestore {
     // ══════════════════════════════════════════════════════
 
     // أعضاء الفريق (مهندسون وعمال) — تسجيل ذاتي، والمكتب يوافق لاحقاً
+    match /warehouses/{id} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+    match /stock_movements/{id} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /office_managers/{uid} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
     match /team_members/{uid} {
       allow read:   if true;
       allow create: if true;

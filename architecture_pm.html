@@ -213,6 +213,9 @@ select option{background:var(--surface);}
     <button class="sb-item" data-page="reports" onclick="showPage('reports')"><span class="sb-ico">📈</span><span>التقارير</span></button>
     <button class="sb-item" data-page="materials" onclick="showPage('materials')"><span class="sb-ico">🧱</span><span>المواد</span></button>
     <button class="sb-item" data-page="map" onclick="showPage('map')"><span class="sb-ico">🗺️</span><span>الخريطة</span></button>
+    <div id="sbManagersItem" style="display:none">
+      <button class="sb-item" data-page="managers" onclick="showPage('managers')"><span class="sb-ico">👔</span><span>إدارة المدراء</span></button>
+    </div>
   </nav>
   <div class="sb-foot">
     <button class="sb-toggle" style="width:100%;border-radius:var(--rsm);gap:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted)" onclick="toggleSidebarCollapse()">
@@ -474,6 +477,25 @@ select option{background:var(--surface);}
   </div>
   <div style="margin-top:14px" id="map_sites"></div>
 </div>
+<div class="page" id="page-managers">
+  <div class="sh"><div class="st">👔 إدارة المدراء</div></div>
+  <div style="background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:18px;max-width:520px">
+    <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:12px">إنشاء حساب مدير فرع جديد</div>
+    <div class="fgi full"><label>الاسم الكامل</label><input id="mgr_name" placeholder="مثال: أحمد بلعيد"></div>
+    <div class="fgi full"><label>البريد الإلكتروني</label><input id="mgr_email" type="email" placeholder="manager@example.com"></div>
+    <div class="fgi full"><label>كلمة المرور</label><input id="mgr_pass" type="password" placeholder="6 أحرف على الأقل"></div>
+    <div class="fgi full"><label>الفرع</label>
+      <select id="mgr_role">
+        <option value="studies_manager">مدير الدراسات</option>
+        <option value="execution_manager">مدير مؤسسة الإنجاز</option>
+        <option value="warehouse_manager">مدير المستودعات</option>
+      </select>
+    </div>
+    <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="createManagerAccount()">➕ إنشاء الحساب</button>
+  </div>
+  <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">المدراء الحاليون</div>
+  <div id="managers_list"><div style="text-align:center;padding:30px;color:var(--muted)">جارٍ التحميل...</div></div>
+</div>
 <div class="page" id="page-requests">
   <div class="sh">
     <div class="st">📨 طلبات العملاء</div>
@@ -676,7 +698,8 @@ function showPage(id){
     materials:()=>{popMatFilters();renderMats();renderMatChart();},
     map:renderMapSites,
     requests:()=>{renderRequestsPage();updateRequestsBadge();},
-    execadmin:()=>{renderExecAdminAll();}
+    execadmin:()=>{renderExecAdminAll();},
+    managers:renderManagersList,
   })[id]?.();
 }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -1495,9 +1518,92 @@ async function __officeLogin() {
 window.__officeLogin = __officeLogin;
 document.getElementById('officePassword').addEventListener('keydown', e => { if (e.key === 'Enter') __officeLogin(); });
 
-function startOfficeDashboard(){
+const MANAGER_PAGE_ACCESS = {
+  studies_manager:   ['dashboard','requests','projects'],
+  execution_manager: ['dashboard','execadmin','team','logs','map'],
+  warehouse_manager: ['dashboard','materials'],
+};
+let currentManagerRole = null; // null = المدير العام (كل الصلاحيات)
+
+async function startOfficeDashboard(){
   initBridgeInOffice();
+  try {
+    const uid = Bridge.Auth.currentUser()?.uid;
+    const mgr = uid ? await Bridge.Managers.getProfile(uid) : null;
+    if (mgr && mgr.status === 'suspended') {
+      showToast('⛔ تم إيقاف صلاحية هذا الحساب من طرف المدير العام');
+      await Bridge.Auth.signOut();
+      location.reload();
+      return;
+    }
+    currentManagerRole = mgr?.role || null;
+    applyManagerRestrictions();
+  } catch(e) { console.error('manager check failed:', e); }
 }
+
+function applyManagerRestrictions(){
+  const managersNavItem = document.getElementById('sbManagersItem');
+  if (!currentManagerRole) {
+    // المدير العام: كل شيء ظاهر
+    document.querySelectorAll('.sb-item[data-page]').forEach(b=>b.style.display='');
+    if (managersNavItem) managersNavItem.style.display='';
+    return;
+  }
+  if (managersNavItem) managersNavItem.style.display='none';
+  const allowed = MANAGER_PAGE_ACCESS[currentManagerRole] || [];
+  let firstAllowed = null;
+  document.querySelectorAll('.sb-item[data-page]').forEach(b=>{
+    const p = b.getAttribute('data-page');
+    const ok = allowed.includes(p);
+    b.style.display = ok ? '' : 'none';
+    if (ok && !firstAllowed) firstAllowed = p;
+  });
+  // إن كانت الصفحة الحالية غير مسموحة لهذا المدير، انتقل لأول صفحة مسموحة
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (activePage && !allowed.includes(activePage) && firstAllowed) showPage(firstAllowed);
+}
+
+async function createManagerAccount(){
+  const name = document.getElementById('mgr_name').value.trim();
+  const email = document.getElementById('mgr_email').value.trim();
+  const pass = document.getElementById('mgr_pass').value;
+  const role = document.getElementById('mgr_role').value;
+  if (!name || !email || !pass) { showToast('⚠️ املأ جميع الحقول'); return; }
+  if (pass.length < 6) { showToast('⚠️ كلمة المرور 6 أحرف على الأقل'); return; }
+  try {
+    await Bridge.Managers.create(name, email, pass, role);
+    document.getElementById('mgr_name').value = '';
+    document.getElementById('mgr_email').value = '';
+    document.getElementById('mgr_pass').value = '';
+    showToast('✅ تم إنشاء حساب '+Bridge.Managers.roleLabel(role)+' بنجاح');
+    renderManagersList();
+  } catch(err) {
+    console.error(err);
+    const msg = err?.code==='auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً' : (err?.message||'خطأ غير معروف');
+    showToast('❌ تعذر الإنشاء: '+msg);
+  }
+}
+window.createManagerAccount = createManagerAccount;
+
+function renderManagersList(){
+  const el = document.getElementById('managers_list');
+  Bridge.Managers.watchAll(list => {
+    if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">لا يوجد مدراء بعد</div>'; return; }
+    el.innerHTML = `<div class="tw"><table><thead><tr><th>الاسم</th><th>الفرع</th><th>البريد</th><th>الحالة</th><th></th></tr></thead><tbody>
+      ${list.map(m=>`<tr>
+        <td>${esc(m.name)}</td><td>${esc(Bridge.Managers.roleLabel(m.role))}</td><td>${esc(m.email)}</td>
+        <td>${m.status==='active'?'<span style="color:var(--green)">نشط</span>':'<span style="color:var(--red)">موقوف</span>'}</td>
+        <td><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-teal'}" onclick="${m.status==='active'?'suspendManager':'reactivateManager'}('${m.uid}')">${m.status==='active'?'إيقاف':'تفعيل'}</button></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+  });
+}
+window.renderManagersList = renderManagersList;
+
+async function suspendManager(uid){ await Bridge.Managers.suspend(uid); showToast('تم إيقاف الحساب'); }
+window.suspendManager = suspendManager;
+async function reactivateManager(uid){ await Bridge.Managers.reactivate(uid); showToast('تم تفعيل الحساب'); }
+window.reactivateManager = reactivateManager;
 
 function openSidebarMobile(){ document.body.classList.add('sidebar-open'); document.getElementById('sidebarOverlay').classList.add('show'); }
 function closeSidebarMobile(){ document.body.classList.remove('sidebar-open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
@@ -1847,13 +1953,16 @@ async function openReqDetail(reqId){
             <div><strong>${req.building||'—'}</strong> / ${req.floors||'—'}</div>
             ${req.area?`<div style="color:var(--muted)">المساحة: ${req.area} م²</div>`:''}
             ${req.rooms?`<div style="color:var(--muted)">الغرف: ${req.rooms}</div>`:''}
+            ${req.facades?`<div style="color:var(--muted)">الواجهات: ${req.facades}</div>`:''}
+            ${req.bathrooms?`<div style="color:var(--muted)">الحمامات: ${req.bathrooms}</div>`:''}
+            ${req.storerooms?`<div style="color:var(--muted)">المستودعات: ${req.storerooms}</div>`:''}
             ${req.budget?`<div style="color:var(--amber)">الميزانية: ${Number(req.budget).toLocaleString('ar-DZ')} دج</div>`:''}
           </div>
         </div>
         <div style="background:var(--surface);border-radius:var(--rsm);padding:14px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">موقع المشروع</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.8">
-            ${req.projWilaya||''} — ${req.commune||''}<br>${req.address||'—'}
+            ${req.projWilaya||''}${req.daira?' — '+req.daira:''} — ${req.commune||''}<br>${req.address||'—'}
             ${req.lat&&req.lng?`<br><a href="https://www.google.com/maps?q=${req.lat},${req.lng}" target="_blank" style="color:var(--teal);font-size:11px">📍 عرض على الخريطة</a>`:''}
           </div>
         </div>
@@ -1867,6 +1976,7 @@ async function openReqDetail(reqId){
 
       ${svcs?`<div style="background:var(--gold-glow);border:1px solid var(--gold-dim);border-radius:var(--rsm);padding:12px;margin-bottom:14px;font-size:12px"><strong style="color:var(--gold)">الخدمات المطلوبة:</strong> ${svcs}</div>`:''}
       ${req.desc?`<div style="background:var(--surface);border-radius:var(--rsm);padding:14px;margin-bottom:14px"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700">وصف المشروع</div><div style="font-size:12px;line-height:1.8;color:var(--text)">${req.desc}</div></div>`:''}
+      ${(req.files&&req.files.length)?`<div style="background:var(--surface);border-radius:var(--rsm);padding:14px;margin-bottom:14px"><div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700">📎 ملفات مرفقة من العميل (${req.files.length})</div><div style="display:flex;flex-direction:column;gap:6px">${req.files.map(f=>typeof f==='string'?`<span style="font-size:12px;color:var(--muted)">📄 ${esc(f)} <span style="color:var(--red);font-size:10px">(ملف قديم — بدون رابط تحميل)</span></span>`:`<a href="${f.url}" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:underline">📄 ${esc(f.name)}</a>`).join('')}</div></div>`:''}
       ${req.timeline?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700">سجل الحالة</div>${req.timeline.map(t=>`<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px"><span style="color:var(--green)">✓</span><span style="flex:1;color:var(--text)">${t.label}${t.desc?' — '+t.desc:''}</span><span style="color:var(--muted)">${Bridge.fmtDate(t.ts)}</span></div>`).join('')}`:''}
 
       <!-- تحديث الحالة -->
@@ -2042,7 +2152,8 @@ async function publishStudyOffer(reqId, total){
     const feeAmount = Math.round((total||0) * pct / 100);
     await Bridge.StudyOffers.publish(reqId, {
       building: req.building, floors: req.floors, area: req.area, rooms: req.rooms,
-      services: req.services, projWilaya: req.projWilaya, commune: req.commune,
+      facades: req.facades, bathrooms: req.bathrooms, storerooms: req.storerooms,
+      services: req.services, projWilaya: req.projWilaya, daira: req.daira, commune: req.commune,
       landInfo: req.landInfo, desc: req.desc, timeline: req.timeline,
       feePercent: pct, feeAmount,
     });
@@ -2494,20 +2605,44 @@ window.saveExecVisit = saveExecVisit;
 // ── الانضمام والفريق ─────────────────────────────────
 function teamRoleLabel(role){ return role==='engineer' ? 'مهندس دراسات' : role==='supervisor' ? 'مهندس متابعة تنفيذ' : 'عامل'; }
 
+function branchAllowsRole(role){
+  if (!currentManagerRole) return true; // المدير العام يرى الجميع
+  if (currentManagerRole === 'studies_manager') return role === 'engineer';
+  if (currentManagerRole === 'execution_manager') return role === 'supervisor' || role === 'worker';
+  return false; // مدير المستودعات: لا فريق مسجَّل هنا حالياً
+}
+
 function renderExecTeam(){
-  const pending = _cachedTeamMembers.filter(m=>m.status==='pending');
-  const active  = _cachedTeamMembers.filter(m=>m.status==='active');
+  const visible = _cachedTeamMembers.filter(m=>branchAllowsRole(m.role));
+  const pending = visible.filter(m=>m.status==='pending' || m.status==='manager_approved');
+  const active  = visible.filter(m=>m.status==='active');
 
   const pTb = document.getElementById('execPending_tb');
-  pTb.innerHTML = pending.length ? pending.map(m=>`<tr>
+  pTb.innerHTML = pending.length ? pending.map(m=>{
+    let actions;
+    if (m.status === 'manager_approved') {
+      actions = currentManagerRole
+        ? `<span style="font-size:11px;color:var(--amber)">بانتظار موافقة المدير العام</span>`
+        : `<div style="display:flex;gap:6px">
+             <button class="btn btn-teal btn-sm" onclick="approveTeamMember('${m.uid}')">✅ موافقة نهائية</button>
+             <button class="btn btn-danger btn-sm" onclick="rejectTeamMember('${m.uid}')">❌ رفض</button>
+           </div>`;
+    } else if (currentManagerRole) {
+      // مدير فرعي: يوصي فقط، لا يقبل نهائياً
+      actions = `<button class="btn btn-teal btn-sm" onclick="recommendTeamMember('${m.uid}')">📝 التوصية بالقبول</button>`;
+    } else {
+      actions = `<div style="display:flex;gap:6px">
+             <button class="btn btn-teal btn-sm" onclick="approveTeamMember('${m.uid}')">✅ قبول</button>
+             <button class="btn btn-danger btn-sm" onclick="rejectTeamMember('${m.uid}')">❌ رفض</button>
+           </div>`;
+    }
+    return `<tr>
     <td>${esc(m.name)}</td><td>${teamRoleLabel(m.role)}</td>
     <td>${esc(m.role==='worker'?(m.specialties||[]).join('، '):(m.specialty||''))}</td>
     <td>${esc(m.phone||'')}</td><td>${esc(m.nin||'')}</td>
-    <td><div style="display:flex;gap:6px">
-      <button class="btn btn-teal btn-sm" onclick="approveTeamMember('${m.uid}')">✅ قبول</button>
-      <button class="btn btn-danger btn-sm" onclick="suspendTeamMember('${m.uid}')">❌ رفض</button>
-    </div></td>
-  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات معلّقة</td></tr>';
+    <td>${actions}</td>
+  </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات معلّقة</td></tr>';
 
   const aTb = document.getElementById('execActive_tb');
   aTb.innerHTML = active.length ? active.map(m=>{
@@ -2534,6 +2669,19 @@ async function approveTeamMember(uidV){
   catch(err){ showToast('❌ تعذر القبول'); }
 }
 window.approveTeamMember = approveTeamMember;
+
+async function recommendTeamMember(uidV){
+  try{ await Bridge.Team.managerRecommend(uidV, Bridge.Auth.currentUser()?.uid); showToast('📝 تم إرسال التوصية للمدير العام'); }
+  catch(err){ showToast('❌ تعذر الإرسال'); }
+}
+window.recommendTeamMember = recommendTeamMember;
+
+async function rejectTeamMember(uidV){
+  if(!confirm('تأكيد رفض هذا العضو؟')) return;
+  try{ await Bridge.Team.reject(uidV); showToast('تم رفض العضو'); }
+  catch(err){ showToast('❌ تعذر الرفض'); }
+}
+window.rejectTeamMember = rejectTeamMember;
 
 async function suspendTeamMember(uidV){
   if(!confirm('تأكيد إيقاف/رفض هذا العضو؟')) return;

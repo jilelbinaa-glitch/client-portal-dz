@@ -110,6 +110,7 @@ select option{background:var(--surface);}
     <button class="nb active" id="tab-catalog" onclick="showTab('catalog')">📦 الكتالوج والمخزون</button>
     <button class="nb" id="tab-orders" onclick="showTab('orders')">🧾 طلبيات المشاريع</button>
     <button class="nb" id="tab-low" onclick="showTab('low')">⚠️ تنبيهات النقص<span id="lowBadge" class="badge br" style="display:none;margin-right:6px"></span></button>
+    <button class="nb" id="tab-warehouses" onclick="showTab('warehouses')">🏢 المستودعات والفريق</button>
   </nav>
   <div class="hdr"><button class="icon-btn" onclick="doOfficeLogout()" title="تسجيل الخروج">🚪</button></div>
 </header>
@@ -141,6 +142,12 @@ select option{background:var(--surface);}
     <div class="tw"><table><thead><tr><th>المادة</th><th>الوحدة</th><th>المخزون الحالي</th><th>الحد الأدنى</th><th>النقص</th></tr></thead>
     <tbody id="low_tb"><tr><td colspan="5" class="empty">لا توجد تنبيهات حالياً 👍</td></tr></tbody></table></div>
   </div>
+
+  <!-- المستودعات والفريق -->
+  <div class="page" id="page-warehouses">
+    <div class="sh"><div class="st">🏢 المستودعات</div><button class="btn btn-gold" onclick="openWarehouseModal()">+ مستودع جديد</button></div>
+    <div id="warehouses_list" class="cg"><div class="empty">لا توجد مستودعات بعد</div></div>
+  </div>
 </main>
 </div>
 
@@ -157,8 +164,47 @@ select option{background:var(--surface);}
       <div class="fgi"><label>السعر الوحدوي (دج) *</label><input id="m_price" type="number" min="0" step="1"></div>
       <div class="fgi"><label>الكمية بالمخزون *</label><input id="m_stock" type="number" min="0" step="0.01"></div>
       <div class="fgi full"><label>الحد الأدنى للتنبيه</label><input id="m_min" type="number" min="0" step="0.01" value="0"></div>
+      <div class="fgi full"><label>المستودع</label><select id="m_warehouse"><option value="">— غير مرتبط بمستودع —</option></select></div>
     </div>
     <div class="mf"><button class="btn btn-outline" onclick="closeModal('materialModal')">إلغاء</button><button class="btn btn-gold" onclick="saveMaterial()">حفظ المادة</button></div>
+  </div>
+</div>
+
+<!-- MODAL: مستودع جديد -->
+<div class="modal-overlay" id="warehouseModal">
+  <div class="modal"><h3>🏢 مستودع جديد</h3>
+    <div class="fg">
+      <div class="fgi full"><label>اسم المستودع *</label><input id="w_name" placeholder="مثال: مستودع سطيف المركزي"></div>
+      <div class="fgi"><label>الولاية *</label><select id="w_wilaya" onchange="updateWCommunes()"><option value="">— اختر —</option></select></div>
+      <div class="fgi"><label>البلدية *</label><select id="w_commune"><option value="">— اختر الولاية أولاً —</option></select></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('warehouseModal')">إلغاء</button><button class="btn btn-gold" onclick="saveWarehouse()">حفظ المستودع</button></div>
+  </div>
+</div>
+
+<!-- MODAL: عضو فريق مستودع -->
+<div class="modal-overlay" id="whStaffModal">
+  <div class="modal"><h3>➕ عضو فريق جديد</h3>
+    <input type="hidden" id="ws_warehouseId">
+    <div class="fg">
+      <div class="fgi full"><label>الاسم الكامل *</label><input id="ws_name" placeholder="مثال: سمير بوعزة"></div>
+      <div class="fgi"><label>الهاتف</label><input id="ws_phone" placeholder="06XXXXXXXX"></div>
+      <div class="fgi"><label>البريد الإلكتروني *</label><input id="ws_email" type="email" placeholder="staff@example.com"></div>
+      <div class="fgi full"><label>كلمة المرور *</label><input id="ws_pass" type="password" placeholder="6 أحرف على الأقل"></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('whStaffModal')">إلغاء</button><button class="btn btn-gold" onclick="saveWarehouseStaff()">إنشاء الحساب</button></div>
+  </div>
+</div>
+
+<!-- MODAL: تسجيل سلع داخلة -->
+<div class="modal-overlay" id="stockInModal">
+  <div class="modal"><h3>📥 تسجيل سلع داخلة</h3>
+    <input type="hidden" id="si_materialId">
+    <div class="fg">
+      <div class="fgi full"><label>الكمية الداخلة *</label><input id="si_qty" type="number" min="0.01" step="0.01"></div>
+      <div class="fgi full"><label>ملاحظة (رقم الفاتورة، المورّد...)</label><input id="si_note" placeholder="اختياري"></div>
+    </div>
+    <div class="mf"><button class="btn btn-outline" onclick="closeModal('stockInModal')">إلغاء</button><button class="btn btn-gold" onclick="saveStockIn()">تسجيل</button></div>
   </div>
 </div>
 
@@ -198,12 +244,15 @@ select option{background:var(--surface);}
   </div>
 </div>
 
+<script src="dz_locations.js"></script>
 <script type="module">
 import Bridge from './bridge.js?v=20260712c';
 
 let materials = [];
 let orders = [];
-let materialsUnsub = null, ordersUnsub = null;
+let materialsUnsub = null, ordersUnsub = null, warehousesUnsub = null, teamUnsub = null;
+let warehouses = [];
+let whTeamMembers = [];
 let orderRows = []; // { source:'boq'|'manual', label, qty, unit, materialId, unitPrice, skip }
 
 function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -257,11 +306,29 @@ Bridge.Auth.onChange(user => {
   if (user && !user.isAnonymous) { _officeStarted = true; startDashboard(); }
 });
 
-function startDashboard(){
+async function startDashboard(){
+  try {
+    const uid = Bridge.Auth.currentUser()?.uid;
+    const mgr = uid ? await Bridge.Managers.getProfile(uid) : null;
+    if (mgr && mgr.role !== 'warehouse_manager') {
+      alert('⛔ هذا الحساب غير مخوّل بالدخول لمستودع المواد — هذا القسم خاص بمدير المستودعات فقط.');
+      await Bridge.Auth.signOut();
+      location.reload();
+      return;
+    }
+    if (mgr && mgr.status === 'suspended') {
+      alert('⛔ تم إيقاف صلاحية هذا الحساب من طرف المدير العام');
+      await Bridge.Auth.signOut();
+      location.reload();
+      return;
+    }
+  } catch(e) { console.error('manager check failed:', e); }
   document.getElementById('officeLoginGate').style.display = 'none';
   document.getElementById('officeDashboardRoot').style.display = '';
   materialsUnsub = Bridge.Materials.watchAll(list => { materials = list; renderAll(); });
   ordersUnsub = Bridge.MaterialOrders.watchAll(list => { orders = list; renderOrders(); updateStats(); });
+  warehousesUnsub = Bridge.Warehouses.watchAll(list => { warehouses = list; renderAll(); if(document.getElementById('page-warehouses')?.classList.contains('active')) renderWarehousesPage(); });
+  teamUnsub = Bridge.Team.watchAll(list => { whTeamMembers = list.filter(m=>m.role==='warehouse_staff'); if(document.getElementById('page-warehouses')?.classList.contains('active')) renderWarehousesPage(); });
 }
 
 // ═══ TABS ══════════════════════════════════════════════
@@ -270,6 +337,7 @@ function showTab(tab){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
+  if (tab === 'warehouses') renderWarehousesPage();
 }
 window.showTab = showTab;
 
@@ -292,9 +360,10 @@ function renderMaterials(){
   if(!materials.length){ el.innerHTML = '<div class="empty">لا توجد مواد في الكتالوج بعد</div>'; return; }
   el.innerHTML = materials.map(m=>{
     const low = (Number(m.stockQty)||0) <= (Number(m.minThreshold)||0);
+    const wh = warehouses.find(w=>w.id===m.warehouseId);
     return `<div class="ic">
       <div class="ic-h"><div class="ic-av" style="background:var(--gold-glow);color:var(--gold)">📦</div>
-        <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:10px;color:var(--muted)">${esc(m.category||'—')}</div></div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:10px;color:var(--muted)">${esc(m.category||'—')}${wh?' — 🏢 '+esc(wh.name):''}</div></div>
         ${low?'<span class="badge br">نقص</span>':''}
       </div>
       <div class="ic-b">
@@ -302,7 +371,8 @@ function renderMaterials(){
         <div class="ic-s"><div class="v" style="color:${low?'var(--red)':'var(--teal)'}">${m.stockQty||0}</div><div class="l">المخزون (${esc(m.unit)})</div></div>
       </div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm" style="flex:1" onclick="openMaterialModal('${m.id}')">✏️ تعديل</button>
+        <button class="btn btn-teal btn-sm" style="flex:1" onclick="openStockInModal('${m.id}')">📥 سلع داخلة</button>
+        <button class="btn btn-outline btn-sm" onclick="openMaterialModal('${m.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteMaterial('${m.id}')">🗑️</button>
       </div>
     </div>`;
@@ -311,6 +381,8 @@ function renderMaterials(){
 
 function openMaterialModal(id){
   document.getElementById('m_id').value = id||'';
+  const whSel = document.getElementById('m_warehouse');
+  whSel.innerHTML = '<option value="">— غير مرتبط بمستودع —</option>' + warehouses.map(w=>`<option value="${w.id}">${esc(w.name)} (${esc(w.wilaya)})</option>`).join('');
   if(id){
     const m = materials.find(x=>x.id===id);
     document.getElementById('matModalTitle').textContent = '✏️ تعديل مادة';
@@ -320,6 +392,7 @@ function openMaterialModal(id){
     document.getElementById('m_price').value = m.unitPrice||0;
     document.getElementById('m_stock').value = m.stockQty||0;
     document.getElementById('m_min').value = m.minThreshold||0;
+    whSel.value = m.warehouseId||'';
   } else {
     document.getElementById('matModalTitle').textContent = '📦 مادة جديدة';
     ['m_name','m_category'].forEach(id=>document.getElementById(id).value='');
@@ -337,10 +410,11 @@ async function saveMaterial(){
   const unitPrice = Number(document.getElementById('m_price').value)||0;
   const stockQty = Number(document.getElementById('m_stock').value)||0;
   const minThreshold = Number(document.getElementById('m_min').value)||0;
+  const warehouseId = document.getElementById('m_warehouse').value || null;
   if(!name || !unitPrice){ showToast('⚠️ يرجى إدخال الاسم والسعر على الأقل'); return; }
   try{
-    if(id) await Bridge.Materials.update(id, {name,unit,category,unitPrice,stockQty,minThreshold});
-    else await Bridge.Materials.add({name,unit,category,unitPrice,stockQty,minThreshold});
+    if(id) await Bridge.Materials.update(id, {name,unit,category,unitPrice,stockQty,minThreshold,warehouseId});
+    else await Bridge.Materials.add({name,unit,category,unitPrice,stockQty,minThreshold,warehouseId});
     closeModal('materialModal');
     showToast(id?'✅ تم تحديث المادة':'✅ تمت إضافة المادة');
   }catch(err){ showToast('❌ تعذر الحفظ: '+(err?.message||'')); }
@@ -353,6 +427,124 @@ async function deleteMaterial(id){
   catch(err){ showToast('❌ تعذر الحذف'); }
 }
 window.deleteMaterial = deleteMaterial;
+
+// ═══ WAREHOUSES ═════════════════════════════════════════
+function populateWWilayas(){
+  const sel = document.getElementById('w_wilaya');
+  if (sel.options.length <= 1) (window.DZ_WILAYAS||[]).forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=w; sel.appendChild(o); });
+}
+function updateWCommunes(){
+  const w = document.getElementById('w_wilaya').value;
+  const cs = document.getElementById('w_commune');
+  cs.innerHTML = '<option value="">— اختر البلدية —</option>';
+  ((window.DZ_COMMUNES||{})[w]||[]).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+}
+window.updateWCommunes = updateWCommunes;
+
+function openWarehouseModal(){
+  populateWWilayas();
+  document.getElementById('w_name').value = '';
+  document.getElementById('w_wilaya').value = '';
+  document.getElementById('w_commune').innerHTML = '<option value="">— اختر الولاية أولاً —</option>';
+  openModal('warehouseModal');
+}
+window.openWarehouseModal = openWarehouseModal;
+
+async function saveWarehouse(){
+  const name = document.getElementById('w_name').value.trim();
+  const wilaya = document.getElementById('w_wilaya').value;
+  const commune = document.getElementById('w_commune').value;
+  if(!name || !wilaya || !commune){ showToast('⚠️ يرجى إدخال جميع الحقول'); return; }
+  try{ await Bridge.Warehouses.create({name,wilaya,commune}); closeModal('warehouseModal'); showToast('✅ تم إنشاء المستودع'); }
+  catch(err){ showToast('❌ تعذر الإنشاء: '+(err?.message||'')); }
+}
+window.saveWarehouse = saveWarehouse;
+
+async function removeWarehouse(id){
+  if(!confirm('تأكيد حذف هذا المستودع؟ (لن يُحذف أي فريق أو مواد مرتبطة به تلقائياً)')) return;
+  try{ await Bridge.Warehouses.remove(id); showToast('🗑️ تم حذف المستودع'); }
+  catch(err){ showToast('❌ تعذر الحذف'); }
+}
+window.removeWarehouse = removeWarehouse;
+
+function renderWarehousesPage(){
+  const el = document.getElementById('warehouses_list');
+  if(!warehouses.length){ el.innerHTML = '<div class="empty">لا توجد مستودعات بعد</div>'; return; }
+  el.innerHTML = warehouses.map(w=>{
+    const staff = whTeamMembers.filter(m=>m.warehouseId===w.id);
+    const matCount = materials.filter(m=>m.warehouseId===w.id).length;
+    return `<div class="ic">
+      <div class="ic-h"><div class="ic-av" style="background:var(--gold-glow);color:var(--gold)">🏢</div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(w.name)}</div><div style="font-size:10px;color:var(--muted)">📍 ${esc(w.wilaya)} — ${esc(w.commune)}</div></div>
+      </div>
+      <div class="ic-b">
+        <div class="ic-s"><div class="v">${matCount}</div><div class="l">مادة بالكتالوج</div></div>
+        <div class="ic-s"><div class="v">${staff.length}</div><div class="l">عضو فريق</div></div>
+      </div>
+      ${staff.length ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${staff.map(s=>esc(s.name)).join('، ')}</div>` : ''}
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-teal btn-sm" style="flex:1" onclick="openWhStaffModal('${w.id}')">➕ إضافة عضو فريق</button>
+        <button class="btn btn-danger btn-sm" onclick="removeWarehouse('${w.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderWarehousesPage = renderWarehousesPage;
+
+function openWhStaffModal(warehouseId){
+  document.getElementById('ws_warehouseId').value = warehouseId;
+  document.getElementById('ws_name').value = '';
+  document.getElementById('ws_phone').value = '';
+  document.getElementById('ws_email').value = '';
+  document.getElementById('ws_pass').value = '';
+  openModal('whStaffModal');
+}
+window.openWhStaffModal = openWhStaffModal;
+
+async function saveWarehouseStaff(){
+  const warehouseId = document.getElementById('ws_warehouseId').value;
+  const name = document.getElementById('ws_name').value.trim();
+  const phone = document.getElementById('ws_phone').value.trim();
+  const email = document.getElementById('ws_email').value.trim();
+  const pass = document.getElementById('ws_pass').value;
+  if(!name || !email || !pass){ showToast('⚠️ يرجى إدخال جميع الحقول المطلوبة'); return; }
+  if(pass.length < 6){ showToast('⚠️ كلمة المرور 6 أحرف على الأقل'); return; }
+  try{
+    await Bridge.Team.registerWarehouseStaff(name, phone, email, pass, warehouseId);
+    closeModal('whStaffModal');
+    showToast('✅ تم إنشاء حساب عضو الفريق');
+  }catch(err){
+    const msg = err?.code==='auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً' : (err?.message||'خطأ غير معروف');
+    showToast('❌ تعذر الإنشاء: '+msg);
+  }
+}
+window.saveWarehouseStaff = saveWarehouseStaff;
+
+// ═══ STOCK IN (سلع داخلة) ═══════════════════════════════
+function openStockInModal(materialId){
+  document.getElementById('si_materialId').value = materialId;
+  document.getElementById('si_qty').value = '';
+  document.getElementById('si_note').value = '';
+  openModal('stockInModal');
+}
+window.openStockInModal = openStockInModal;
+
+async function saveStockIn(){
+  const materialId = document.getElementById('si_materialId').value;
+  const qty = Number(document.getElementById('si_qty').value);
+  const note = document.getElementById('si_note').value.trim();
+  if(!qty || qty<=0){ showToast('⚠️ أدخل كمية صحيحة'); return; }
+  const m = materials.find(x=>x.id===materialId);
+  try{
+    await Bridge.Materials.recordMovement({
+      materialId, warehouseId: m?.warehouseId||null, type:'in', qty, note,
+      staffId: Bridge.Auth.currentUser()?.uid, staffName: Bridge.Auth.currentUser()?.displayName||'',
+    });
+    closeModal('stockInModal');
+    showToast('✅ تم تسجيل السلع الداخلة وتحديث المخزون');
+  }catch(err){ showToast('❌ تعذر التسجيل: '+(err?.message||'')); }
+}
+window.saveStockIn = saveStockIn;
 
 // ═══ LOW STOCK ═════════════════════════════════════════
 function renderLowStock(){

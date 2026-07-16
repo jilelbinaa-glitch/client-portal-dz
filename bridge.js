@@ -45,6 +45,11 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// تطبيق ثانوي منفصل — يُستخدم فقط لإنشاء حسابات لأشخاص آخرين
+// (مثل المدير العام يُنشئ حساب مدير فرع) دون أن يفقد المُنشئ جلسته الحالية.
+const secondaryApp  = initializeApp(firebaseConfig, 'AccountCreator');
+const secondaryAuth = getAuth(secondaryApp);
+
 // ── مفاتيح المجموعات ────────────────────────────────────
 const COL = {
   requests:     'requests',
@@ -58,6 +63,9 @@ const COL = {
   materials:      'materials',
   materialOrders: 'material_orders',
   studyOffers:    'study_offers',
+  officeManagers: 'office_managers',
+  warehouses:     'warehouses',
+  stockMovements: 'stock_movements',
 };
 
 // ── مراحل الإنجاز الموحّدة (10 مراحل) ───────────────────
@@ -699,6 +707,22 @@ const Team = {
     return cred.user;
   },
 
+  // مدير المستودعات يُنشئ حساب عضو فريق مستودع مباشرة (يبقى مسجّلاً دخوله هو)
+  async registerWarehouseStaff(name, phone, email, password, warehouseId) {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    try {
+      await updateProfile(cred.user, { displayName: name });
+      await setDoc(doc(db, COL.teamMembers, cred.user.uid), clean({
+        uid: cred.user.uid, name, phone, email,
+        role: 'warehouse_staff', warehouseId: warehouseId || null,
+        status: 'active', createdAt: serverTimestamp(),
+      }));
+    } finally {
+      await fbSignOut(secondaryAuth);
+    }
+    return { uid: cred.user.uid, name, email };
+  },
+
   async registerWorker(name, phone, nin, email, password, specialties, payType, rate) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     try {
@@ -744,11 +768,23 @@ const Team = {
     await updateDoc(doc(db, COL.teamMembers, uid), clean({ ...data, updatedAt: serverTimestamp() }));
   },
 
+  // المدير الفرعي يوصي بقبول عضو في فريقه — بانتظار موافقة المدير العام النهائية
+  async managerRecommend(uid, managerUid) {
+    await updateDoc(doc(db, COL.teamMembers, uid), clean({ status: 'manager_approved', recommendedBy: managerUid || null, recommendedAt: serverTimestamp() }));
+    await Notifs.add('office', { type:'team_recommend', icon:'📝', title:'توصية بقبول عضو فريق', body:'بانتظار موافقتك النهائية' });
+    emit('team:recommended', uid);
+  },
+
   // المكتب فقط — يوافق على طلب انضمام
   async approve(uid) {
     await updateDoc(doc(db, COL.teamMembers, uid), { status: 'active', approvedAt: serverTimestamp() });
     await Notifs.add('team_' + uid, { type:'team_approved', icon:'✅', title:'تم قبول انضمامك!', body:'يمكنك الآن استخدام التطبيق بالكامل' });
     emit('team:approved', uid);
+  },
+
+  async reject(uid) {
+    await updateDoc(doc(db, COL.teamMembers, uid), { status: 'rejected' });
+    emit('team:rejected', uid);
   },
 
   async suspend(uid) {
@@ -1248,6 +1284,59 @@ const Materials = {
       tx.update(ref, { stockQty: Math.max(0, cur + delta), updatedAt: serverTimestamp() });
     });
   },
+
+  // تسجيل حركة مخزون (سلع داخلة أو سلع مباعة يدوياً) مع سجل تتبع
+  async recordMovement({ materialId, warehouseId, type, qty, note, staffId, staffName }) {
+    const q = Number(qty) || 0;
+    if (q <= 0) throw new Error('الكمية يجب أن تكون أكبر من صفر');
+    await this.adjustStock(materialId, type === 'in' ? q : -q);
+    await addDoc(collection(db, COL.stockMovements), clean({
+      materialId, warehouseId: warehouseId || null, type, qty: q,
+      note: note || '', staffId: staffId || null, staffName: staffName || '',
+      createdAt: serverTimestamp(),
+    }));
+  },
+
+  watchMovements(warehouseId, cb) {
+    return onSnapshot(query(collection(db, COL.stockMovements), where('warehouseId', '==', warehouseId), orderBy('createdAt', 'desc')), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+};
+
+// ══════════════════════════════════════════════════════════
+//  WAREHOUSES — مستودعات مواد البناء حسب الموقع
+//  warehouses/{id}: مستودع مرتبط بولاية/بلدية معيّنة، يزوّد
+//  المشاريع الموجودة في تلك المنطقة.
+// ══════════════════════════════════════════════════════════
+const Warehouses = {
+  async create({ name, wilaya, commune }) {
+    const ref = await addDoc(collection(db, COL.warehouses), clean({
+      name, wilaya: wilaya || '', commune: commune || '', createdAt: serverTimestamp(),
+    }));
+    return { id: ref.id, name, wilaya, commune };
+  },
+
+  async get(id) {
+    const snap = await getDoc(doc(db, COL.warehouses, id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  watchAll(cb) {
+    return onSnapshot(collection(db, COL.warehouses), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  async remove(id) { await deleteDoc(doc(db, COL.warehouses, id)); },
+
+  // يبحث عن مستودع يخدم منطقة مشروع معيّن (نفس الولاية، ويُفضَّل نفس البلدية)
+  async findServing(wilaya, commune, allWarehouses) {
+    const list = allWarehouses || (await getDocs(collection(db, COL.warehouses))).docs.map(d => ({ id: d.id, ...d.data() }));
+    return list.find(w => w.wilaya === wilaya && w.commune === commune)
+        || list.find(w => w.wilaya === wilaya)
+        || null;
+  },
 };
 
 // ══════════════════════════════════════════════════════════
@@ -1262,7 +1351,10 @@ const MaterialOrders = {
     const orderId = await matTicketNum();
     const priced = (items || []).map(it => ({ ...it, subtotal: (Number(it.qty)||0) * (Number(it.unitPrice)||0) }));
     const totalCost = priced.reduce((s, it) => s + it.subtotal, 0);
-    const linked = !!execProjectId;
+    // إن كان المشروع مرتبطاً لكن لم يُعيَّن له مهندس متابعة بعد، لا يصح تعليق
+    // الطلب في حالة "بانتظار مهندس" بلا مستلم — يُحوَّل مباشرة للمكتب بدل ضياعه.
+    const hasSupervisor = !!supervisorId;
+    const linked = !!execProjectId && hasSupervisor;
     const order = clean({
       orderId, projectLabel: projectLabel || '', clientId: clientId || null, clientName: clientName || '',
       clientPhone: clientPhone || '', address: address || '',
@@ -1271,7 +1363,7 @@ const MaterialOrders = {
       source: source || 'office', status: linked ? 'pending_supervisor' : 'draft', createdAt: serverTimestamp(),
     });
     await setDoc(doc(db, COL.materialOrders, orderId), order);
-    if (linked && supervisorId) {
+    if (linked) {
       await Notifs.add('team_' + supervisorId, { type:'material_review', icon:'📦', title:'طلب مواد بانتظار موافقتك', body:`${phaseLabel||''} — ${priced.length} بند` });
     } else if ((source || 'office') === 'client') {
       await Notifs.add('office', { type:'material_order_new', icon:'📦', title:'طلبية مواد جديدة من عميل', body:`${clientName||''} — ${priced.length} بند — ${totalCost.toLocaleString('ar-DZ')} دج` });
@@ -1339,7 +1431,19 @@ const MaterialOrders = {
     if (!snap.exists()) return null;
     const order = snap.data();
     for (const it of (order.items || [])) {
-      if (it.materialId) await Materials.adjustStock(it.materialId, -(Number(it.qty)||0));
+      if (it.materialId) {
+        const qty = Number(it.qty) || 0;
+        await Materials.adjustStock(it.materialId, -qty);
+        try {
+          const matSnap = await getDoc(doc(db, COL.materials, it.materialId));
+          const whId = matSnap.exists() ? (matSnap.data().warehouseId || null) : null;
+          await addDoc(collection(db, COL.stockMovements), clean({
+            materialId: it.materialId, warehouseId: whId, type: 'out', qty,
+            note: `بيع — طلبية ${orderId}${order.projectLabel?' — '+order.projectLabel:''}`,
+            createdAt: serverTimestamp(),
+          }));
+        } catch (e) { console.error('stock movement log failed:', e); }
+      }
     }
     await updateDoc(ref, { status: 'confirmed', confirmedAt: serverTimestamp() });
     return { id: orderId, ...order, status: 'confirmed' };
@@ -1377,12 +1481,62 @@ function fmtDate(iso) {
 function fmtNum(n) { return Number(n || 0).toLocaleString('ar-DZ'); }
 
 // ══════════════════════════════════════════════════════════
+//  MANAGERS — الترتيب الهرمي لفريق المكتب
+//  office_managers/{uid}: حساب مدير فرع (دراسات / إنجاز / مستودعات)
+//  ينشئه المدير العام مباشرة. من لا يملك سجلاً هنا ويدخل عبر
+//  architecture_pm.html يُعتبر تلقائياً "المدير العام" (كامل الصلاحيات).
+// ══════════════════════════════════════════════════════════
+const MANAGER_ROLES = {
+  studies_manager:   'مدير الدراسات',
+  execution_manager: 'مدير مؤسسة الإنجاز',
+  warehouse_manager: 'مدير المستودعات',
+};
+
+const Managers = {
+  // المدير العام يُنشئ حساب مدير فرع مباشرة (يبقى هو مسجّلاً دخوله)
+  async create(name, email, password, role) {
+    if (!MANAGER_ROLES[role]) throw new Error('دور مدير غير صالح');
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    try {
+      await updateProfile(cred.user, { displayName: name });
+      await setDoc(doc(db, COL.officeManagers, cred.user.uid), clean({
+        uid: cred.user.uid, name, email, role, status: 'active',
+        createdBy: auth.currentUser?.uid || null, createdAt: serverTimestamp(),
+      }));
+    } finally {
+      await fbSignOut(secondaryAuth); // تنظيف الجلسة الثانوية دون التأثير على جلسة المدير العام
+    }
+    return { uid: cred.user.uid, name, email, role };
+  },
+
+  async getProfile(uid) {
+    const snap = await getDoc(doc(db, COL.officeManagers, uid));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+
+  watchAll(cb) {
+    return onSnapshot(collection(db, COL.officeManagers), snap => {
+      cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  async suspend(uid) {
+    await updateDoc(doc(db, COL.officeManagers, uid), clean({ status: 'suspended' }));
+  },
+  async reactivate(uid) {
+    await updateDoc(doc(db, COL.officeManagers, uid), clean({ status: 'active' }));
+  },
+
+  roleLabel(role) { return MANAGER_ROLES[role] || role; },
+};
+
+// ══════════════════════════════════════════════════════════
 //  EXPORT
 // ══════════════════════════════════════════════════════════
 const Bridge = {
   Auth, Requests, Quotes, Messages, Notifs, STATUS_MAP, SVC_NAMES, fmtDate, fmtNum, on, emit, uid, db,
   Team, ExecProjects, Offers, Applications, StudyOffers, EXEC_PHASES, SPECIALTIES,
-  Materials, MaterialOrders,
+  Materials, MaterialOrders, Managers, MANAGER_ROLES, Warehouses,
 };
 window.Bridge = Bridge;
 export default Bridge;

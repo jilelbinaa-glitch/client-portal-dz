@@ -443,6 +443,10 @@ body{background:#000;}
             </div>
           </div>
           <div class="field">
+            <label>الدائرة</label>
+            <select id="f_daira"><option value="">— اختر الولاية أولاً —</option></select>
+          </div>
+          <div class="field">
             <label>العنوان التفصيلي <span class="req">*</span></label>
             <input id="f_address" placeholder="الحي، الشارع، رقم القطعة">
           </div>
@@ -653,6 +657,7 @@ body{background:#000;}
 
 <div class="toast" id="toast"></div>
 
+<script src="dz_locations.js"></script>
 <script type="module">
 import Bridge from './bridge.js?v=20260712c';
 
@@ -689,8 +694,9 @@ function showErr(id, msg) { const el=document.getElementById(id); if(el){el.text
 function showOk(id, msg)  { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
 
 // ═══ WILAYAS ═════════════════════════════════════════
-const WILAYAS = ['01-أدرار','02-الشلف','03-الأغواط','04-أم البواقي','05-باتنة','06-بجاية','07-بسكرة','08-بشار','09-البليدة','10-البويرة','11-تمنراست','12-تبسة','13-تلمسان','14-تيارت','15-تيزي وزو','16-الجزائر','17-الجلفة','18-جيجل','19-سطيف','20-سعيدة','21-سكيكدة','22-سيدي بلعباس','23-عنابة','24-قالمة','25-قسنطينة','26-المدية','27-مستغانم','28-المسيلة','29-معسكر','30-ورقلة','31-وهران','32-البيض','33-إليزي','34-برج بوعريريج','35-بومرداس','36-الطارف','37-تندوف','38-تيسمسيلت','39-الوادي','40-خنشلة','41-سوق أهراس','42-تيبازة','43-ميلة','44-عين الدفلى','45-النعامة','46-عين تموشنت','47-غرداية','48-غليزان','49-تيميمون','50-برج باجي مختار','51-أولاد جلال','52-بني عباس','53-عين صالح','54-عين قزام','55-تقرت','56-جانت','57-المغير','58-المنيعة'];
-const COMMUNES = {'01-أدرار':['أدرار','رقان','تيميمون','أوقروت','بودة'],'02-الشلف':['الشلف','تنس','مرسى','العطاف','أبو الحسن','بوقادير'],'03-الأغواط':['الأغواط','الآفلو','حاسي الرمل','عين ماضي','تاجموت'],'04-أم البواقي':['أم البواقي','عين البيضاء','عين فكرون','عين مليلة','سوق نعمان'],'05-باتنة':['باتنة','عين التوتة','تيمقاد','بريكة','مروانة','أريس','نقاوس'],'06-بجاية':['بجاية','أقبو','خراطة','سيدي عيش','تيشي','أوقاس'],'07-بسكرة':['بسكرة','طولقة','أورلال','جمورة','القنطرة','سيدي عقبة'],'08-بشار':['بشار','عين الصفراء','تاغيت','القنادسة','تبلبالة'],'09-البليدة':['البليدة','بوفاريك','الأربعاء','موزاية','مفتاح','العفرون'],'10-البويرة':['البويرة','سور الغزلان','عين بسام','عزازقة','بوجيمة'],'11-تمنراست':['تمنراست','أبلسة','إدلس'],'12-تبسة':['تبسة','الشريعة','بئر العاتر','الونزة','النقرين'],'13-تلمسان':['تلمسان','مغنية','الغزوات','بني صاف','ندرومة'],'14-تيارت':['تيارت','دحموني','قصر الشلالة','مهدية','فرندة'],'15-تيزي وزو':['تيزي وزو','عزازقة','أزفون','مقلع','بوغني'],'16-الجزائر':['باب الوادي','بلكور','حيدرة','القبة','حسين داي','باب الزوار','بوزريعة','بئر مراد رايس','برج الكيفان','الحراش','رغاية'],'17-الجلفة':['الجلفة','عين وسارة','مسعد','دار الشيوخ'],'18-جيجل':['جيجل','الميلية','الطاهير','الشقفة'],'19-سطيف':['سطيف','عين العراك','بوقاعة','مقرة','حمام السخنة','عين الكبيرة'],'20-سعيدة':['سعيدة','عين الحجر','سيدي بوبكر'],'21-سكيكدة':['سكيكدة','عزابة','القل','الحروش'],'22-سيدي بلعباس':['سيدي بلعباس','تلاغ','مرحوم'],'23-عنابة':['عنابة','سرايدي','الحجار','بوحجار'],'24-قالمة':['قالمة','هيليوبوليس','بوشقوف'],'25-قسنطينة':['قسنطينة','الخروب','عين أعبيد','ديدوش مراد'],'26-المدية':['المدية','البرواقية','قصر البخاري'],'27-مستغانم':['مستغانم','عين تادلس','سيدي علي'],'28-المسيلة':['المسيلة','بوسعادة','حمام الضلعة','عين الملح','مقرة'],'29-معسكر':['معسكر','تيقنيف','السيق'],'30-ورقلة':['ورقلة','تقرت','حاسي مسعود'],'31-وهران':['وهران','عين الترك','مرسى الكبير','بئر الجير','بوتليليس'],'32-البيض':['البيض','عين الأبيض','الشلالة'],'33-إليزي':['إليزي','إن أميناس'],'34-برج بوعريريج':['برج بوعريريج','العش'],'35-بومرداس':['بومرداس','قوراية','بودواو','خميس الخشنة'],'36-الطارف':['الطارف','القالة','بن مهيدي'],'37-تندوف':['تندوف'],'38-تيسمسيلت':['تيسمسيلت','ثنية الحد'],'39-الوادي':['الوادي','قمار','جامعة'],'40-خنشلة':['خنشلة','بابار','قايس'],'41-سوق أهراس':['سوق أهراس','مداوروش','تاورة'],'42-تيبازة':['تيبازة','شرشال','القليعة','بو إسماعيل'],'43-ميلة':['ميلة','تلاجة','فرجيوة'],'44-عين الدفلى':['عين الدفلى','المليانة'],'45-النعامة':['النعامة','عين الصفراء','مشرية'],'46-عين تموشنت':['عين تموشنت','بني صاف'],'47-غرداية':['غرداية','المنيعة','بريان','قرارة'],'48-غليزان':['غليزان','بلعسل','يلل'],'49-تيميمون':['تيميمون','أوقروت','شروين'],'50-برج باجي مختار':['برج باجي مختار'],'51-أولاد جلال':['أولاد جلال','الدوسن'],'52-بني عباس':['بني عباس','كرزاز'],'53-عين صالح':['عين صالح','فوقرت'],'54-عين قزام':['عين قزام'],'55-تقرت':['تقرت','بن ناصر','تماسين'],'56-جانت':['جانت'],'57-المغير':['المغير','جامعة'],'58-المنيعة':['المنيعة','الغرارة']};
+const WILAYAS = window.DZ_WILAYAS || [];
+const COMMUNES = window.DZ_COMMUNES || {};
+const DAIRAS = window.DZ_DAIRAS || {};
 
 function populateWilayas() {
   const sel = document.getElementById('f_pwilaya'); if (!sel) return;
@@ -701,6 +707,11 @@ function updateCList(wId, cId) {
   const cs = document.getElementById(cId); if (!cs) return;
   cs.innerHTML = '<option value="">— اختر البلدية —</option>';
   (COMMUNES[w]||[]).forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+  const ds = document.getElementById('f_daira');
+  if (ds && ds.tagName === 'SELECT') {
+    ds.innerHTML = '<option value="">— اختر الدائرة —</option>';
+    (DAIRAS[w]||[]).forEach(d => { const o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o); });
+  }
 }
 window.updateCList = updateCList;
 
@@ -876,6 +887,13 @@ function buildStep0() {
         <div class="field"><label>المساحة (م²)</label><input id="f_area" type="number" placeholder="200" inputmode="numeric"></div>
         <div class="field"><label>عدد الغرف</label><input id="f_rooms" type="number" placeholder="4" inputmode="numeric"></div>
       </div>
+      <div class="field-row">
+        <div class="field"><label>عدد الواجهات</label><input id="f_facades" type="number" placeholder="1" inputmode="numeric"></div>
+        <div class="field"><label>عدد الحمامات</label><input id="f_bathrooms" type="number" placeholder="2" inputmode="numeric"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>عدد المستودعات</label><input id="f_storerooms" type="number" placeholder="0" inputmode="numeric"></div>
+      </div>
       <div style="margin-bottom:12px">
         <div style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">الخدمات المطلوبة</div>
         <div class="opt-grid">
@@ -1003,7 +1021,9 @@ function buildReview() {
     ['الخدمات', formSubServices.map(s=>SVC_NAMES[s]).join(' + ')],
     ['المبنى', gv('f_btype')], ['الطوابق', gv('f_floors')],
     ['المساحة', gv('f_area')?gv('f_area')+' م²':'—'],
-    ['ولاية المشروع', gv('f_pwilaya')], ['البلدية', gv('f_commune')],
+    ['الغرف', gv('f_rooms')||'—'], ['الواجهات', gv('f_facades')||'—'],
+    ['الحمامات', gv('f_bathrooms')||'—'], ['المستودعات', gv('f_storerooms')||'—'],
+    ['ولاية المشروع', gv('f_pwilaya')], ['الدائرة', gv('f_daira')||'—'], ['البلدية', gv('f_commune')],
     ['العنوان', gv('f_address')],
     ['الجدول الزمني', gv('f_timeline')||'—'],
     ['الميزانية', gv('f_budget')?Bridge.fmtNum(Number(gv('f_budget')))+' دج':'—'],
@@ -1034,7 +1054,11 @@ async function submitReq() {
       floors: gv('f_floors'),
       area: gv('f_area'),
       rooms: gv('f_rooms')||'',
+      facades: gv('f_facades')||'',
+      bathrooms: gv('f_bathrooms')||'',
+      storerooms: gv('f_storerooms')||'',
       projWilaya: gv('f_pwilaya'),
+      daira: gv('f_daira')||'',
       commune: gv('f_commune'),
       address: gv('f_address'),
       landInfo: gv('f_land'),
@@ -1055,7 +1079,11 @@ async function submitReq() {
         const metas = [];
         for (const f of upFiles) metas.push(await Bridge.Requests.uploadFile(req.ticket, f));
         await Bridge.Requests.attachFiles(req.ticket, metas);
-      } catch (e) { console.error('file upload failed', e); }
+        loadMyRequests();
+      } catch (e) {
+        console.error('file upload failed', e);
+        toast('⚠️ تم إرسال طلبك لكن تعذر رفع المرفقات — تواصل مع المكتب لإرسالها', 6000);
+      }
     }
   } catch(err) {
     const c=err?.code||'';

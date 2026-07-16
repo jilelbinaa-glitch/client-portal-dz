@@ -707,10 +707,11 @@ function renderEngineerProjects(el) {
     sortedOpen.map(o => {
       const svcs = (o.services||[]).map(s => (Bridge.SVC_NAMES && Bridge.SVC_NAMES[s]) || s).join(' + ');
       return `<div class="pcard">
-        <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.building||'مشروع')} — ${esc(o.floors||'')}</div><div class="pcard-name">📍 ${esc(o.projWilaya||'—')} — ${esc(o.commune||'—')}</div></div>
+        <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.building||'مشروع')} — ${esc(o.floors||'')}</div><div class="pcard-name">📍 ${esc(o.projWilaya||'—')}${o.daira?' — '+esc(o.daira):''} — ${esc(o.commune||'—')}</div></div>
           <span class="badge" style="background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3)">${(o.feeAmount||0).toLocaleString('ar-DZ')} دج</span>
         </div>
         ${o.area?`<div style="font-size:11px;color:var(--muted);margin-bottom:2px">المساحة: ${esc(o.area)} م²${o.rooms?' — الغرف: '+esc(o.rooms):''}</div>`:''}
+        ${(o.facades||o.bathrooms||o.storerooms)?`<div style="font-size:11px;color:var(--muted);margin-bottom:2px">${o.facades?'الواجهات: '+esc(o.facades)+' — ':''}${o.bathrooms?'الحمامات: '+esc(o.bathrooms)+' — ':''}${o.storerooms?'المستودعات: '+esc(o.storerooms):''}</div>`:''}
         ${svcs?`<div style="font-size:11px;color:var(--muted);margin-bottom:4px">الخدمات: ${esc(svcs)}</div>`:''}
         ${o.desc?`<div style="font-size:11px;color:var(--text);margin-bottom:6px;line-height:1.6">${esc(o.desc)}</div>`:''}
         <div style="font-size:10px;color:var(--muted);margin-bottom:8px">نسبة الأتعاب: ${o.feePercent||0}%</div>
@@ -736,7 +737,7 @@ function renderEngineerProjects(el) {
         ${o.files?.length ? `<div style="font-size:10px;color:var(--muted);margin-bottom:6px">آخر ملفات مرفوعة: ${o.files.map(f=>esc(f.name)).join('، ')}</div>` : ''}
         ${canUpload ? `
           <input type="file" id="studyFileInput_${o.id}" multiple accept=".pdf,.dwg,.jpg,.jpeg,.png" style="font-size:10px;margin-bottom:8px;width:100%">
-          <button class="btn-block" onclick="uploadStudyFiles('${o.id}')">📎 رفع ملفات الدراسة</button>
+          <button class="btn-block" onclick="uploadStudyFiles('${o.id}', this)">📎 رفع ملفات الدراسة</button>
         ` : ''}
       </div>`;
     }).join('')}
@@ -795,10 +796,11 @@ async function acceptStudyOffer(offerId) {
 }
 window.acceptStudyOffer = acceptStudyOffer;
 
-async function uploadStudyFiles(offerId) {
+async function uploadStudyFiles(offerId, btn) {
   const input = document.getElementById('studyFileInput_'+offerId);
   if (!input || !input.files.length) { showToast('⚠️ اختر ملفاً واحداً على الأقل'); return; }
-  const btn = event?.target; if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ الرفع...'; }
+  const originalLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ الرفع...'; }
   try {
     const metas = [];
     for (const file of input.files) {
@@ -808,9 +810,15 @@ async function uploadStudyFiles(offerId) {
     await Bridge.StudyOffers.submitFiles(offerId, metas);
     showToast('✅ تم رفع ملفات الدراسة — بانتظار مراجعة المكتب');
   } catch(err) {
-    console.error(err);
-    showToast('❌ تعذر رفع الملفات: '+(err?.message||''));
-    if (btn) { btn.disabled = false; btn.textContent = '📎 رفع ملفات الدراسة'; }
+    console.error('uploadStudyFiles failed:', err);
+    let msg = err?.message || 'خطأ غير معروف';
+    if (err?.code === 'storage/unauthorized' || /unauthorized/i.test(msg)) {
+      msg = 'الرفع مرفوض من إعدادات التخزين (Storage Rules) — تأكد من نشر storage.rules في Firebase Console.';
+    } else if (err?.code === 'storage/unknown' || /CORS|network/i.test(msg)) {
+      msg = 'تعذر الاتصال بالتخزين — تأكد أن Firebase Storage مفعّل لهذا المشروع.';
+    }
+    showToast('❌ تعذر رفع الملفات: '+msg, 6000);
+    if (btn) { btn.disabled = false; btn.textContent = originalLabel || '📎 رفع ملفات الدراسة'; }
   }
 }
 window.uploadStudyFiles = uploadStudyFiles;
