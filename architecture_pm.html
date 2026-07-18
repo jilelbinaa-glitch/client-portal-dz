@@ -1935,7 +1935,7 @@ async function openReqDetail(reqId){
   const html=`
   <div class="modal-overlay open" id="reqDetailModal" onclick="if(event.target===this)closeModal('reqDetailModal')">
     <div class="modal" style="width:700px;max-height:92vh;overflow-y:auto">
-      <h3>📋 تفاصيل الطلب — ${req.ticket}</h3>
+      <h3>📋 تفاصيل الطلب — ${req.ticket}${req.studyMode==='basic'?' <span style="font-size:11px;background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:99px;padding:3px 10px;vertical-align:middle">📄 دراسة فقط — بدون متابعة</span>':req.studyMode==='full'?' <span style="font-size:11px;background:rgba(45,212,191,.12);color:var(--teal);border:1px solid rgba(45,212,191,.3);border-radius:99px;padding:3px 10px;vertical-align:middle">🤝 متابعة كاملة</span>':''}</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
         <div style="background:var(--surface);border-radius:var(--rsm);padding:14px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">بيانات العميل</div>
@@ -2048,9 +2048,15 @@ async function openReqDetail(reqId){
 
         ${studyOffer.status==='paid' ? `
           <div style="font-size:12px;color:var(--teal);margin-bottom:8px">💰 تم دفع أتعاب المهندس.</div>
-          <button class="btn btn-teal btn-sm" style="width:100%" onclick="handToExecutionNow('${reqId}')">🏗️ نقل المشروع لمؤسسة الإنجاز</button>
+          ${req.studyMode==='basic' ? `
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px">هذا طلب "دراسة ورخصة فقط" — العميل اختار عدم المتابعة، سيتولى التنفيذ بنفسه.</div>
+            <button class="btn btn-gold btn-sm" style="width:100%" onclick="closeStudyFileNow('${reqId}')">✅ إغلاق الملف — تسليم نهائي</button>
+          ` : `
+            <button class="btn btn-teal btn-sm" style="width:100%" onclick="handToExecutionNow('${reqId}')">🏗️ نقل المشروع لمؤسسة الإنجاز</button>
+          `}
         ` : ''}
 
+        ${studyOffer.status==='closed' ? `<div style="font-size:12px;color:var(--gold)">✅ تم تسليم الملف نهائياً للعميل — دراسة فقط، بدون متابعة.</div>` : ''}
         ${studyOffer.status==='handed_to_execution' ? `<div style="font-size:12px;color:var(--gold)">🏗️ انتقل المشروع لمؤسسة الإنجاز.</div>` : ''}
       </div>` : ''}
 
@@ -2154,7 +2160,7 @@ async function publishStudyOffer(reqId, total){
       building: req.building, floors: req.floors, area: req.area, rooms: req.rooms,
       facades: req.facades, bathrooms: req.bathrooms, storerooms: req.storerooms,
       services: req.services, projWilaya: req.projWilaya, daira: req.daira, commune: req.commune,
-      landInfo: req.landInfo, desc: req.desc, timeline: req.timeline,
+      landInfo: req.landInfo, desc: req.desc, timeline: req.timeline, studyMode: req.studyMode || 'full',
       feePercent: pct, feeAmount,
     });
     closeModal('reqDetailModal');
@@ -2197,6 +2203,16 @@ async function handToExecutionNow(reqId){
   } catch(err) { console.error(err); showToast('❌ تعذر النقل: '+(err?.message||'')); }
 }
 window.handToExecutionNow = handToExecutionNow;
+
+async function closeStudyFileNow(reqId){
+  try {
+    await Bridge.StudyOffers.close(reqId);
+    closeModal('reqDetailModal');
+    renderRequestsPage();
+    showToast('✅ تم إغلاق الملف — تسليم نهائي للعميل');
+  } catch(err) { console.error(err); showToast('❌ تعذر الإغلاق: '+(err?.message||'')); }
+}
+window.closeStudyFileNow = closeStudyFileNow;
 
 // ── عرض السعر ─────────────────────────────────────
 async function openQuoteModal(reqId){

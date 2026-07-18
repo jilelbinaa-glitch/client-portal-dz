@@ -559,16 +559,29 @@ function renderLowStock(){
 }
 
 // ═══ ORDERS ════════════════════════════════════════════
-function orderStatusLabel(s){ return {draft:'مسوّدة',confirmed:'مؤكَّدة',cancelled:'ملغاة',pending_supervisor:'بانتظار موافقة المهندس',rejected_by_supervisor:'رفضها المهندس'}[s]||s; }
-function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br',pending_supervisor:'bt',rejected_by_supervisor:'br'}[s]||'bm'; }
+function orderStatusLabel(s){ return {draft:'مسوّدة',confirmed:'مؤكَّدة',cancelled:'ملغاة',pending_supervisor:'بانتظار موافقة المهندس',rejected_by_supervisor:'رفضها المهندس',reserved:'🏬 محجوزة — بانتظار الاستلام',picked_up:'✅ تم الاستلام والدفع'}[s]||s; }
+function orderStatusClass(s){ return {draft:'ba',confirmed:'bg',cancelled:'br',pending_supervisor:'bt',rejected_by_supervisor:'br',reserved:'ba',picked_up:'bg'}[s]||'bm'; }
 
 function renderOrders(){
   const tb = document.getElementById('orders_tb');
   tb.innerHTML = orders.length ? orders.map(o=>{
     const isClient = o.source === 'client';
+    const wh = warehouses.find(w=>w.id===o.warehouseId);
     const who = isClient
-      ? `${esc(o.clientName||'—')}${o.clientPhone?' · 📞 '+esc(o.clientPhone):''}${o.address?'<br><span style="color:var(--muted);font-size:10px">📍 '+esc(o.address)+'</span>':''}${o.execProjectId?'<br><span style="color:var(--teal);font-size:10px">🏗️ '+esc(o.phaseLabel||'')+'</span>':''}`
+      ? `${esc(o.clientName||'—')}${o.clientPhone?' · 📞 '+esc(o.clientPhone):''}${o.address?'<br><span style="color:var(--muted);font-size:10px">📍 '+esc(o.address)+'</span>':''}${o.execProjectId?'<br><span style="color:var(--teal);font-size:10px">🏗️ '+esc(o.phaseLabel||'')+'</span>':''}${o.fulfillmentMode==='pickup'?'<br><span style="color:var(--gold);font-size:10px">🏬 استلام يدوي'+(wh?' — '+esc(wh.name):'')+'</span>':''}`
       : esc(o.projectLabel||'—');
+    let actions = '—';
+    if (o.status === 'draft') {
+      actions = `<div style="display:flex;gap:6px">
+      <button class="btn btn-teal btn-sm" onclick="confirmOrderBtn('${o.id}')">✅ تأكيد وصرف</button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrderBtn('${o.id}')">إلغاء</button>
+    </div>`;
+    } else if (o.status === 'reserved') {
+      actions = `<div style="display:flex;gap:6px">
+      <button class="btn btn-teal btn-sm" onclick="pickupOrderBtn('${o.id}')">✅ استلم ودفع نقداً</button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrderBtn('${o.id}')">إلغاء الحجز</button>
+    </div>`;
+    }
     return `<tr>
     <td>${esc(o.id||o.orderId)}</td>
     <td><span class="badge ${isClient?'bt':'bm'}">${isClient?'🧑 عميل':'🏢 مكتب'}</span></td>
@@ -576,10 +589,7 @@ function renderOrders(){
     <td>${(o.totalCost||0).toLocaleString('ar-DZ')} دج</td>
     <td><span class="badge ${orderStatusClass(o.status)}">${orderStatusLabel(o.status)}</span></td>
     <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-DZ') : '—'}</td>
-    <td>${o.status==='draft'?`<div style="display:flex;gap:6px">
-      <button class="btn btn-teal btn-sm" onclick="confirmOrderBtn('${o.id}')">✅ تأكيد وصرف</button>
-      <button class="btn btn-danger btn-sm" onclick="cancelOrderBtn('${o.id}')">إلغاء</button>
-    </div>`:'—'}</td>
+    <td>${actions}</td>
   </tr>`;
   }).join('') : '<tr><td colspan="8" class="empty">لا توجد طلبيات بعد</td></tr>';
 }
@@ -590,6 +600,13 @@ async function confirmOrderBtn(id){
   catch(err){ showToast('❌ تعذر التأكيد: '+(err?.message||'')); }
 }
 window.confirmOrderBtn = confirmOrderBtn;
+
+async function pickupOrderBtn(id){
+  if(!confirm('تأكيد استلام العميل للمواد ودفعه نقداً؟ سيُخصم من المخزون فوراً.')) return;
+  try{ await Bridge.MaterialOrders.markPickedUp(id); showToast('✅ تم تسجيل الاستلام والدفع'); }
+  catch(err){ showToast('❌ تعذر: '+(err?.message||'')); }
+}
+window.pickupOrderBtn = pickupOrderBtn;
 
 async function cancelOrderBtn(id){
   if(!confirm('تأكيد إلغاء الطلبية؟')) return;

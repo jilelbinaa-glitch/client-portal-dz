@@ -18,16 +18,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
   updateDoc, deleteDoc, onSnapshot, query, orderBy, where, collectionGroup,
-  serverTimestamp, Timestamp, runTransaction
+  serverTimestamp, Timestamp, runTransaction, connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged,
   signInWithEmailAndPassword, signOut as fbSignOut,
   createUserWithEmailAndPassword, updateProfile, deleteUser,
-  sendPasswordResetEmail, sendEmailVerification
+  sendPasswordResetEmail, sendEmailVerification, connectAuthEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL, connectStorageEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
@@ -45,10 +45,27 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// ══════════════════════════════════════════════════════════
+//  بيئة تجربة منفصلة تماماً عن Firebase الحقيقي —
+//  عند التشغيل محلياً (localhost) عبر Firebase Emulator Suite،
+//  يتصل التطبيق تلقائياً بالمحاكيات المحلية بدل المشروع الفعلي.
+//  لا حاجة لأي تعديل عند النشر الحقيقي — هذا الشرط لا يتفعّل إلا محلياً.
+// ══════════════════════════════════════════════════════════
+const _isLocalTest = ['localhost', '127.0.0.1'].includes(location.hostname);
+if (_isLocalTest) {
+  try {
+    connectFirestoreEmulator(db, '127.0.0.1', 8081);
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    connectStorageEmulator(storage, '127.0.0.1', 9199);
+    console.log('%c🧪 وضع التجربة: متصل بمحاكيات Firebase المحلية — لا بيانات حقيقية', 'color:#c9a84c;font-weight:bold');
+  } catch (e) { console.warn('تعذر الاتصال بالمحاكيات المحلية — تأكد من تشغيل: firebase emulators:start', e); }
+}
+
 // تطبيق ثانوي منفصل — يُستخدم فقط لإنشاء حسابات لأشخاص آخرين
 // (مثل المدير العام يُنشئ حساب مدير فرع) دون أن يفقد المُنشئ جلسته الحالية.
 const secondaryApp  = initializeApp(firebaseConfig, 'AccountCreator');
 const secondaryAuth = getAuth(secondaryApp);
+if (_isLocalTest) { try { connectAuthEmulator(secondaryAuth, 'http://127.0.0.1:9099', { disableWarnings: true }); } catch(e){} }
 
 // ── مفاتيح المجموعات ────────────────────────────────────
 const COL = {
@@ -529,11 +546,12 @@ function msgsCol(reqId) { return collection(db, COL.requests, reqId, 'messages')
 
 const Messages = {
 
-  async send(reqId, from, text, attachments) {
+  async send(reqId, from, text, attachments, humanReply) {
     const req = await Requests.get(reqId);
     const msg = clean({
       reqId, ticket: req?.ticket || '', from, text,
       attachments: attachments || [],
+      humanReply: from === 'office' ? true : (humanReply || false),
       ts: serverTimestamp(), read: false
     });
     const ref = await addDoc(msgsCol(reqId), msg);
@@ -683,7 +701,8 @@ const Team = {
   },
 
   // مهندس متابعة تنفيذ دائم — تصنيف منفصل تماماً عن مهندس الدراسات الفريلانسر
-  async registerSupervisor(name, phone, nin, email, password, specialty, visitFee) {
+  async registerSupervisor(name, phone, nin, email, password, specialty, visitFee, extra) {
+    extra = extra || {};
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     try {
       await updateProfile(cred.user, { displayName: name });
@@ -691,6 +710,8 @@ const Team = {
         uid: cred.user.uid, name, phone, nin, email,
         role: 'supervisor', specialty: specialty || 'إشراف عام',
         visitFee: Number(visitFee) || 0,
+        wilaya: extra.wilaya || '', commune: extra.commune || '',
+        directoryVisible: !!extra.directoryVisible,
         status: 'pending', currentProjectId: null,
         createdAt: serverTimestamp(),
       });
@@ -723,7 +744,8 @@ const Team = {
     return { uid: cred.user.uid, name, email };
   },
 
-  async registerWorker(name, phone, nin, email, password, specialties, payType, rate) {
+  async registerWorker(name, phone, nin, email, password, specialties, payType, rate, extra) {
+    extra = extra || {};
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     try {
       await updateProfile(cred.user, { displayName: name });
@@ -733,6 +755,8 @@ const Team = {
         payType: payType || 'daily',                 // 'daily' | 'piece'
         dailyWage: payType === 'daily' ? (Number(rate) || 0) : 0,
         phaseRate: payType === 'piece' ? (Number(rate) || 0) : 0,
+        wilaya: extra.wilaya || '', commune: extra.commune || '',
+        directoryVisible: !!extra.directoryVisible,
         status: 'pending', currentProjectId: null, currentPhase: null,
         createdAt: serverTimestamp(),
       });
@@ -747,6 +771,14 @@ const Team = {
     }
     emit('auth:changed', cred.user);
     return cred.user;
+  },
+
+  // دليل التواصل المباشر — مهندسو متابعة وعمال نشطون وافقوا على إظهار بياناتهم
+  async getDirectory() {
+    const snap = await getDocs(collection(db, COL.teamMembers));
+    return snap.docs
+      .map(d => ({ uid: d.id, ...d.data() }))
+      .filter(m => m.status === 'active' && m.directoryVisible === true && (m.role === 'supervisor' || m.role === 'worker'));
   },
 
   async login(email, password) {
@@ -1238,6 +1270,12 @@ const StudyOffers = {
     await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'handed_to_execution', handedAt: serverTimestamp() }));
     await updateDoc(doc(db, COL.requests, offerId), clean({ status: 'execution', statusLabel: 'انتقل المشروع لمؤسسة الإنجاز', updatedAt: serverTimestamp() }));
   },
+
+  // إغلاق نهائي لطلبات "دراسة ورخصة فقط" — لا يوجد انتقال للإنجاز
+  async close(offerId) {
+    await updateDoc(doc(db, COL.studyOffers, offerId), clean({ status: 'closed', closedAt: serverTimestamp() }));
+    await updateDoc(doc(db, COL.requests, offerId), clean({ status: 'study_closed', statusLabel: 'تم تسليم الدراسة نهائياً', updatedAt: serverTimestamp() }));
+  },
 };
 
 // ══════════════════════════════════════════════════════════
@@ -1347,28 +1385,48 @@ const MaterialOrders = {
   // items: [{materialId, name, unit, qty, unitPrice}]
   // execProjectId + phaseLabel + supervisorId: عند ربط الطلب بمشروع إنجاز نشط —
   // الطلب حينها يمر أولاً على مهندس المتابعة قبل أن يصل للمستودع
-  async create({ projectLabel, clientId, clientName, clientPhone, address, items, notes, source, execProjectId, phaseLabel, supervisorId }) {
+  async create({ projectLabel, clientId, clientName, clientPhone, address, items, notes, source, execProjectId, phaseLabel, supervisorId, fulfillmentMode, warehouseId }) {
     const orderId = await matTicketNum();
     const priced = (items || []).map(it => ({ ...it, subtotal: (Number(it.qty)||0) * (Number(it.unitPrice)||0) }));
     const totalCost = priced.reduce((s, it) => s + it.subtotal, 0);
+    const mode = fulfillmentMode === 'pickup' ? 'pickup' : 'delivery';
     // إن كان المشروع مرتبطاً لكن لم يُعيَّن له مهندس متابعة بعد، لا يصح تعليق
     // الطلب في حالة "بانتظار مهندس" بلا مستلم — يُحوَّل مباشرة للمكتب بدل ضياعه.
     const hasSupervisor = !!supervisorId;
     const linked = !!execProjectId && hasSupervisor;
+    // طلبات "الاستلام اليدوي" حجز فقط — لا تمر بموافقة مهندس ولا تُخصم من
+    // المخزون إلا لحظة الاستلام الفعلي والدفع نقداً بالمستودع.
+    const status = mode === 'pickup' ? 'reserved' : (linked ? 'pending_supervisor' : 'draft');
     const order = clean({
       orderId, projectLabel: projectLabel || '', clientId: clientId || null, clientName: clientName || '',
       clientPhone: clientPhone || '', address: address || '',
       items: priced, totalCost, notes: notes || '',
       execProjectId: execProjectId || null, phaseLabel: phaseLabel || null, supervisorId: supervisorId || null,
-      source: source || 'office', status: linked ? 'pending_supervisor' : 'draft', createdAt: serverTimestamp(),
+      fulfillmentMode: mode, warehouseId: warehouseId || null,
+      source: source || 'office', status, createdAt: serverTimestamp(),
     });
     await setDoc(doc(db, COL.materialOrders, orderId), order);
-    if (linked) {
+    if (mode === 'pickup') {
+      await Notifs.add('office', { type:'material_reserved', icon:'🏬', title:'حجز استلام يدوي جديد', body:`${clientName||''} — ${priced.length} بند — ${totalCost.toLocaleString('ar-DZ')} دج` });
+    } else if (linked) {
       await Notifs.add('team_' + supervisorId, { type:'material_review', icon:'📦', title:'طلب مواد بانتظار موافقتك', body:`${phaseLabel||''} — ${priced.length} بند` });
     } else if ((source || 'office') === 'client') {
       await Notifs.add('office', { type:'material_order_new', icon:'📦', title:'طلبية مواد جديدة من عميل', body:`${clientName||''} — ${priced.length} بند — ${totalCost.toLocaleString('ar-DZ')} دج` });
     }
     return order;
+  },
+
+  // تأكيد استلام الحجز اليدوي فعلياً بالمستودع (دفع نقدي، خصم فوري من المخزون)
+  async markPickedUp(orderId) {
+    const ref = doc(db, COL.materialOrders, orderId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const order = snap.data();
+    for (const it of (order.items || [])) {
+      if (it.materialId) await Materials.adjustStock(it.materialId, -(Number(it.qty)||0));
+    }
+    await updateDoc(ref, { status: 'picked_up', pickedUpAt: serverTimestamp() });
+    return { id: orderId, ...order, status: 'picked_up' };
   },
 
   // مهندس المتابعة يوافق على الطلب (يصبح جاهزاً للمستودع كأي طلبية عادية)
@@ -1464,6 +1522,12 @@ const STATUS_MAP = {
   accepted:        { label:'مقبول',           color:'#4ade80', bg:'rgba(74,222,128,.15)',  badge:'bg' },
   rejected:        { label:'مرفوض',           color:'#f87171', bg:'rgba(248,113,113,.15)', badge:'br' },
   project_created: { label:'مشروع نشط',       color:'#a78bfa', bg:'rgba(167,139,250,.15)', badge:'bp' },
+  engineer_assigned:   { label:'قيد إعداد الدراسة',        color:'#2dd4bf', bg:'rgba(45,212,191,.15)',  badge:'bt' },
+  client_review:       { label:'🎨 التصميم جاهز للمراجعة', color:'#c9a84c', bg:'rgba(201,168,76,.15)',  badge:'bg' },
+  revisions_requested: { label:'بانتظار تعديل المهندس',    color:'#fbbf24', bg:'rgba(251,191,36,.15)',  badge:'ba' },
+  study_approved:      { label:'تمت الموافقة على الدراسة', color:'#4ade80', bg:'rgba(74,222,128,.15)',  badge:'bg' },
+  study_closed:        { label:'📄 تم التسليم النهائي (دراسة فقط)', color:'#c9a84c', bg:'rgba(201,168,76,.15)', badge:'bg' },
+  execution:           { label:'🏗️ قيد الإنجاز',           color:'#a78bfa', bg:'rgba(167,139,250,.15)', badge:'bp' },
 };
 
 const SVC_NAMES = {

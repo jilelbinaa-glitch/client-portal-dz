@@ -661,7 +661,7 @@ async function respQ(accepted){
 function renderChatMsgs(msgs){
   const box=document.getElementById('chatMsgs'); if(!box) return;
   if(!msgs.length){box.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:18px">ابدأ محادثة مع فريق مكتب جيل البناء / Start a conversation with our team</div>';return;}
-  box.innerHTML=msgs.map(m=>`<div class="cm ${m.from}">${m.text}<div class="mt">${m.from==='client'?'أنت / You':'مكتب جيل البناء'} · ${fmtD(m.ts)}</div></div>`).join('');
+  box.innerHTML=msgs.map(m=>`<div class="cm ${m.from}">${m.text}<div class="mt">${m.from==='client'?'أنت / You':(m.isAi?'🤖 مساعد جيل البناء الذكي':'مكتب جيل البناء')} · ${fmtD(m.ts)}</div></div>`).join('');
   box.scrollTop=box.scrollHeight;
 }
 async function loadChat(reqId){

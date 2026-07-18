@@ -217,6 +217,12 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
               <option value="piece">بالقطعة (عند تسليم المرحلة)</option>
             </select>
           </div>
+          <div class="afield"><label>ولاية العمل الأساسية</label><select id="r-worker-wilaya"><option value="">— اختر —</option></select></div>
+          <div class="afield"><label>البلدية</label><select id="r-worker-commune"><option value="">— اختر الولاية أولاً —</option></select></div>
+          <div class="afield" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="r-worker-directory" style="width:auto">
+            <label style="margin:0;font-size:12px">أوافق على عرض اسمي ورقم هاتفي في "دليل التواصل المباشر" للعملاء القريبين من منطقتي</label>
+          </div>
         </div>
 
         <!-- حقول مهندس متابعة التنفيذ (دائم) -->
@@ -230,6 +236,12 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
             </select>
           </div>
           <div class="afield"><label>أتعاب الزيارة الميدانية (دج)</label><input id="r-sup-fee" type="number" min="0" placeholder="مثال: 3000"></div>
+          <div class="afield"><label>ولاية العمل الأساسية</label><select id="r-sup-wilaya"><option value="">— اختر —</option></select></div>
+          <div class="afield"><label>البلدية</label><select id="r-sup-commune"><option value="">— اختر الولاية أولاً —</option></select></div>
+          <div class="afield" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="r-sup-directory" style="width:auto">
+            <label style="margin:0;font-size:12px">أوافق على عرض اسمي ورقم هاتفي في "دليل التواصل المباشر" للعملاء القريبين من منطقتي</label>
+          </div>
         </div>
 
         <button class="btn-auth" id="btnReg" onclick="doRegister()">إرسال طلب الانضمام</button>
@@ -351,6 +363,7 @@ td{padding:9px 10px;font-size:11px;border-top:1px solid var(--border);vertical-a
   }, 4000);
 })();
 </script>
+<script src="dz_locations.js"></script>
 <script type="module">
 import Bridge from './bridge.js?v=20260712c';
 window.__execPortalReady = true;
@@ -406,8 +419,21 @@ function switchRoleTab(role) {
   document.getElementById('reg-engineer-fields').style.display = role==='engineer' ? '' : 'none';
   document.getElementById('reg-supervisor-fields').style.display = role==='supervisor' ? '' : 'none';
   document.getElementById('reg-worker-fields').style.display = role==='worker' ? '' : 'none';
+  if (role === 'worker') populateRegWilaya('r-worker-wilaya','r-worker-commune');
+  if (role === 'supervisor') populateRegWilaya('r-sup-wilaya','r-sup-commune');
 }
 window.switchRoleTab = switchRoleTab;
+
+function populateRegWilaya(wSelId, cSelId){
+  const sel = document.getElementById(wSelId);
+  if (sel.options.length <= 1) (window.DZ_WILAYAS||[]).forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=w; sel.appendChild(o); });
+  sel.onchange = () => {
+    const cs = document.getElementById(cSelId);
+    cs.innerHTML = '<option value="">— اختر البلدية —</option>';
+    ((window.DZ_COMMUNES||{})[sel.value]||[]).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+  };
+}
+window.populateRegWilaya = populateRegWilaya;
 
 // ═══ رابط خارجي: ?role=engineer/supervisor/worker يفتح تبويب الانضمام مباشرة ═══
 try {
@@ -471,10 +497,12 @@ async function doRegister() {
     } else if (regRole === 'supervisor') {
       const specialty = gv('r-sup-specialty');
       const visitFee = gv('r-sup-fee');
-      await Bridge.Team.registerSupervisor(name, phone, nin, email, pass, specialty, visitFee);
+      const extra = { wilaya: gv('r-sup-wilaya'), commune: gv('r-sup-commune'), directoryVisible: document.getElementById('r-sup-directory').checked };
+      await Bridge.Team.registerSupervisor(name, phone, nin, email, pass, specialty, visitFee, extra);
     } else {
       const payType = gv('r-worker-paytype');
-      await Bridge.Team.registerWorker(name, phone, nin, email, pass, selectedSpecialties, payType, 0);
+      const extra = { wilaya: gv('r-worker-wilaya'), commune: gv('r-worker-commune'), directoryVisible: document.getElementById('r-worker-directory').checked };
+      await Bridge.Team.registerWorker(name, phone, nin, email, pass, selectedSpecialties, payType, 0, extra);
     }
     showOk('reg-ok','✅ تم إرسال طلب انضمامك! بانتظار موافقة المكتب.');
     btn.disabled=false; btn.textContent='إرسال طلب الانضمام';
@@ -710,6 +738,7 @@ function renderEngineerProjects(el) {
         <div class="pcard-hdr"><div><div class="pcard-id">${esc(o.building||'مشروع')} — ${esc(o.floors||'')}</div><div class="pcard-name">📍 ${esc(o.projWilaya||'—')}${o.daira?' — '+esc(o.daira):''} — ${esc(o.commune||'—')}</div></div>
           <span class="badge" style="background:var(--gold-glow);color:var(--gold);border:1px solid rgba(201,168,76,.3)">${(o.feeAmount||0).toLocaleString('ar-DZ')} دج</span>
         </div>
+        ${o.studyMode==='basic' ? `<div style="font-size:10px;color:var(--gold);margin-bottom:4px">📄 دراسة فقط — بدون متابعة لاحقة</div>` : `<div style="font-size:10px;color:var(--teal);margin-bottom:4px">🤝 دراسة ومتابعة كاملة</div>`}
         ${o.area?`<div style="font-size:11px;color:var(--muted);margin-bottom:2px">المساحة: ${esc(o.area)} م²${o.rooms?' — الغرف: '+esc(o.rooms):''}</div>`:''}
         ${(o.facades||o.bathrooms||o.storerooms)?`<div style="font-size:11px;color:var(--muted);margin-bottom:2px">${o.facades?'الواجهات: '+esc(o.facades)+' — ':''}${o.bathrooms?'الحمامات: '+esc(o.bathrooms)+' — ':''}${o.storerooms?'المستودعات: '+esc(o.storerooms):''}</div>`:''}
         ${svcs?`<div style="font-size:11px;color:var(--muted);margin-bottom:4px">الخدمات: ${esc(svcs)}</div>`:''}
