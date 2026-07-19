@@ -3,32 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#c9a84c">
+<meta name="theme-color" content="#1a5276">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="جيل البناء">
 <link rel="manifest" href="manifest.json">
 <title>جيل البناء — بوابة العملاء</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 :root{
-  --bg:#0d0f14; --s1:#13161d; --s2:#1a1e29; --s3:#222738;
-  --border:rgba(255,255,255,0.07);
-  --gold:#c9a84c; --gold-l:#e0ba60; --gold-d:#7a6230; --gold-glow:rgba(201,168,76,0.12);
-  --green:#4ade80; --red:#f87171; --amber:#fbbf24; --teal:#2dd4bf;
-  --text:#eaecf2; --muted:#7a8299; --dim:#3a4055;
-  --r:14px; --rsm:10px;
+  --bg:#eef2f7; --s1:#ffffff; --s2:#ffffff; --s3:#f4f6f9;
+  --border:rgba(26,82,118,0.12);
+  --gold:#1a5276; --gold-l:#2e86c1; --gold-d:#154360; --gold-glow:rgba(26,82,118,0.08);
+  --green:#27ae60; --red:#e74c3c; --amber:#f39c12; --teal:#f39c12;
+  --text:#2c3e50; --muted:#5d6d7e; --dim:#bdc3c7;
+  --r:15px; --rsm:10px;
   --nav-h:64px; --safe-bot:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px);
+  --shadow:0 4px 20px rgba(26,82,118,0.09);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px;}
-#app{display:flex;flex-direction:column;height:100%;height:100dvh;max-width:500px;margin:0 auto;position:relative;}
-body{background:#000;}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;max-width:500px;margin:0 auto;position:relative;box-shadow:var(--shadow);}
+body{background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);}
 
 /* ══ HEADER ══ */
 .hdr{display:flex;align-items:center;justify-content:space-between;
   padding:calc(var(--safe-top)+10px) 16px 10px;
-  background:rgba(13,15,20,0.96);backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:100;}
 .hdr-brand{display:flex;align-items:center;gap:10px;}
 .hdr-logo{width:36px;height:36px;border-radius:8px;overflow:hidden;}
@@ -47,7 +49,7 @@ body{background:#000;}
 
 /* ══ BOTTOM NAV ══ */
 .nav{display:flex;padding:0 8px;padding-bottom:var(--safe-bot);
-  background:rgba(13,15,20,.97);backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.97);backdrop-filter:blur(20px);
   border-top:1px solid var(--border);flex-shrink:0;
   height:calc(var(--nav-h) + var(--safe-bot));}
 .ntab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -63,12 +65,12 @@ body{background:#000;}
 
 /* ══ AUTH SCREENS ══ */
 .auth-wrap{position:absolute;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow-y:auto;}
-.auth-hero{background:linear-gradient(135deg,#0d0f14 0%,#1a1520 100%);padding:calc(var(--safe-top)+40px) 24px 32px;text-align:center;flex-shrink:0;position:relative;overflow:hidden;}
+.auth-hero{background:linear-gradient(135deg,var(--gold) 0%,#0d324d 100%);padding:calc(var(--safe-top)+40px) 24px 32px;text-align:center;flex-shrink:0;position:relative;overflow:hidden;}
 .auth-hero::before{content:'🏛️';position:absolute;font-size:120px;opacity:.04;top:50%;left:50%;transform:translate(-50%,-50%);}
-.auth-logo{width:72px;height:72px;border-radius:16px;overflow:hidden;margin:0 auto 16px;border:2px solid rgba(201,168,76,.3);}
+.auth-logo{width:72px;height:72px;border-radius:16px;overflow:hidden;margin:0 auto 16px;border:3px solid var(--amber);}
 .auth-logo img{width:100%;height:100%;object-fit:cover;}
-.auth-title{font-size:22px;font-weight:900;color:var(--gold);margin-bottom:4px;}
-.auth-sub{font-size:11px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;}
+.auth-title{font-size:22px;font-weight:900;color:#ffffff;margin-bottom:4px;}
+.auth-sub{font-size:11px;color:rgba(255,255,255,.75);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;}
 .auth-body{padding:24px;flex:1;}
 .auth-tabs{display:flex;background:var(--s2);border-radius:var(--rsm);padding:4px;margin-bottom:24px;gap:4px;}
 .auth-tab{flex:1;padding:10px;border-radius:8px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
@@ -99,7 +101,8 @@ body{background:#000;}
 .svc-big-card.exec::before{background:linear-gradient(90deg,transparent,var(--teal),transparent);}
 .svc-big-card:active{transform:scale(.98);}
 .svc-big-card:hover{border-color:var(--dim);}
-.svc-big-ico{font-size:48px;margin-bottom:14px;}
+.svc-big-ico{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;background:var(--gold-glow);color:var(--gold);}
+.svc-big-card.exec .svc-big-ico{background:rgba(243,156,18,.12);color:var(--amber);}
 .svc-big-name{font-size:19px;font-weight:900;color:var(--text);margin-bottom:6px;}
 .svc-big-name-en{font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
 .svc-big-desc{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:16px;}
@@ -109,16 +112,16 @@ body{background:#000;}
 .svc-big-price{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.5px;}
 .btn-svc{width:100%;padding:13px;border-radius:var(--rsm);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
 .btn-svc.study{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--bg);}
-.btn-svc.exec{background:linear-gradient(135deg,#1a3a3a,var(--teal));color:var(--bg);}
+.btn-svc.exec{background:linear-gradient(135deg,#b9770e,var(--teal));color:#fff;}
 .svc-logout-btn{margin:0 20px 20px;background:none;border:1px solid var(--border);color:var(--muted);padding:11px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;width:calc(100% - 40px);}
 
 /* ══ HOME ══ */
 .home-hero{background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:var(--r);padding:22px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
 .home-hero::after{content:'🏛️';position:absolute;left:-10px;top:-10px;font-size:70px;opacity:.08;}
-.home-welcome{font-size:11px;color:rgba(13,15,20,.6);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;}
+.home-welcome{font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;}
 .home-name{font-size:20px;font-weight:900;color:var(--bg);line-height:1.2;margin-bottom:12px;}
 .home-btns{display:flex;gap:8px;}
-.hbtn{flex:1;background:rgba(13,15,20,.18);color:var(--bg);border:1.5px solid rgba(13,15,20,.25);padding:10px 8px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
+.hbtn{flex:1;background:rgba(255,255,255,.22);color:var(--bg);border:1.5px solid rgba(255,255,255,.4);padding:10px 8px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
 .hbtn:active{opacity:.8;}
 .sec-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .sec-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;flex-shrink:0;}
@@ -328,7 +331,7 @@ body{background:#000;}
 
       <!-- الدراسة المعمارية -->
       <div class="svc-big-card study" onclick="selectService('study')">
-        <div class="svc-big-ico">📐</div>
+        <div class="svc-big-ico"><i class="fas fa-drafting-compass"></i></div>
         <div class="svc-big-name">دراسة المشروع</div>
         <div class="svc-big-name-en">Architectural Study</div>
         <div class="svc-big-desc">الحصول على دراسة معمارية كاملة ومخططات تفصيلية لمشروعك مع ملف رخصة البناء الرسمي.</div>
@@ -345,7 +348,7 @@ body{background:#000;}
 
       <!-- إنجاز المشروع -->
       <div class="svc-big-card exec" onclick="selectService('execution')">
-        <div class="svc-big-ico">🏗️</div>
+        <div class="svc-big-ico"><i class="fas fa-hard-hat"></i></div>
         <div class="svc-big-name">إنجاز المشروع</div>
         <div class="svc-big-name-en">Project Execution</div>
         <div class="svc-big-desc">إشراف ميداني كامل على تنفيذ البناء مع متابعة يومية للورشة وضمان جودة الإنجاز.</div>
@@ -374,7 +377,7 @@ body{background:#000;}
     <div class="svc-cards-wrap">
 
       <div class="svc-big-card study" onclick="chooseStudyMode('basic')">
-        <div class="svc-big-ico">📄</div>
+        <div class="svc-big-ico"><i class="fas fa-file-lines"></i></div>
         <div class="svc-big-name">دراسة ورخصة فقط</div>
         <div class="svc-big-name-en">Study &amp; Permit Only</div>
         <div class="svc-big-desc">تستلم المخططات وملف رخصة البناء كاملَين دفعة واحدة، وتتولى الباقي بنفسك — بدون أي التزام متابعة مستمرة من المكتب.</div>
@@ -388,7 +391,7 @@ body{background:#000;}
       </div>
 
       <div class="svc-big-card exec" onclick="chooseStudyMode('full')">
-        <div class="svc-big-ico">🤝</div>
+        <div class="svc-big-ico"><i class="fas fa-handshake"></i></div>
         <div class="svc-big-name">دراسة ومتابعة كاملة</div>
         <div class="svc-big-name-en">Full Study &amp; Follow-up</div>
         <div class="svc-big-desc">المكتب يرافقك من الدراسة حتى نهاية التنفيذ، مع إمكانية الانتقال لخدمة الإنجاز مباشرة عند اكتمال الدراسة.</div>
@@ -414,7 +417,7 @@ body{background:#000;}
     <div class="svc-cards-wrap">
 
       <div class="svc-big-card study" onclick="chooseExecMode('direct')">
-        <div class="svc-big-ico">🤝</div>
+        <div class="svc-big-ico"><i class="fas fa-handshake"></i></div>
         <div class="svc-big-name">تواصل مباشر مع الفريق</div>
         <div class="svc-big-name-en">Direct Contact Directory</div>
         <div class="svc-big-desc">تصفّح مهندسي متابعة وعمالاً موثوقين قريبين من موقعك، وتواصل معهم مباشرة بالاسم ورقم الهاتف — تتفاوض وتدفع يداً بيد كما تفضّل.</div>
@@ -428,7 +431,7 @@ body{background:#000;}
       </div>
 
       <div class="svc-big-card exec" onclick="chooseExecMode('managed')">
-        <div class="svc-big-ico">🏢</div>
+        <div class="svc-big-ico"><i class="fas fa-building"></i></div>
         <div class="svc-big-name">متابعة كاملة عبر المؤسسة</div>
         <div class="svc-big-name-en">Full Managed Execution</div>
         <div class="svc-big-desc">المؤسسة تتولى كل شيء: كشف كمي وتقييمي، تعيين فريق متابعة، تقارير دورية، وتنسيق العمال — أنت فقط توافق وتراقب من بعيد.</div>
@@ -472,7 +475,7 @@ body{background:#000;}
       </div>
     </div>
     <div class="hdr-right">
-      <div class="hdr-btn" onclick="window.open('tel:0796532884')">📞</div>
+      <div class="hdr-btn" onclick="window.open('tel:0796532884')"><i class="fas fa-phone"></i></div>
       <div class="hdr-user" id="hdrUserName" onclick="goTab('profile')">حسابي</div>
     </div>
   </div>
@@ -487,8 +490,8 @@ body{background:#000;}
           <div class="home-welcome">أهلاً وسهلاً /  Welcome</div>
           <div class="home-name" id="homeUserName">عميل جيل البناء</div>
           <div class="home-btns">
-            <button class="hbtn" onclick="goNewRequest()">📋 طلب جديد</button>
-            <button class="hbtn" onclick="goTab('track')">🔍 طلباتي</button>
+            <button class="hbtn" onclick="goNewRequest()"><i class="fas fa-file-circle-plus"></i> طلب جديد</button>
+            <button class="hbtn" onclick="goTab('track')"><i class="fas fa-magnifying-glass"></i> طلباتي</button>
           </div>
         </div>
         <div class="stats-row">
@@ -707,13 +710,13 @@ body{background:#000;}
 
   <!-- ══ BOTTOM NAV ══ -->
   <nav class="nav" id="mainNav" style="display:none">
-    <button class="ntab active" id="ntab-home" onclick="goTab('home')"><div class="ntab-ico">🏠</div><div>الرئيسية</div></button>
-    <button class="ntab" id="ntab-request" onclick="goNewRequest()"><div class="ntab-ico">📋</div><div>طلب جديد</div></button>
-    <button class="ntab" id="ntab-track" onclick="goTab('track')"><div class="ntab-ico">🔍</div><div>طلباتي</div><span class="nbadge" id="nbadge-track"></span></button>
-    <button class="ntab" id="ntab-exec" onclick="goTab('exec')" style="display:none"><div class="ntab-ico">🏗️</div><div>الإنجاز</div><span class="nbadge" id="nbadge-exec"></span></button>
-    <button class="ntab" id="ntab-materials" onclick="goTab('materials')"><div class="ntab-ico">🧱</div><div>المواد</div><span class="nbadge" id="nbadge-materials"></span></button>
-    <button class="ntab" id="ntab-chat" onclick="goTab('chat')"><div class="ntab-ico">💬</div><div>الدردشة</div><span class="nbadge" id="nbadge-chat"></span></button>
-    <button class="ntab" id="ntab-profile" onclick="goTab('profile')"><div class="ntab-ico">👤</div><div>حسابي</div></button>
+    <button class="ntab active" id="ntab-home" onclick="goTab('home')"><div class="ntab-ico"><i class="fas fa-home"></i></div><div>الرئيسية</div></button>
+    <button class="ntab" id="ntab-request" onclick="goNewRequest()"><div class="ntab-ico"><i class="fas fa-file-circle-plus"></i></div><div>طلب جديد</div></button>
+    <button class="ntab" id="ntab-track" onclick="goTab('track')"><div class="ntab-ico"><i class="fas fa-magnifying-glass"></i></div><div>طلباتي</div><span class="nbadge" id="nbadge-track"></span></button>
+    <button class="ntab" id="ntab-exec" onclick="goTab('exec')" style="display:none"><div class="ntab-ico"><i class="fas fa-hard-hat"></i></div><div>الإنجاز</div><span class="nbadge" id="nbadge-exec"></span></button>
+    <button class="ntab" id="ntab-materials" onclick="goTab('materials')"><div class="ntab-ico"><i class="fas fa-boxes-stacked"></i></div><div>المواد</div><span class="nbadge" id="nbadge-materials"></span></button>
+    <button class="ntab" id="ntab-chat" onclick="goTab('chat')"><div class="ntab-ico"><i class="fas fa-comment-dots"></i></div><div>الدردشة</div><span class="nbadge" id="nbadge-chat"></span></button>
+    <button class="ntab" id="ntab-profile" onclick="goTab('profile')"><div class="ntab-ico"><i class="fas fa-user"></i></div><div>حسابي</div></button>
   </nav>
 
 </div>

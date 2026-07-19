@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a5276">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="جيل البناء">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo-180.png">
+<title>مكتب جيل البناء للدراسات — بوابة العملاء</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cairo:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink:#eef2f7;--surface:#ffffff;--card:#ffffff;--border:#dbe4ee;
+  --gold:#1a5276;--gold-l:#2e86c1;--gold-dim:#154360;--gold-glow:rgba(26,82,118,0.08);
+  --teal:#f39c12;--red:#e74c3c;--green:#27ae60;--amber:#f1c40f;
+  --text:#2c3e50;--muted:#5d6d7e;
+  --warm:#f5f2ec;--cream:#eee9df;--ink-text:#1a1714;--muted-text:#7a7268;
+  --r:12px;
+  --shadow:0 4px 20px rgba(26,82,118,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Cairo',sans-serif;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);color:var(--text);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 60px;position:fixed;top:0;width:100%;z-index:200;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);box-shadow:var(--shadow);}
+.nav-brand{display:flex;align-items:center;gap:14px;}
+.nav-logo{width:44px;height:44px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 20px rgba(26,82,118,0.25);color:#fff;}
+.brand-ar{font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;color:var(--gold);line-height:1.2;}
+.brand-en{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.nav-links{display:flex;gap:28px;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-links a:hover{color:var(--gold);}
+.nav-cta{background:var(--gold);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.nav-cta:hover{background:var(--gold-l);transform:translateY(-1px);}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;padding-top:80px;}
+
+/* Slideshow */
+.hero-slides{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,var(--gold-dim),var(--gold) 55%,#0d324d),repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 2px,transparent 2px 40px),repeating-linear-gradient(-45deg,rgba(255,255,255,.04) 0 2px,transparent 2px 40px);}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.6s ease-in-out;background-size:cover;background-position:center;}
+.hero-slide.active{opacity:1;}
+
+/* Dark gradient overlays so text stays readable */
+.hero-slide::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(10,12,18,0.82) 40%,rgba(10,12,18,0.45) 100%),linear-gradient(to top,rgba(10,12,18,0.6) 0%,transparent 50%);}
+
+/* Building name caption */
+.slide-caption{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:28px;}
+.slide-dots{display:flex;gap:8px;}
+.slide-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.35);cursor:pointer;transition:all .3s;}
+.slide-dot.active{background:var(--gold-l);width:22px;border-radius:3px;}
+.slide-label{font-family:'Space Grotesk',sans-serif;font-size:11px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+
+.hero-bg{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 70% 60% at 15% 60%,rgba(26,82,118,0.08),transparent 55%);}
+.hero-grid{display:none;}
+.hero-inner{flex:1;display:flex;align-items:center;justify-content:center;max-width:1300px;margin:0 auto;padding:60px 60px;gap:80px;position:relative;z-index:5;}
+.hero-left{flex:1;max-width:760px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:99px;padding:6px 16px;margin-bottom:30px;}
+.hero-eyebrow span{font-size:11px;color:#fff;letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+.hero-title{font-family:'Cairo',sans-serif;font-size:clamp(36px,5vw,68px);color:#fff;line-height:1.08;margin-bottom:8px;font-weight:900;text-shadow:0 2px 12px rgba(0,0,0,.25);}
+.hero-title .accent{background:linear-gradient(135deg,var(--gold-l),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-title-en{font-family:'Space Grotesk',sans-serif;font-size:clamp(12px,1.4vw,17px);color:rgba(255,255,255,.65);letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;font-weight:400;}
+.hero-sub{font-size:15px;color:rgba(255,255,255,0.82);max-width:460px;line-height:1.85;margin-bottom:40px;font-weight:400;}
+.hero-btns{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:#fff;padding:13px 34px;border-radius:10px;border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-block;box-shadow:0 4px 20px rgba(26,82,118,0.3);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,82,118,0.45);}
+.btn-ghost{background:none;border:1px solid rgba(255,255,255,.35);color:#fff;padding:12px 26px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-block;}
+.btn-ghost:hover{border-color:var(--gold-l);color:var(--gold-l);background:rgba(255,255,255,.9);}
+.hero-stats{display:flex;margin-top:48px;border-top:1px solid rgba(255,255,255,.25);padding-top:32px;}
+.hstat{flex:1;padding-left:28px;border-left:1px solid rgba(255,255,255,.25);}
+.hstat:last-child{padding-left:0;border-left:none;}
+.hstat-n{font-family:'Space Grotesk',sans-serif;font-size:36px;color:#fff;font-weight:700;line-height:1;}
+.hstat-l{font-size:10px;color:rgba(255,255,255,.7);margin-top:5px;letter-spacing:.5px;}
+.hero-right{flex-shrink:0;width:400px;}
+.hero-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;top:0;right:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hc-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);border-radius:99px;padding:5px 14px;margin-bottom:18px;}
+.hc-badge span{font-size:10px;color:var(--green);font-weight:600;letter-spacing:.5px;}
+.hc-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:14px;}
+.hc-steps{display:flex;flex-direction:column;gap:10px;}
+.hc-step{display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.hc-ico{width:32px;height:32px;border-radius:8px;background:var(--gold-glow);border:1px solid rgba(26,82,118,0.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.hc-t{font-size:11px;font-weight:600;color:var(--text);}
+.hc-d{font-size:10px;color:var(--muted);}
+.hc-check{margin-right:auto;width:20px;height:20px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--green);}
+
+/* ACTION GRID — 5 unified entry points */
+.action-section{background:var(--ink);padding:70px 60px 90px;border-bottom:1px solid var(--border);}
+.action-head{max-width:1200px;margin:0 auto 40px;text-align:center;}
+.action-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
+.action-title{font-family:'Cairo',sans-serif;font-size:clamp(22px,3vw,32px);font-weight:900;color:var(--text);margin-bottom:10px;}
+.action-sub{font-size:13px;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.8;}
+.action-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+.act-card{--c:var(--gold);--cg:var(--gold-glow);background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 16px;text-align:center;text-decoration:none;color:var(--text);position:relative;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.act-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c);transform:scaleX(0);transition:transform .3s;}
+.act-card:hover{transform:translateY(-6px);border-color:var(--c);box-shadow:0 14px 30px -10px var(--cg);}
+.act-card:hover::before{transform:scaleX(1);}
+.act-ring{width:58px;height:58px;border-radius:50%;background:var(--cg);border:1.5px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:8px;transition:transform .25s;}
+.act-card:hover .act-ring{transform:scale(1.08);}
+.act-title{font-size:13.5px;font-weight:700;line-height:1.4;}
+.act-title-en{font-family:'Space Grotesk',sans-serif;font-size:9px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase;margin-top:1px;}
+.act-desc{font-size:11px;color:var(--muted);line-height:1.6;margin-top:5px;}
+.act-arrow{margin-top:auto;padding-top:12px;font-size:11px;font-weight:700;color:var(--c);opacity:0;transform:translateY(4px);transition:all .25s;}
+.act-card:hover .act-arrow{opacity:1;transform:translateY(0);}
+@media (max-width:980px){.action-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.action-grid{grid-template-columns:1fr;}.action-section{padding:50px 20px 60px;}}
+
+/* SERVICES STRIP */
+.sstrip{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.sstrip-inner{display:grid;grid-template-columns:repeat(4,1fr);max-width:1300px;margin:0 auto;}
+.stab{padding:26px 22px;cursor:pointer;transition:all .25s;display:flex;align-items:flex-start;gap:13px;border-left:1px solid var(--border);position:relative;}
+.stab:last-child{border-left:none;}
+.stab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transition:transform .3s;}
+.stab:hover::after{transform:scaleX(1);}
+.stab:hover{background:var(--gold-glow);}
+.sico{width:40px;height:40px;background:var(--gold-glow);border:1px solid rgba(26,82,118,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.stt{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.std{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* HOW */
+.hw{background:var(--warm);padding:100px 60px;}
+.hw-inner{max-width:1100px;margin:0 auto;}
+.sl-ar{font-family:'Cairo',sans-serif;font-size:11px;color:var(--gold-dim);letter-spacing:1px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.sl-ar::after{content:'';width:36px;height:1px;background:var(--gold-dim);opacity:.5;}
+.sl-en{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--muted-text);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:18px;}
+.stitle{font-family:'Cairo',sans-serif;font-weight:900;font-size:clamp(26px,4vw,44px);color:var(--ink-text);line-height:1.1;margin-bottom:6px;}
+.stitle-en{font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--muted-text);letter-spacing:2px;text-transform:uppercase;margin-bottom:48px;}
+.hg{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;}
+.hg::before{content:'';position:absolute;top:38px;right:12%;left:12%;height:1px;background:rgba(26,82,118,0.3);z-index:0;}
+.hstep{text-align:center;padding:0 22px;position:relative;z-index:1;}
+.sc2{width:76px;height:76px;border-radius:50%;background:var(--warm);border:2px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:26px;position:relative;box-shadow:0 0 0 8px var(--warm);}
+.snum{position:absolute;top:-6px;right:calc(50% - 46px);background:var(--gold-dim);color:#fff;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.hstep-en{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--gold-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.hstep-t{font-size:14px;font-weight:700;color:var(--ink-text);margin-bottom:8px;}
+.hstep-d{font-size:12px;color:var(--muted-text);line-height:1.7;}
+
+/* FORM */
+.fw{background:var(--warm);border-top:1px solid rgba(0,0,0,0.08);}
+.fi{max-width:1200px;margin:0 auto;padding:100px 60px;display:grid;grid-template-columns:1fr 1.8fr;gap:80px;align-items:start;}
+.fintro{position:sticky;top:100px;}
+.cchips{display:flex;flex-direction:column;gap:10px;margin-top:26px;}
+.cchip{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.cchip .ci{font-size:17px;width:34px;height:34px;background:var(--warm);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cchip .cl{font-size:9px;color:var(--muted-text);text-transform:uppercase;letter-spacing:.5px;font-family:'Space Grotesk',sans-serif;}
+.cchip .cv{font-size:13px;font-weight:600;color:var(--ink-text);}
+#requestForm{background:#fff;border:1px solid rgba(0,0,0,0.07);border-radius:16px;padding:36px;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+.fpr{display:flex;gap:0;margin-bottom:32px;border-bottom:2px solid rgba(0,0,0,0.06);padding-bottom:18px;}
+.fps{flex:1;text-align:center;font-size:11px;color:var(--muted-text);font-weight:600;position:relative;cursor:pointer;padding-bottom:14px;}
+.fps::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:transparent;transition:background .3s;}
+.fps.active{color:var(--gold-dim);}.fps.active::after{background:var(--gold-dim);}
+.fps.done{color:#5a6b52;}.fps.done::after{background:#5a6b52;}
+.fpd{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.06);color:var(--muted-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 7px;transition:all .3s;}
+.fps.active .fpd{background:var(--gold-dim);color:#fff;}
+.fps.done .fpd{background:#5a6b52;color:#fff;}
+.fstep{display:none;}.fstep.active{display:block;}
+.step-h{font-size:17px;font-weight:700;color:var(--ink-text);margin-bottom:4px;}
+.step-sub{font-size:11px;color:var(--muted-text);margin-bottom:22px;font-family:'Space Grotesk',sans-serif;letter-spacing:.3px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+.fgs{grid-template-columns:1fr;}
+.fgt{grid-template-columns:1fr 1fr 1fr;}
+.fd{display:flex;flex-direction:column;gap:5px;}
+.fd label{font-size:9px;font-weight:700;color:var(--ink-text);letter-spacing:.6px;text-transform:uppercase;}
+.fd input,.fd select,.fd textarea{background:#f9f7f3;border:1.5px solid rgba(0,0,0,0.09);border-radius:8px;padding:10px 13px;color:var(--ink-text);font-family:'Cairo',sans-serif;font-size:13px;transition:all .2s;width:100%;}
+.fd input:focus,.fd select:focus,.fd textarea:focus{outline:none;border-color:var(--gold-dim);background:#fff;box-shadow:0 0 0 3px rgba(26,82,118,0.1);}
+.fd textarea{resize:vertical;min-height:88px;}
+.fd.req label::after{content:' *';color:#c0392b;}
+.svcards{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px;}
+.svc{border:2px solid rgba(0,0,0,0.07);border-radius:12px;padding:14px 13px;cursor:pointer;transition:all .2s;background:#f9f7f3;position:relative;}
+.svc:hover{border-color:var(--gold-dim);background:#fff;}
+.svc.sel{border-color:var(--gold-dim);background:rgba(26,82,118,0.06);}
+.svc.sel::after{content:'✓';position:absolute;top:-10px;left:-10px;width:22px;height:22px;background:var(--gold-dim);color:#fff;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.svc-ico{font-size:22px;margin-bottom:7px;}
+.svc-t{font-size:12px;font-weight:700;color:var(--ink-text);margin-bottom:3px;}
+.svc-d{font-size:11px;color:var(--muted-text);line-height:1.5;}
+.svc-p{font-size:10px;color:var(--gold-dim);font-weight:700;margin-top:6px;font-family:'Space Grotesk',sans-serif;}
+.mp{border:1.5px solid rgba(0,0,0,0.08);border-radius:10px;overflow:hidden;height:200px;background:var(--warm);position:relative;margin-bottom:10px;}
+.mo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(245,242,236,0.88);flex-direction:column;gap:10px;cursor:pointer;}
+.uz{border:2px dashed rgba(0,0,0,0.09);border-radius:10px;padding:26px 18px;text-align:center;cursor:pointer;transition:all .2s;background:#f9f7f3;position:relative;margin-bottom:12px;}
+.uz:hover{border-color:var(--gold-dim);}
+.uz input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.ul{display:flex;flex-direction:column;gap:5px;}
+.ui{display:flex;align-items:center;gap:10px;padding:7px 11px;background:var(--warm);border-radius:6px;font-size:12px;}
+.fn{display:flex;justify-content:space-between;align-items:center;margin-top:26px;padding-top:18px;border-top:1px solid rgba(0,0,0,0.06);}
+.btn-back{background:none;border:1.5px solid rgba(0,0,0,0.09);color:var(--muted-text);padding:10px 22px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-back:hover{border-color:var(--ink-text);color:var(--ink-text);}
+.btn-next{background:var(--ink-text);color:#fff;border:none;padding:11px 28px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;}
+.btn-next:hover{background:#2e2b27;transform:translateY(-1px);}
+.btn-submit{background:linear-gradient(135deg,var(--gold-dim),#b8923a);color:#fff;border:none;padding:13px 34px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(122,98,48,0.25);}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(122,98,48,0.35);}
+.success-state{text-align:center;padding:40px 20px;display:none;}
+.sico2{width:78px;height:78px;background:rgba(90,107,82,0.1);border:2px solid #5a6b52;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 22px;}
+.tb{background:var(--warm);border:1px solid rgba(0,0,0,0.07);border-radius:12px;padding:20px 26px;margin:0 auto 26px;max-width:340px;text-align:center;}
+.tl-label{font-size:9px;color:var(--muted-text);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Space Grotesk',sans-serif;}
+.tn{font-family:'Space Grotesk',sans-serif;font-size:26px;color:var(--gold-dim);font-weight:700;letter-spacing:4px;}
+
+/* STATUS */
+.sw{background:var(--ink);padding:100px 60px;}
+.sw-inner{max-width:960px;margin:0 auto;}
+.sf{display:flex;gap:10px;max-width:480px;margin:32px 0;}
+.sf input{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;font-family:'Cairo',sans-serif;font-size:13px;color:var(--text);}
+.sf input:focus{outline:none;border-color:var(--gold);}
+.sf button{background:var(--gold);color:var(--ink);border:none;padding:13px 22px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.sf button:hover{background:var(--gold-l);}
+.sr{display:none;margin-top:26px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;}
+.tli{display:flex;gap:15px;}
+.tlc{display:flex;flex-direction:column;align-items:center;}
+.tld{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.tld.done{background:var(--green);}
+.tld.pend{background:var(--border);}
+.tlv{width:1px;flex:1;background:var(--border);margin:4px 0;min-height:26px;}
+.tlco{padding-bottom:18px;}
+.cbox{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:12px;}
+.cms{height:220px;overflow-y:auto;padding:13px;background:var(--surface);display:flex;flex-direction:column;gap:8px;}
+.cm{max-width:75%;padding:10px 13px;border-radius:10px;font-size:12px;line-height:1.6;}
+.cm.client{background:var(--gold-glow);border:1px solid rgba(26,82,118,0.2);margin-right:auto;}
+.cm.office{background:var(--card);border:1px solid var(--border);margin-left:auto;}
+.cm .mt{font-size:10px;color:var(--muted);margin-top:3px;}
+.cir{display:flex;gap:8px;padding:10px;background:var(--card);border-top:1px solid var(--border);}
+.cir input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Cairo',sans-serif;font-size:12px;color:var(--text);}
+.cir input:focus{outline:none;border-color:var(--gold);}
+.cir button{background:var(--gold);color:var(--ink);border:none;padding:9px 18px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.qv{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;}
+.qt{font-family:'Space Grotesk',sans-serif;font-size:26px;color:var(--gold);font-weight:700;}
+.qtb{width:100%;border-collapse:collapse;font-size:12px;margin:13px 0;}
+.qtb th{background:var(--card);padding:7px 10px;text-align:right;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);}
+.qtb td{padding:9px 10px;border-bottom:1px solid rgba(0,0,0,0.06);}
+.btn-accept{background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:var(--green);padding:11px 26px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-accept:hover{background:rgba(74,222,128,0.25);}
+.btn-reject{background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red);padding:10px 22px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-reject:hover{background:rgba(248,113,113,0.1);}
+
+/* FOOTER */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:60px;text-align:center;}
+.flogo-ar{font-family:'Cairo',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:3px;}
+.flogo-en{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;}
+footer p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
+.flinks{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.flinks a{color:var(--muted);text-decoration:none;font-size:12px;transition:color .2s;}
+.flinks a:hover{color:var(--gold);}
+.fcopy{margin-top:32px;font-size:10px;color:rgba(44,62,80,0.35);font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);color:var(--text);padding:13px 26px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;border-right:3px solid var(--gold);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:1000px){
+  nav{padding:14px 22px;} .nav-links,.nav-cta{display:none;}
+  .hero-inner{flex-direction:column;padding:36px 22px;gap:36px;} .hero-right{width:100%;}
+  .sstrip-inner{grid-template-columns:1fr 1fr;} .stab:nth-child(2){border-left:none;}
+  .hw{padding:60px 22px;} .hg{grid-template-columns:1fr 1fr;gap:36px;} .hg::before{display:none;}
+  .fi{grid-template-columns:1fr;padding:60px 22px;gap:36px;} .fintro{position:static;}
+  .fg,.fgt{grid-template-columns:1fr;} .svcards{grid-template-columns:1fr;}
+  #requestForm{padding:22px 18px;} .sw{padding:60px 22px;} footer{padding:40px 22px;}
+}
+/* ══ PAYMENT MODAL ══════════════════════════════════ */
+.pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.pay-overlay.open{opacity:1;pointer-events:all;}
+.pay-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.pay-overlay.open .pay-sheet{transform:translateY(0);}
+.pay-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.pay-hdr{padding:16px 24px 12px;border-bottom:1px solid var(--border);}
+.pay-title{font-size:17px;font-weight:700;color:var(--text);}
+.pay-total-strip{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:12px;padding:16px;text-align:center;margin:16px 24px 0;}
+.pay-total-lbl{font-size:10px;color:rgba(255,255,255,.75);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-family:'Space Grotesk',sans-serif;}
+.pay-total-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'Space Grotesk',sans-serif;}
+.pay-methods-wrap{padding:16px 24px;}
+.pm-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.pm-card:hover,.pm-card.sel{border-color:var(--gold);}
+.pm-card.sel{background:var(--gold-glow);}
+.pm-ico{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pm-name{font-size:13px;font-weight:700;color:var(--text);}
+.pm-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.pm-badge{margin-right:auto;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;}
+.pay-detail-wrap{padding:0 24px 16px;display:none;}
+.pay-detail-wrap.active{display:block;}
+.pay-info-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:12px;}
+.pay-row:last-child{border-bottom:none;}
+.pay-row .k{color:var(--muted);}
+.pay-row .v{font-weight:700;color:var(--text);font-family:'Space Grotesk',sans-serif;}
+.copybtn{background:none;border:1px solid var(--border);color:var(--gold);padding:3px 8px;border-radius:5px;font-size:10px;cursor:pointer;}
+.pay-steps-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.pay-step-item{display:flex;gap:10px;font-size:12px;color:var(--muted);line-height:1.6;}
+.pay-step-n{width:22px;height:22px;border-radius:50%;background:var(--gold-dim);color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.receipt-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;position:relative;margin-bottom:12px;}
+.receipt-zone.has-file{border-color:var(--green);background:rgba(74,222,128,.05);}
+.receipt-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.sfield{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;width:100%;outline:none;margin-bottom:10px;letter-spacing:1px;}
+.sfield:focus{border-color:var(--gold);}
+.sfield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pay-footer{padding:14px 24px 28px;border-top:1px solid var(--border);}
+.btn-pay-confirm{width:100%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--ink);border:none;padding:14px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.btn-pay-confirm:disabled{opacity:.4;cursor:not-allowed;}
+.btn-pay-cancel{width:100%;background:none;border:1px solid var(--border);color:var(--muted);padding:11px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo"><img src="logo.png" alt="شعار جيل البناء" style="width:38px;height:38px;border-radius:50%;object-fit:cover"></div>
+    <div>
+      <div class="brand-ar">جيل البناء للهندسة المعمارية والعمرانية</div>
+      <div class="brand-en">Jel Al-Bina'a · Architecture &amp; Urban Studies</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="#services">خدماتنا / Services</a>
+    <a href="client_portal.html">تسجيل الدخول / Login</a>
+  </div>
+  <button class="nav-cta" onclick="location.href='client_portal.html?service=study'">ابدأ مشروعك</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <!-- Architectural slideshow background -->
+  <div class="hero-slides" id="heroSlides">
+    <div class="hero-slide active" style="background-image:url('images/hero-1.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('images/hero-2.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('images/hero-3.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('images/hero-4.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('images/hero-5.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('images/hero-6.jpg')"></div>
+  </div>
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow"><span>🏛️ خبرة معمارية 15 سنة — Est. 2010</span></div>
+      <div class="hero-title">جيل البناء<br>للهندسة المعمارية <span class="accent">والعمرانية</span></div>
+      <div class="hero-title-en">Jel Al-Bina'a — Architecture &amp; Urban Design Studies Office</div>
+      <p class="hero-sub">من الفكرة الأولى حتى تسليم المفتاح. دراسة معمارية احترافية، ملف رخصة البناء، وإشراف ميداني متكامل عبر 65 ولاية وبلدياتها.</p>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-n">+250</div><div class="hstat-l">مشروع منجز / Projects</div></div>
+        <div class="hstat"><div class="hstat-n">15</div><div class="hstat-l">سنة خبرة / Years Exp.</div></div>
+        <div class="hstat"><div class="hstat-n">65</div><div class="hstat-l">ولاية / Wilayas</div></div>
+        <div class="hstat"><div class="hstat-n">24h</div><div class="hstat-l">وقت الرد / Response</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide indicators -->
+  <div class="slide-caption" style="z-index:10">
+    <span class="slide-label" id="slideLabel">قصبة الجزائر / Casbah of Algiers</span>
+    <div class="slide-dots" id="slideDots">
+      <div class="slide-dot active" onclick="goSlide(0)"></div>
+      <div class="slide-dot" onclick="goSlide(1)"></div>
+      <div class="slide-dot" onclick="goSlide(2)"></div>
+      <div class="slide-dot" onclick="goSlide(3)"></div>
+      <div class="slide-dot" onclick="goSlide(4)"></div>
+      <div class="slide-dot" onclick="goSlide(5)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION GRID: 5 unified entry points -->
+<div class="action-section">
+  <div class="action-head">
+    <div class="action-eyebrow">Start Here — ابدأ من هنا</div>
+    <div class="action-title">ماذا تريد أن تفعل اليوم؟</div>
+    <div class="action-sub">اختر بوابتك — سواء كنت عميلاً، مهندساً، أو عاملاً، لكل طرف مساره الخاص داخل منصة جيل البناء.</div>
+  </div>
+  <div class="action-grid">
+
+    <a href="client_portal.html?service=study" class="act-card" style="--c:var(--gold);--cg:var(--gold-glow)">
+      <div class="act-ring"><i class="fas fa-drafting-compass"></i></div>
+      <div class="act-title">أطلب دراسة<br>و متابعة</div>
+      <div class="act-title-en">Study &amp; Follow-up</div>
+      <div class="act-desc">مخططات، رخصة بناء، ودراسة هيكلية معتمدة</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="client_portal.html?service=execution" class="act-card" style="--c:var(--teal);--cg:rgba(45,212,191,0.12)">
+      <div class="act-ring"><i class="fas fa-hard-hat"></i></div>
+      <div class="act-title">أطلب<br>إنجاز</div>
+      <div class="act-title-en">Execution</div>
+      <div class="act-desc">إشراف ميداني ومتابعة ورشة البناء يومياً</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="client_portal.html?tab=materials" class="act-card" style="--c:var(--amber);--cg:rgba(251,191,36,0.12)">
+      <div class="act-ring"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="act-title">أطلب مواد<br>البناء</div>
+      <div class="act-title-en">Materials</div>
+      <div class="act-desc">تموين المشروع من مستودع جيل البناء</div>
+      <div class="act-arrow">سجّل الدخول ←</div>
+    </a>
+
+    <a href="exec_portal.html?role=engineer" class="act-card" style="--c:var(--green);--cg:rgba(74,222,128,0.12)">
+      <div class="act-ring"><i class="fas fa-user-tie"></i></div>
+      <div class="act-title">انضمام<br>مهندس</div>
+      <div class="act-title-en">Join as Engineer</div>
+      <div class="act-desc">انضم كمهندس أو تقني لفريق مكتب الدراسات</div>
+      <div class="act-arrow">سجّل الآن ←</div>
+    </a>
+
+    <a href="exec_portal.html?role=worker" class="act-card" style="--c:var(--red);--cg:rgba(248,113,113,0.12)">
+      <div class="act-ring"><i class="fas fa-trowel"></i></div>
+      <div class="act-title">انضمام<br>عامل</div>
+      <div class="act-title-en">Join as Worker</div>
+      <div class="act-desc">انضم كعامل بناء لفريق مؤسسة الإنجاز</div>
+      <div class="act-arrow">سجّل الآن ←</div>
+    </a>
+
+  </div>
+</div>
+
+<!-- SERVICES -->
+<div class="sstrip" id="services">
+  <div class="sstrip-inner">
+    <div class="stab" onclick="selSvc('study')"><div class="sico">📐</div><div><div class="stt">الدراسة المعمارية<br><span style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px">Architectural Study</span></div><div class="std">تصاميم ومخططات احترافية</div></div></div>
+    <div class="stab" onclick="selSvc('permit')"><div class="sico">📋</div><div><div class="stt">ملف رخصة البناء<br><span style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px">Building Permit</span></div><div class="std">كامل الوثائق الرسمية</div></div></div>
+    <div class="stab" onclick="selSvc('structure')"><div class="sico">🔩</div><div><div class="stt">الدراسة الهيكلية<br><span style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px">Structural Engineering</span></div><div class="std">حسابات الهيكل المعتمدة</div></div></div>
+    <div class="stab" onclick="selSvc('supervision')"><div class="sico">🏗️</div><div><div class="stt">الإشراف على الإنجاز<br><span style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px">Site Supervision</span></div><div class="std">متابعة ميدانية يومية</div></div></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flogo-ar">جيل البناء للهندسة المعمارية والعمرانية</div>
+  <div class="flogo-en">Jel Al-Bina'a — Architecture &amp; Urban Design Studies Office</div>
+  <p>خبرة 15 سنة في الدراسات المعمارية والعمرانية عبر 65 ولاية جزائرية — من التصميم إلى الإنجاز<br>15 years of expertise across 65 Algerian wilayas — from design to delivery</p>
+  <div class="flinks">
+    <a href="#services">خدماتنا / Services</a>
+    <a href="client_portal.html">تسجيل الدخول / Login</a>
+    <a href="tel:0796532884">📞 0796 532 884</a>
+    <a href="tel:0670158793">📞 0670 158 793</a>
+    <a href="mailto:jil.elbinaa@gmail.com">📧 jil.elbinaa@gmail.com</a>
+  </div>
+  <div class="fcopy">© 2025 جيل البناء للهندسة المعمارية والعمرانية — Jel Al-Bina'a Architecture &amp; Urban Studies</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="dz_locations.js"></script>
+<script type="module">
+import Bridge from './bridge.js?v=20260712c';
+await Bridge.Auth.ready();
+
+let curStep=1, selSvcs=[], upFiles=[], mapLoaded=false, activeReqId=null, activeTicket=null;
+let unsubReq=null, unsubQuote=null, unsubChat=null;
+
+function toast(msg,d=3500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function fmtD(iso){return Bridge.fmtDate(iso);}
+
+function selSvc(s){location.href='client_portal.html?service=study';}
+function togSvc(card){card.classList.toggle('sel');const s=card.dataset.s;if(card.classList.contains('sel')){if(!selSvcs.includes(s))selSvcs.push(s);}else selSvcs=selSvcs.filter(x=>x!==s);}
+
+function goStep(n){
+  if(n>curStep){for(let i=curStep;i<n;i++){if(!valStep(i))return;}}
+  curStep=n;
+  document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.fps').forEach((s,i)=>{s.classList.remove('active','done');if(i+1<n)s.classList.add('done');if(i+1===n)s.classList.add('active');});
+  if(n===5)buildReview();
+  document.getElementById('requestForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function valStep(n){
+  const rules={1:[{id:'f_name',m:'يرجى إدخال اسمك الكامل'},{id:'f_phone',m:'يرجى إدخال رقم هاتفك'},{id:'f_nin',m:'يرجى إدخال رقم التعريف الوطني'},{id:'f_wilaya',m:'يرجى اختيار ولايتك'}],2:[{id:'f_building',m:'يرجى اختيار نوع المبنى'},{id:'f_floors',m:'يرجى اختيار عدد الطوابق'}],3:[{id:'f_pwilaya',m:'يرجى اختيار ولاية المشروع'},{id:'f_commune',m:'يرجى إدخال اسم البلدية'},{id:'f_address',m:'يرجى إدخال العنوان'}]};
+  if(n===2&&selSvcs.length===0){toast('⚠️ يرجى اختيار خدمة واحدة على الأقل');return false;}
+  for(const r of(rules[n]||[])){const el=document.getElementById(r.id);if(!el||!el.value.trim()){toast('⚠️ '+r.m);el?.focus();return false;}}
+  return true;
+}
+
+function loadMap(){const lat=gv('f_lat')||'36.7372',lng=gv('f_lng')||'3.0862';document.getElementById('mapPicker').innerHTML=`<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lng)-.05},${parseFloat(lat)-.05},${parseFloat(lng)+.05},${parseFloat(lat)+.05}&layer=mapnik&marker=${lat},${lng}" style="width:100%;height:100%;border:none"></iframe>`;mapLoaded=true;}
+function updateMap(){if(mapLoaded)loadMap();}
+
+function handleFiles(files){for(const f of files){if(!upFiles.find(x=>x.name===f.name))upFiles.push(f);}renderFiles();}
+function renderFiles(){document.getElementById('uploadList').innerHTML=upFiles.map((f,i)=>`<div class="ui"><span>${f.name.substring(0,40)}</span><span style="color:var(--muted-text);font-size:11px">${(f.size/1024).toFixed(0)} KB</span><button style="background:none;border:none;cursor:pointer;color:var(--muted-text)" onclick="window.__upFilesRemove(${i})">✕</button></div>`).join('');}
+
+function buildReview(){
+  const sn={study:'الدراسة المعمارية',permit:'ملف رخصة البناء',structure:'الدراسة الهيكلية',supervision:'الإشراف',interior:'التصميم الداخلي',estimate:'تقدير التكاليف'};
+  const rows=[['الاسم / Name',gv('f_name')],['الهاتف / Phone',gv('f_phone')],['رقم التعريف الوطني / NIN',gv('f_nin')],['البريد / Email',gv('f_email')||'—'],['الولاية / Wilaya',gv('f_wilaya')],['الخدمات / Services',selSvcs.map(s=>sn[s]).join(' + ')||'—'],['نوع المبنى / Type',gv('f_building')],['الطوابق / Floors',gv('f_floors')],['المساحة / Area',gv('f_area')?gv('f_area')+' م²':'—'],['الميزانية / Budget',gv('f_budget')?Number(gv('f_budget')).toLocaleString('ar-DZ')+' دج':'—'],['ولاية المشروع',gv('f_pwilaya')],['البلدية',gv('f_commune')],['العنوان',gv('f_address')]];
+  document.getElementById('reviewBox').innerHTML=rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px dashed rgba(0,0,0,0.06);padding:5px 0"><span style="color:var(--muted-text)">${k}</span><span style="font-weight:600;color:var(--ink-text);max-width:55%;text-align:left">${v||'—'}</span></div>`).join('');
+}
+
+async function submitReq(){
+  if(!document.getElementById('f_agree').checked){toast('⚠️ يرجى الموافقة على شروط معالجة البيانات');return;}
+  const btn = document.querySelector('.btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ الإرسال...'; }
+  try {
+    const data={name:gv('f_name'),phone:gv('f_phone'),nin:gv('f_nin'),email:gv('f_email'),wilaya:gv('f_wilaya'),services:[...selSvcs],building:gv('f_building'),floors:gv('f_floors'),area:gv('f_area'),rooms:gv('f_rooms'),budget:gv('f_budget'),projWilaya:gv('f_pwilaya'),commune:gv('f_commune'),address:gv('f_address'),lat:gv('f_lat'),lng:gv('f_lng'),landInfo:gv('f_land'),desc:gv('f_desc'),timeline:gv('f_timeline'),currentPhase:gv('f_phase'),extra:gv('f_extra'),files:upFiles.map(f=>f.name)};
+    const req = await Bridge.Requests.submit(data);
+    activeReqId=req.id; activeTicket=req.ticket;
+    document.getElementById('ticketNum').textContent=req.ticket;
+    document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+    document.getElementById('successState').style.display='block';
+    document.getElementById('requestForm').scrollIntoView({behavior:'smooth',block:'start'});
+    toast('✅ تم إرسال طلبك! رقمك: '+req.ticket,5000);
+  } catch(err) {
+    console.error('Submit error:', err);
+    const code = err?.code || '';
+    if (code === 'permission-denied') {
+      toast('❌ خطأ في الصلاحيات — اذهب إلى Firebase Console وانشر القواعد الجديدة (firestore_simple.rules)', 8000);
+    } else if (code === 'auth/operation-not-allowed') {
+      toast('❌ Anonymous Auth غير مفعّل — فعّله من Firebase Console → Authentication', 8000);
+    } else if (code.includes('unavailable') || code.includes('network')) {
+      toast('❌ لا يوجد اتصال بالإنترنت');
+    } else {
+      toast('❌ خطأ: ' + (err?.message || code || 'غير معروف'), 7000);
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📨 إرسال الطلب / Submit'; }
+  }
+}
+
+async function checkSt(){
+  const input=document.getElementById('statusIn').value.trim().toUpperCase();
+  const ninInput=document.getElementById('statusNin').value.trim();
+  if(!input){toast('⚠️ يرجى إدخال رقم الطلب');return;}
+  if(!ninInput){toast('⚠️ يرجى إدخال رقم التعريف الوطني');return;}
+  toast('🔍 جارٍ البحث...', 1500);
+  try {
+    const req = await Bridge.Requests.get(input);
+    if(!req){document.getElementById('statusRes').style.display='none';toast('❌ رقم الطلب غير موجود');return;}
+    if(!req.nin || req.nin.trim() !== ninInput){
+      document.getElementById('statusRes').style.display='none';
+      toast('❌ رقم التعريف الوطني غير مطابق لهذا الطلب');
+      return;
+    }
+    activeReqId=req.id; activeTicket=req.ticket;
+    renderStatusCard(req);
+
+    const q = await Bridge.Quotes.getByReq(req.id);
+    if(q){await Bridge.Quotes.markViewed(q.id);renderQuotePanel(q);}
+    else document.getElementById('quotePanel').style.display='none';
+
+    await loadChat(req.id);
+    document.getElementById('statusRes').style.display='block';
+    document.getElementById('statusRes').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+    // مراقبة لحظية للطلب الحالي
+    if (unsubReq) unsubReq();
+    if (unsubQuote) unsubQuote();
+    if (unsubChat) unsubChat();
+    unsubReq = Bridge.Requests.watchOne(req.id, r => { renderStatusCard(r); });
+    unsubQuote = Bridge.Quotes.watchByReq(req.id, qt => { if (qt) renderQuotePanel(qt); });
+    unsubChat = Bridge.Messages.watchThread(req.id, msgs => { renderChatMsgs(msgs); });
+  } catch(err) {
+    console.error(err);
+    const code = err?.code || '';
+    if (code.includes('permission-denied')) {
+      toast('❌ تم رفض الوصول لقاعدة البيانات — تأكد من نشر firestore.rules', 6000);
+    } else if (code.includes('failed-precondition') || code.includes('index')) {
+      toast('❌ قاعدة البيانات تحتاج فهرساً — افتح Console (F12) وانقر الرابط الظاهر', 7000);
+    } else if (code.includes('unavailable') || code.includes('network')) {
+      toast('❌ لا يوجد اتصال بالإنترنت', 4000);
+    } else {
+      toast('❌ خطأ: ' + (err?.message || 'غير معروف'), 6000);
+    }
+  }
+}
+
+function renderStatusCard(req){
+  const sm=(Bridge.STATUS_MAP&&Bridge.STATUS_MAP[req.status])||{label:'قيد المعالجة',color:'var(--amber)',bg:'rgba(251,191,36,0.15)'};
+  document.getElementById('sr_name').textContent=req.ticket+' — '+req.name+' / '+(req.building||'مشروع');
+  const badge=document.getElementById('sr_badge');
+  badge.textContent=sm.label;badge.style.background=sm.bg;badge.style.color=sm.color;badge.style.border=`1px solid ${sm.color}40`;
+  const tl=document.getElementById('sr_tl');
+
+  // تحديد تواريخ الاستلام والإنجاز من بيانات الطلب
+  const deliveryDate = req.deliveryDate || req.estimatedDelivery || null;
+  const startDate    = req.startDate || req.projectStart || null;
+
+  const allSteps=[...(req.timeline||[]).map(s=>({...s,isDone:true})),
+    {label:'التواصل مع العميل',desc:'سنتصل بكم خلال يوم عمل',isDone:false},
+    {label:'إعداد عرض السعر',desc:'سيُرسَل عرض مفصّل',isDone:false},
+    {label:'موافقة العميل',desc:'',isDone:false},
+    {label:'بداية المشروع',desc:'',isDone:false}
+  ].slice(0,6);
+
+  tl.innerHTML=allSteps.map((s,i)=>`
+    <div class="tli">
+      <div class="tlc"><div class="tld ${s.isDone?'done':'pend'}"></div>${i<allSteps.length-1?'<div class="tlv"></div>':''}</div>
+      <div class="tlco">
+        <div style="font-size:13px;font-weight:700;color:${s.isDone?'var(--green)':'var(--muted)'}">${s.label||s.step}</div>
+        ${(s.desc||s.description)?`<div style="font-size:12px;color:var(--muted)">${s.desc||s.description}</div>`:''}
+        ${s.ts?`<div style="font-size:10px;color:var(--gold);margin-top:2px">${fmtD(s.ts)}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  // بطاقة التواريخ المهمة — تظهر فقط إذا كان الطلب مقبولاً وفيه تواريخ
+  const datesEl = document.getElementById('sr_dates');
+  if(datesEl){
+    if((req.status==='accepted'||req.status==='project_created'||req.status==='payment_pending') && (deliveryDate||startDate)){
+      datesEl.style.display='block';
+      datesEl.innerHTML=`
+        <div style="background:var(--gold-glow);border:1px solid rgba(26,82,118,0.3);border-radius:10px;padding:14px;margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px">📅 التواريخ المهمة / Key Dates</div>
+          ${startDate?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(26,82,118,0.15);font-size:12px"><span style="color:var(--muted)">🏗️ بداية الإنجاز / Start Date</span><span style="font-weight:700;color:var(--text);font-family:'Space Grotesk',sans-serif">${fmtD(startDate)}</span></div>`:''}
+          ${deliveryDate?`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px"><span style="color:var(--muted)">📦 تاريخ التسليم / Delivery Date</span><span style="font-weight:700;color:var(--green);font-family:'Space Grotesk',sans-serif">${fmtD(deliveryDate)}</span></div>`:''}
+        </div>`;
+    } else {
+      datesEl.style.display='none';
+    }
+  }
+}
+
+function renderQuotePanel(q){
+  const p=document.getElementById('quotePanel');
+  if(!q){p.style.display='none';return;}
+  p.style.display='block';
+  const responded=q.status==='accepted'||q.status==='rejected';
+  const payMethod=q.paymentMethod||null;
+  const payLabel={cib:'CIB/EDAHABIA',baridi:'BaridiMob',stripe:'Stripe',cod:'دفع عند التسليم'};
+
+  p.innerHTML=`<div class="qv">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;padding-bottom:13px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">💰 عرض الأسعار / Price Quote</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif">${fmtD(q.createdAt)}</div>
+      </div>
+      <div style="text-align:left">
+        <div class="qt">${Bridge.fmtNum(q.total)} دج</div>
+        <div style="font-size:10px;color:var(--muted)">إجمالي الأتعاب / Total Fee</div>
+      </div>
+    </div>
+    ${q.items&&q.items.length?`<table class="qtb"><thead><tr><th>البيان</th><th>التفاصيل</th><th>المبلغ (دج)</th></tr></thead><tbody>
+      ${q.items.map(it=>`<tr><td>${it.label}</td><td style="color:var(--muted)">${it.desc||'—'}</td><td style="font-weight:700;color:var(--gold);text-align:left;font-family:'Space Grotesk',sans-serif">${Bridge.fmtNum(it.amount)}</td></tr>`).join('')}
+    </tbody></table>`:''}
+    ${q.notes?`<div style="background:var(--card);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:13px"><strong style="color:var(--text)">ملاحظات المكتب:</strong><br>${q.notes}</div>`:''}
+    ${responded
+      ?`<div style="text-align:center;padding:13px;background:${q.status==='accepted'?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)'};border:1px solid ${q.status==='accepted'?'rgba(74,222,128,0.3)':'rgba(248,113,113,0.3)'};border-radius:8px;font-weight:700;color:${q.status==='accepted'?'var(--green)':'var(--red)'}">
+          ${q.status==='accepted'
+            ?`✅ لقد قبلتَ هذا العرض${payMethod?` — طريقة الدفع: <span style="color:var(--gold)">${payLabel[payMethod]||payMethod}</span>`:''}`
+            :'❌ لقد رفضتَ هذا العرض — سيتواصل معك المكتب لمناقشة البدائل'}
+        </div>`
+      :`<div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:13px;text-align:center">هل توافق على هذا العرض؟ / Do you accept this quote?</p>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn-reject" onclick="window.__respQ(false)">❌ رفض / Reject</button>
+            <button class="btn-accept" onclick="window.__openPayment('${q.id}',${q.total})">💳 قبول والدفع / Accept & Pay</button>
+          </div>
+        </div>`}
+  </div>`;
+}
+
+async function respQ(accepted){
+  if(!activeReqId){toast('⚠️ خطأ في التعريف');return;}
+  try {
+    const q = await Bridge.Quotes.getByReq(activeReqId); if(!q)return;
+    const comment=accepted?'':prompt('سبب الرفض (اختياري) / Reason for rejection (optional):','')||'';
+    await Bridge.Quotes.respond(q.id,accepted,comment);
+    const updated = await Bridge.Quotes.get(q.id);
+    renderQuotePanel(updated);
+    toast(accepted?'✅ تم قبول العرض! سيتواصل معك مكتب جيل البناء قريباً.':'❌ تم رفض العرض. سيتواصل معك المكتب لمناقشة البدائل.');
+  } catch(err) {
+    console.error(err);
+    toast('❌ حدث خطأ، حاول مجدداً');
+  }
+}
+
+function renderChatMsgs(msgs){
+  const box=document.getElementById('chatMsgs'); if(!box) return;
+  if(!msgs.length){box.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:18px">ابدأ محادثة مع فريق مكتب جيل البناء / Start a conversation with our team</div>';return;}
+  box.innerHTML=msgs.map(m=>`<div class="cm ${m.from}">${m.text}<div class="mt">${m.from==='client'?'أنت / You':(m.isAi?'🤖 مساعد جيل البناء الذكي':'مكتب جيل البناء')} · ${fmtD(m.ts)}</div></div>`).join('');
+  box.scrollTop=box.scrollHeight;
+}
+async function loadChat(reqId){
+  const msgs = await Bridge.Messages.getThread(reqId);
+  await Bridge.Messages.markRead(reqId,'client');
+  renderChatMsgs(msgs);
+}
+async function sendMsg(){
+  if(!activeReqId){toast('⚠️ ابحث عن طلبك أولاً');return;}
+  const input=document.getElementById('chatIn');
+  const text=input.value.trim(); if(!text) return;
+  input.value='';
+  try {
+    await Bridge.Messages.send(activeReqId,'client',text);
+  } catch(err) {
+    console.error(err);
+    toast('❌ تعذر إرسال الرسالة');
+  }
+}
+
+// ── expose to window for inline onclick/oninput handlers ──
+window.selSvc = selSvc;
+window.togSvc = togSvc;
+window.goStep = goStep;
+window.loadMap = loadMap;
+window.updateMap = updateMap;
+window.handleFiles = handleFiles;
+window.submitReq = submitReq;
+window.checkSt = checkSt;
+window.sendMsg = sendMsg;
+window.__respQ = respQ;
+window.__upFilesRemove = (i) => { upFiles.splice(i,1); renderFiles(); };
+
+// تعريض Bridge و activeReqId لـ modal الدفع
+window.Bridge = Bridge;
+Object.defineProperty(window,'__activeReqId',{get:()=>activeReqId,set:v=>{activeReqId=v;}});
+window.__refreshQuote = async () => {
+  if(!activeReqId) return;
+  const q = await Bridge.Quotes.getByReq(activeReqId);
+  if(q) renderQuotePanel(q);
+};
+
+document.getElementById('statusIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
+document.getElementById('statusNin').addEventListener('keydown',e=>{if(e.key==='Enter')checkSt();});
+
+// ── COMMUNES BY WILAYA ────────────────
+const COMMUNES = window.DZ_COMMUNES || {};
+
+// تحديث قائمة البلديات تلقائياً عند اختيار الولاية
+function updateCommunes(wilaySel, communeSel) {
+  const w = document.getElementById(wilaySel)?.value;
+  const cSel = document.getElementById(communeSel);
+  if (!cSel) return;
+  cSel.innerHTML = '<option value="">— اختر البلدية —</option>';
+  const list = COMMUNES[w] || [];
+  list.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    cSel.appendChild(o);
+  });
+}
+window.updateCommunes = updateCommunes;
+
+// ربط الأحداث بعد تحميل الصفحة
+document.getElementById('f_wilaya')?.addEventListener('change', () => updateCommunes('f_wilaya','f_wilaya_commune'));
+document.getElementById('f_pwilaya')?.addEventListener('change', () => updateCommunes('f_pwilaya','f_commune'));
+
+const SLIDES = [
+  { label: 'قصبة الجزائر / Casbah of Algiers' },
+  { label: 'مقام الشهيد — الجزائر العاصمة / Maqam Echahid — Algiers' },
+  { label: 'جامع الجزائر الأعظم / Great Mosque of Algiers' },
+  { label: 'سيدي فرج / Sidi Fredj' },
+  { label: 'وهران، المدينة البيضاء / Oran, the White City' },
+  { label: 'من مشاريعنا المُنجزة / One of our completed projects' },
+];
+let currentSlide = 0;
+let slideTimer;
+
+function goSlide(n) {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.slide-dot');
+  slides[currentSlide].classList.remove('active');
+  dots[currentSlide].classList.remove('active');
+  currentSlide = (n + slides.length) % slides.length;
+  slides[currentSlide].classList.add('active');
+  dots[currentSlide].classList.add('active');
+  document.getElementById('slideLabel').textContent = SLIDES[currentSlide].label;
+  clearInterval(slideTimer);
+  slideTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
+}
+window.goSlide = goSlide;
+slideTimer = setInterval(() => goSlide(currentSlide + 1), 5000);
+</script>
+<!-- ══ PAYMENT MODAL ══ -->
+<div class="pay-overlay" id="payOverlay" onclick="if(event.target===this)window.__closePayment()">
+  <div class="pay-sheet">
+    <div class="pay-handle"></div>
+    <div class="pay-hdr"><div class="pay-title">💳 إتمام الدفع / Payment</div></div>
+    <div class="pay-total-strip">
+      <div class="pay-total-lbl">المبلغ المستحق / Amount Due</div>
+      <div class="pay-total-num" id="payTotalNum">—</div>
+    </div>
+    <div class="pay-methods-wrap">
+      <div class="pm-card" data-m="cib" onclick="window.__selPayMethod('cib')">
+        <div class="pm-ico" style="background:rgba(0,82,165,.15)">🏦</div>
+        <div><div class="pm-name">CIB / EDAHABIA</div><div class="pm-desc">تحويل بنكي — بريد الجزائر</div></div>
+        <span class="pm-badge" style="background:rgba(0,82,165,.12);color:#4a9ff5">CIB</span>
+      </div>
+      <div class="pm-card" data-m="baridi" onclick="window.__selPayMethod('baridi')">
+        <div class="pm-ico" style="background:rgba(255,165,0,.12)">📱</div>
+        <div><div class="pm-name">BaridiMob</div><div class="pm-desc">تحويل عبر تطبيق بريدي موب</div></div>
+        <span class="pm-badge" style="background:rgba(255,165,0,.12);color:var(--amber)">BaridiMob</span>
+      </div>
+      <div class="pm-card" data-m="stripe" onclick="window.__selPayMethod('stripe')">
+        <div class="pm-ico" style="background:rgba(99,91,255,.12)">💳</div>
+        <div><div class="pm-name">بطاقة دولية / Stripe</div><div class="pm-desc">Visa / Mastercard — دفع آني مشفّر</div></div>
+        <span class="pm-badge" style="background:rgba(99,91,255,.12);color:#a78bfa">Stripe</span>
+      </div>
+      <div class="pm-card" data-m="cod" onclick="window.__selPayMethod('cod')">
+        <div class="pm-ico" style="background:rgba(74,222,128,.1)">💵</div>
+        <div><div class="pm-name">دفع عند التسليم</div><div class="pm-desc">نقداً عند استلام الدراسة</div></div>
+        <span class="pm-badge" style="background:rgba(74,222,128,.1);color:var(--green)">مضمون</span>
+      </div>
+    </div>
+    <!-- CIB -->
+    <div class="pay-detail-wrap" id="pd-cib">
+      <div class="pay-info-box">
+        <div class="pay-row"><span class="k">RIP / CCP</span><span class="v">0079999 21000000000 71</span><button class="copybtn" onclick="window.__copyPay('0079999 21000000000 71')">نسخ</button></div>
+        <div class="pay-row"><span class="k">الاسم</span><span class="v">مكتب جيل البناء</span></div>
+        <div class="pay-row"><span class="k">المبلغ</span><span class="v" id="cib-amount">—</span></div>
+        <div class="pay-row"><span class="k">المرجع</span><span class="v" id="cib-ref">—</span></div>
+      </div>
+      <div class="pay-steps-list">
+        <div class="pay-step-item"><div class="pay-step-n">1</div><div>توجّه لأقرب مكتب بريد أو استخدم BaridiMob</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">2</div><div>حوّل المبلغ مع ذكر رقم الطلب كمرجع</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">3</div><div>ارفع صورة وصل الدفع</div></div>
+      </div>
+      <div class="receipt-zone" id="cib-zone"><input type="file" accept="image/*,.pdf" onchange="window.__setReceipt(this,'cib')"><div id="cib-zc"><div style="font-size:26px;margin-bottom:6px">📎</div><div style="font-size:12px;color:var(--muted)">ارفع صورة وصل الدفع</div></div></div>
+    </div>
+    <!-- Baridi -->
+    <div class="pay-detail-wrap" id="pd-baridi">
+      <div class="pay-info-box">
+        <div class="pay-row"><span class="k">رقم الحساب</span><span class="v">0023456789</span><button class="copybtn" onclick="window.__copyPay('0023456789')">نسخ</button></div>
+        <div class="pay-row"><span class="k">اسم المستفيد</span><span class="v">جيل البناء</span></div>
+        <div class="pay-row"><span class="k">المبلغ</span><span class="v" id="baridi-amount">—</span></div>
+        <div class="pay-row"><span class="k">المرجع</span><span class="v" id="baridi-ref">—</span></div>
+      </div>
+      <div class="pay-steps-list">
+        <div class="pay-step-item"><div class="pay-step-n">1</div><div>افتح تطبيق BaridiMob</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">2</div><div>اختر تحويل وأدخل رقم الحساب أعلاه</div></div>
+        <div class="pay-step-item"><div class="pay-step-n">3</div><div>اكتب رقم طلبك في الملاحظة وارفع لقطة الشاشة</div></div>
+      </div>
+      <div class="receipt-zone" id="baridi-zone"><input type="file" accept="image/*" onchange="window.__setReceipt(this,'baridi')"><div id="baridi-zc"><div style="font-size:26px;margin-bottom:6px">📱</div><div style="font-size:12px;color:var(--muted)">ارفع لقطة شاشة التحويل</div></div></div>
+    </div>
+    <!-- Stripe -->
+    <div class="pay-detail-wrap" id="pd-stripe">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">💳 بطاقة دولية — Visa / Mastercard</div>
+      <input class="sfield" id="s-num" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" oninput="let v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(\d{4})(?=\d)/g,'$1 ')">
+      <div class="sfield-row">
+        <input class="sfield" id="s-exp" placeholder="MM/YY" maxlength="5" inputmode="numeric" oninput="let v=this.value.replace(/\D/g,'').substring(0,4);this.value=v.length>=2?v.substring(0,2)+'/'+v.substring(2):v">
+        <input class="sfield" id="s-cvv" placeholder="CVV" maxlength="4" inputmode="numeric" type="password">
+      </div>
+      <input class="sfield" id="s-name" placeholder="الاسم على البطاقة" style="text-transform:uppercase">
+      <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px">🔒 بياناتك مشفّرة — لا نحتفظ بمعلومات البطاقة</div>
+    </div>
+    <!-- COD -->
+    <div class="pay-detail-wrap" id="pd-cod">
+      <div class="pay-info-box" style="text-align:center;padding:20px">
+        <div style="font-size:40px;margin-bottom:10px">💵</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">الدفع عند الاستلام</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">ستدفع المبلغ نقداً عند تسليم الدراسة. سيتواصل معك المكتب لتحديد الموعد.</div>
+      </div>
+    </div>
+    <div class="pay-footer">
+      <button class="btn-pay-confirm" id="btnPayConfirm" onclick="window.__confirmPayment()" disabled>اختر طريقة الدفع</button>
+      <button class="btn-pay-cancel" onclick="window.__closePayment()">إلغاء / Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ═══════════════════════════════════════
+//  PAYMENT SYSTEM — index.html
+// ═══════════════════════════════════════
+(function(){
+  let _qid=null, _total=0, _rid=null, _method=null, _receipt=null, _ticket='';
+
+  window.__openPayment = function(quoteId, total) {
+    _qid=quoteId; _total=total; _method=null; _receipt=null;
+    _ticket = document.getElementById('statusIn')?.value?.trim().toUpperCase() || '';
+    const fmt = Number(total).toLocaleString('ar-DZ') + ' دج';
+    document.getElementById('payTotalNum').textContent = fmt;
+    document.getElementById('cib-amount').textContent = fmt;
+    document.getElementById('baridi-amount').textContent = fmt;
+    document.getElementById('cib-ref').textContent = _ticket;
+    document.getElementById('baridi-ref').textContent = _ticket;
+    document.querySelectorAll('.pm-card').forEach(c=>c.classList.remove('sel'));
+    document.querySelectorAll('.pay-detail-wrap').forEach(d=>d.classList.remove('active'));
+    document.getElementById('btnPayConfirm').disabled=true;
+    document.getElementById('btnPayConfirm').textContent='اختر طريقة الدفع';
+    // reset uploads
+    ['cib','baridi'].forEach(t=>{
+      const z=document.getElementById(t+'-zone'); if(z) z.classList.remove('has-file');
+      const zc=document.getElementById(t+'-zc');
+      if(zc) zc.innerHTML=t==='cib'?'<div style="font-size:26px;margin-bottom:6px">📎</div><div style="font-size:12px;color:var(--muted)">ارفع صورة وصل الدفع</div>':'<div style="font-size:26px;margin-bottom:6px">📱</div><div style="font-size:12px;color:var(--muted)">ارفع لقطة شاشة التحويل</div>';
+    });
+    // get activeReqId from module scope via dataset trick
+    _rid = document.getElementById('statusIn')?.dataset?.reqid || null;
+    document.getElementById('payOverlay').classList.add('open');
+  };
+
+  window.__closePayment = function() {
+    document.getElementById('payOverlay').classList.remove('open');
+  };
+
+  window.__selPayMethod = function(m) {
+    _method=m;
+    document.querySelectorAll('.pm-card').forEach(c=>c.classList.toggle('sel', c.dataset.m===m));
+    document.querySelectorAll('.pay-detail-wrap').forEach(d=>d.classList.remove('active'));
+    document.getElementById('pd-'+m).classList.add('active');
+    const labels={cib:'📤 إرسال + رفع وصل الدفع',baridi:'📤 إرسال + رفع لقطة الشاشة',stripe:'💳 ادفع الآن',cod:'✅ تأكيد — دفع عند التسليم'};
+    const btn=document.getElementById('btnPayConfirm');
+    btn.textContent=labels[m]; btn.disabled=false;
+  };
+
+  window.__setReceipt = function(input, type) {
+    const f=input.files[0]; if(!f) return;
+    _receipt=f;
+    const zone=document.getElementById(type+'-zone');
+    const zc=document.getElementById(type+'-zc');
+    if(zone) zone.classList.add('has-file');
+    if(zc) zc.innerHTML=`<div style="font-size:22px;margin-bottom:5px">✅</div><div style="font-size:12px;color:var(--green);font-weight:600">${f.name}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">${Math.round(f.size/1024)} KB</div>`;
+  };
+
+  window.__copyPay = function(txt) {
+    navigator.clipboard?.writeText(txt).then(()=>showPToast('✅ تم نسخ: '+txt)).catch(()=>showPToast('انسخ يدوياً: '+txt));
+  };
+
+  function showPToast(msg) {
+    const t=document.getElementById('toast'); if(!t) return;
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),4000);
+  }
+
+  window.__confirmPayment = async function() {
+    if(!_method) return;
+    if((_method==='cib'||_method==='baridi')&&!_receipt){showPToast('⚠️ يرجى رفع صورة وصل الدفع أولاً');return;}
+    if(_method==='stripe'){
+      const num=document.getElementById('s-num')?.value?.replace(/\s/g,'');
+      const exp=document.getElementById('s-exp')?.value;
+      const cvv=document.getElementById('s-cvv')?.value;
+      const name=document.getElementById('s-name')?.value?.trim();
+      if(!num||num.length<16){showPToast('⚠️ رقم البطاقة غير صحيح');return;}
+      if(!exp||!exp.includes('/')){showPToast('⚠️ تاريخ الانتهاء غير صحيح');return;}
+      if(!cvv||cvv.length<3){showPToast('⚠️ رمز CVV غير صحيح');return;}
+      if(!name){showPToast('⚠️ أدخل الاسم على البطاقة');return;}
+    }
+    const btn=document.getElementById('btnPayConfirm');
+    btn.disabled=true; btn.textContent='⏳ جارٍ المعالجة...';
+    try {
+      // استخدام Bridge من scope الـ module عبر window.Bridge
+      const B=window.Bridge;
+      if(!B){showPToast('❌ خطأ في تحميل النظام');btn.disabled=false;return;}
+      const q=await B.Quotes.getByReq(window.__activeReqId||_ticket);
+      if(q) await B.Quotes.respond(q.id,true,'');
+      if(window.__activeReqId){
+        const methodLabel={cib:'CIB/EDAHABIA',baridi:'BaridiMob',stripe:'Stripe',cod:'دفع عند التسليم'}[_method];
+        await B.Requests.updateStatus(window.__activeReqId,
+          _method==='cod'?'accepted':'payment_pending',
+          _method==='cod'?'✅ مقبول — الدفع عند الاستلام':'⏳ قيد التحقق من الدفع',
+          'طريقة الدفع: '+methodLabel
+        );
+      }
+      window.__closePayment();
+      showPToast({cib:'✅ تم إرسال طلب الدفع CIB — سيتحقق المكتب خلال 24 ساعة',baridi:'✅ تم إرسال طلب الدفع BaridiMob — سيتحقق المكتب خلال 24 ساعة',stripe:'✅ تم الدفع بالبطاقة — سيبدأ المكتب بمشروعك قريباً',cod:'✅ تم تأكيد طلبك — الدفع عند الاستلام'}[_method]);
+      // تحديث واجهة عرض السعر
+      if(window.__refreshQuote) window.__refreshQuote();
+    } catch(err) {
+      console.error(err);
+      showPToast('❌ '+( err?.code==='permission-denied'?'خطأ في الصلاحيات — تحقق من firestore.rules':err?.message||'خطأ غير معروف'));
+      btn.disabled=false; btn.textContent='متابعة';
+    }
+  };
+})();
+</script>
+</body>
+</html>
