@@ -1082,7 +1082,7 @@ function renderCostTable(pid,p){
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div><div style="font-size:14px;font-weight:700;color:var(--gold)">${p.name}</div><div style="font-size:11px;color:var(--muted)">${p.client||''} | ${p.location||''}</div></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-        <div><label style="font-size:10px;color:var(--muted)">المساحة م²: </label><input type="number" id="c_area" value="${data.area||p.area||0}" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:11px" oninput="costData['${pid}'].area=this.value;recalcAll('${pid}')"></div>
+        <div><label style="font-size:10px;color:var(--muted)">المساحة م²: </label><input type="number" id="c_area" value="${data.area||p.area||0}" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:11px" data-role="area"></div>
       </div>
     </div>
   </div>
@@ -1106,27 +1106,67 @@ function renderCostTable(pid,p){
     <button class="btn btn-outline" onclick="printCostTable('${pid}')">🖨️ طباعة</button>
   </div>`;
   renderCostBody(pid); recalcAll(pid);
+
+  const areaEl = document.getElementById('c_area');
+  areaEl.addEventListener('input', () => { costData[pid].area = areaEl.value; recalcAll(pid); });
+
+  const tb = document.getElementById('cBody_'+pid);
+  tb.addEventListener('input', (e) => costTableDelegate(e, 'input'));
+  tb.addEventListener('change', (e) => costTableDelegate(e, 'input'));
+  tb.addEventListener('click', (e) => costTableDelegate(e, 'click'));
+  tb.addEventListener('blur', (e) => { if (e.target.dataset.role === 'chapLabel') costTableDelegate(e, 'input'); }, true);
 }
 function renderCostBody(pid){
   const data=costData[pid], tb=document.getElementById('cBody_'+pid); if(!tb) return;
   let html='', rn=0;
   data.chapters.forEach((ch,ci)=>{
-    html+=`<tr class="ch-r"><td colspan="5"><span contenteditable="true" onblur="costData['${pid}'].chapters[${ci}].label=this.innerText" style="outline:none">${esc(ch.label)}</span></td>
-    <td class="nc" id="chT_${ch.id}">0</td><td><button class="db" onclick="delChap('${pid}',${ci})">✕</button></td></tr>`;
+    html+=`<tr class="ch-r"><td colspan="5"><span contenteditable="true" data-role="chapLabel" data-ci="${ci}" style="outline:none">${esc(ch.label)}</span></td>
+    <td class="nc" id="chT_${ch.id}">0</td><td><button class="db" data-action="delChap" data-ci="${ci}">✕</button></td></tr>`;
     ch.rows.forEach((row,ri)=>{
       rn++;
       html+=`<tr><td style="color:var(--muted);font-size:10px;text-align:center">${rn}</td>
-      <td><input value="${esc(row.desc)}" style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--text);font-family:inherit;font-size:11px;width:100%" oninput="costData['${pid}'].chapters[${ci}].rows[${ri}].desc=this.value"></td>
-      <td><input type="number" min="0" step="0.01" id="qtyIn_${row.id}" value="${row.qty||0}" oninput="costData['${pid}'].chapters[${ci}].rows[${ri}].qty=parseFloat(this.value)||0;recalcAll('${pid}')"></td>
-      <td><select onchange="costData['${pid}'].chapters[${ci}].rows[${ri}].unit=this.value">${UNITS.map(u=>`<option ${row.unit===u?'selected':''}>${u}</option>`).join('')}</select></td>
-      <td><input type="number" min="0" step="1" value="${row.up||0}" oninput="costData['${pid}'].chapters[${ci}].rows[${ri}].up=parseFloat(this.value)||0;recalcAll('${pid}')"></td>
+      <td><input value="${esc(row.desc)}" data-role="desc" data-ci="${ci}" data-ri="${ri}" style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--text);font-family:inherit;font-size:11px;width:100%"></td>
+      <td><input type="number" min="0" step="0.01" id="qtyIn_${row.id}" value="${row.qty||0}" data-role="qty" data-ci="${ci}" data-ri="${ri}"></td>
+      <td><select data-role="unit" data-ci="${ci}" data-ri="${ri}">${UNITS.map(u=>`<option ${row.unit===u?'selected':''}>${u}</option>`).join('')}</select></td>
+      <td><input type="number" min="0" step="1" value="${row.up||0}" data-role="up" data-ci="${ci}" data-ri="${ri}"></td>
       <td class="nc" id="rT_${row.id}" style="background:rgba(45,212,191,.07);color:var(--teal);font-weight:700">${fmt((row.qty||0)*(row.up||0))}</td>
-      <td><button class="db" onclick="delRow('${pid}',${ci},${ri})">✕</button></td></tr>`;
+      <td><button class="db" data-action="delRow" data-ci="${ci}" data-ri="${ri}">✕</button></td></tr>`;
     });
-    html+=`<tr><td colspan="7" style="padding:2px 8px"><button class="arb" onclick="addRow('${pid}',${ci})">+ بند</button></td></tr>`;
+    html+=`<tr><td colspan="7" style="padding:2px 8px"><button class="arb" data-action="addRow" data-ci="${ci}">+ بند</button></td></tr>`;
   });
   tb.innerHTML=html;
+  tb.dataset.pid = pid;
 }
+
+// تفويض موحّد لكل أحداث الجدول — يتفادى مشاكل الوسوم المضمّنة (inline handlers)
+// التي لا تعمل داخل <script type="module"> إلا إذا عُرِّضت الدالة صراحة على window.
+function costTableDelegate(e, evtType){
+  const tb = e.currentTarget;
+  const pid = tb.dataset.pid;
+  const target = e.target;
+  if (evtType === 'click') {
+    const btn = target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const ci = Number(btn.dataset.ci);
+    const ri = btn.dataset.ri !== undefined ? Number(btn.dataset.ri) : undefined;
+    if (action === 'delChap') delChap(pid, ci);
+    else if (action === 'delRow') delRow(pid, ci, ri);
+    else if (action === 'addRow') addRow(pid, ci);
+    return;
+  }
+  const role = target.dataset.role;
+  if (!role) return;
+  const ci = Number(target.dataset.ci);
+  const ri = target.dataset.ri !== undefined ? Number(target.dataset.ri) : undefined;
+  const row = ri !== undefined ? costData[pid].chapters[ci].rows[ri] : null;
+  if (role === 'desc') { row.desc = target.value; }
+  else if (role === 'qty') { row.qty = parseFloat(target.value) || 0; recalcAll(pid); }
+  else if (role === 'up') { row.up = parseFloat(target.value) || 0; recalcAll(pid); }
+  else if (role === 'unit') { row.unit = target.value; }
+  else if (role === 'chapLabel') { costData[pid].chapters[ci].label = target.innerText; }
+}
+window.costTableDelegate = costTableDelegate;
 function recalcAll(pid){
   const data=costData[pid]; let grand=0;
   data.chapters.forEach(ch=>{
@@ -1146,6 +1186,9 @@ function recalcAll(pid){
   if(G('c_m2')) G('c_m2').textContent=area>0?fmt(Math.round(grand/area))+' دج/م²':'—';
   if(!costs[pid]) costs[pid]={};
   costs[pid].total=grand; data.grandTotal=grand;
+  // حفظ تلقائي مؤجَّل للمسودة (costData) — يحمي من فقدان التغييرات حتى دون الضغط على "حفظ"
+  clearTimeout(recalcAll._t);
+  recalcAll._t = setTimeout(()=>{ try{ localStorage.setItem('arch_cd', JSON.stringify(costData)); }catch(e){} }, 600);
 }
 function addRow(pid,ci){costData[pid].chapters[ci].rows.push({id:uid(),desc:'بند جديد',qty:0,unit:'م²',up:0});renderCostBody(pid);recalcAll(pid);}
 function delRow(pid,ci,ri){costData[pid].chapters[ci].rows.splice(ri,1);renderCostBody(pid);recalcAll(pid);}
@@ -1155,7 +1198,7 @@ function saveCosts(pid){
   if(!costs[pid]) costs[pid]={};
   costs[pid].chapters=JSON.parse(JSON.stringify(costData[pid].chapters));
   costs[pid].area=costData[pid].area; costs[pid].total=costData[pid].grandTotal||0;
-  save(); alert('✅ تم حفظ جدول التكاليف بنجاح'); renderCharts(); genNotifs();
+  save(); showToast('✅ تم حفظ جدول التكاليف بنجاح'); renderCharts(); genNotifs();
 }
 function printCostTable(pid){
   const p=projects.find(x=>x.id===pid), data=costData[pid]; if(!data) return;
