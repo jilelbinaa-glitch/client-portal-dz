@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1a5276">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="جيل البناء">
+<link rel="manifest" href="manifest.json">
+<title>جيل البناء — بوابة العملاء</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f7; --s1:#ffffff; --s2:#ffffff; --s3:#f4f6f9;
+  --border:rgba(26,82,118,0.12);
+  --gold:#1a5276; --gold-l:#2e86c1; --gold-d:#154360; --gold-glow:rgba(26,82,118,0.08);
+  --green:#27ae60; --red:#e74c3c; --amber:#f39c12; --teal:#f39c12;
+  --text:#2c3e50; --muted:#5d6d7e; --dim:#bdc3c7;
+  --r:15px; --rsm:10px;
+  --nav-h:64px; --safe-bot:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px);
+  --shadow:0 4px 20px rgba(26,82,118,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px;}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;max-width:500px;margin:0 auto;position:relative;box-shadow:var(--shadow);}
+body{background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);}
+
+/* ══ HEADER ══ */
+.hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:calc(var(--safe-top)+10px) 16px 10px;
+  background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-brand{display:flex;align-items:center;gap:10px;}
+.hdr-logo{width:36px;height:36px;border-radius:8px;overflow:hidden;}
+.hdr-logo img{width:100%;height:100%;object-fit:cover;}
+.hdr-name{font-size:13px;font-weight:700;color:var(--gold);line-height:1.2;}
+.hdr-sub{font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;}
+.hdr-right{display:flex;gap:8px;align-items:center;}
+.hdr-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--muted);}
+.hdr-user{background:var(--gold-glow);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--gold);cursor:pointer;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ══ SCREENS ══ */
+.screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;overflow-y:auto;opacity:0;transform:translateX(20px);pointer-events:none;transition:all .3s cubic-bezier(.4,0,.2,1);}
+.screen.active{opacity:1;transform:translateX(0);pointer-events:all;}
+.screen-inner{padding:16px 16px calc(16px + var(--nav-h) + var(--safe-bot));}
+
+/* ══ BOTTOM NAV ══ */
+.nav{display:flex;padding:0 8px;padding-bottom:var(--safe-bot);
+  background:rgba(255,255,255,.97);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);flex-shrink:0;
+  height:calc(var(--nav-h) + var(--safe-bot));}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;padding:8px 4px;border:none;background:none;
+  color:var(--muted);font-family:'Cairo',sans-serif;font-size:9px;font-weight:600;
+  transition:all .2s;position:relative;}
+.ntab-ico{font-size:22px;transition:transform .2s;}
+.ntab.active{color:var(--gold);}
+.ntab.active .ntab-ico{transform:scale(1.12);}
+.ntab::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--gold);border-radius:0 0 2px 2px;transition:width .25s;}
+.ntab.active::after{width:36px;}
+.nbadge{position:absolute;top:6px;right:calc(50% - 18px);min-width:16px;height:16px;background:var(--red);border-radius:8px;font-size:8px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;padding:0 4px;}
+
+/* ══ AUTH SCREENS ══ */
+.auth-wrap{position:absolute;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow-y:auto;}
+.auth-hero{background:linear-gradient(135deg,var(--gold) 0%,#0d324d 100%);padding:calc(var(--safe-top)+40px) 24px 32px;text-align:center;flex-shrink:0;position:relative;overflow:hidden;}
+.auth-hero::before{content:'🏛️';position:absolute;font-size:120px;opacity:.04;top:50%;left:50%;transform:translate(-50%,-50%);}
+.auth-logo{width:72px;height:72px;border-radius:16px;overflow:hidden;margin:0 auto 16px;border:3px solid var(--amber);}
+.auth-logo img{width:100%;height:100%;object-fit:cover;}
+.auth-title{font-size:22px;font-weight:900;color:#ffffff;margin-bottom:4px;}
+.auth-sub{font-size:11px;color:rgba(255,255,255,.75);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;}
+.auth-body{padding:24px;flex:1;}
+.auth-tabs{display:flex;background:var(--s2);border-radius:var(--rsm);padding:4px;margin-bottom:24px;gap:4px;}
+.auth-tab{flex:1;padding:10px;border-radius:8px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.auth-tab.active{background:var(--gold);color:var(--bg);}
+.aform{display:none;}.aform.active{display:block;}
+.afield{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.afield label{font-size:10px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;}
+.afield .req{color:var(--red);}
+.afield input{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;width:100%;outline:none;transition:border-color .2s;}
+.afield input:focus{border-color:var(--gold);}
+.afield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-auth{width:100%;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--bg);border:none;padding:14px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:all .2s;}
+.btn-auth:disabled{opacity:.4;cursor:not-allowed;}
+.auth-divider{text-align:center;font-size:11px;color:var(--dim);margin:16px 0;}
+.btn-forgot{background:none;border:none;color:var(--gold);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;width:100%;text-align:center;padding:8px;}
+.auth-err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none;}
+.auth-ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);margin-bottom:12px;display:none;}
+
+/* ══ SERVICE SELECTION ══ */
+.svc-sel-wrap{position:absolute;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;overflow-y:auto;}
+.svc-sel-hdr{padding:calc(var(--safe-top)+20px) 20px 20px;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.svc-sel-title{font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.svc-sel-sub{font-size:12px;color:var(--muted);line-height:1.6;}
+.svc-cards-wrap{padding:20px;display:flex;flex-direction:column;gap:16px;flex:1;}
+.svc-big-card{background:var(--s2);border:2px solid var(--border);border-radius:18px;padding:24px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.svc-big-card::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:transparent;transition:background .3s;}
+.svc-big-card.study::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.svc-big-card.exec::before{background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.svc-big-card:active{transform:scale(.98);}
+.svc-big-card:hover{border-color:var(--dim);}
+.svc-big-ico{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;background:var(--gold-glow);color:var(--gold);}
+.svc-big-card.exec .svc-big-ico{background:rgba(243,156,18,.12);color:var(--amber);}
+.svc-big-name{font-size:19px;font-weight:900;color:var(--text);margin-bottom:6px;}
+.svc-big-name-en{font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.svc-big-desc{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:16px;}
+.svc-big-features{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.svc-big-feat{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);}
+.svc-big-feat::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
+.svc-big-price{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.5px;}
+.btn-svc{width:100%;padding:13px;border-radius:var(--rsm);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-svc.study{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--bg);}
+.btn-svc.exec{background:linear-gradient(135deg,#b9770e,var(--teal));color:#fff;}
+.svc-logout-btn{margin:0 20px 20px;background:none;border:1px solid var(--border);color:var(--muted);padding:11px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer;width:calc(100% - 40px);}
+
+/* ══ HOME ══ */
+.home-hero{background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:var(--r);padding:22px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
+.home-hero::after{content:'🏛️';position:absolute;left:-10px;top:-10px;font-size:70px;opacity:.08;}
+.home-welcome{font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;}
+.home-name{font-size:20px;font-weight:900;color:var(--bg);line-height:1.2;margin-bottom:12px;}
+.home-btns{display:flex;gap:8px;}
+.hbtn{flex:1;background:rgba(255,255,255,.22);color:var(--bg);border:1.5px solid rgba(255,255,255,.4);padding:10px 8px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
+.hbtn:active{opacity:.8;}
+.sec-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sec-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;flex-shrink:0;}
+.req-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.req-card:active{transform:scale(.98);}
+.req-ticket{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--gold);}
+.req-name{font-size:13px;font-weight:600;color:var(--text);margin:3px 0;}
+.req-meta{font-size:10px;color:var(--muted);}
+.req-badge{display:inline-flex;padding:3px 8px;border-radius:99px;font-size:9px;font-weight:700;margin-top:6px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-c{background:var(--s2);border:1px solid var(--border);border-radius:var(--rsm);padding:13px 10px;text-align:center;}
+.stat-n{font-size:22px;font-weight:700;color:var(--gold);font-family:'Space Grotesk',sans-serif;line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);margin-top:4px;}
+.empty-card{text-align:center;padding:28px 16px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);}
+.empty-ico{font-size:36px;margin-bottom:8px;}
+.empty-t{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;}
+.empty-d{font-size:11px;color:var(--dim);}
+
+/* ══ REQUEST FORM ══ */
+.form-prog{display:flex;gap:4px;margin-bottom:18px;}
+.fp-s{flex:1;height:3px;background:var(--dim);border-radius:2px;transition:background .3s;}
+.fp-s.done{background:var(--gold);}
+.fp-s.active{background:var(--gold-l);}
+.fstep{display:none;}.fstep.active{display:block;}
+.step-lbl{font-size:10px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.step-ttl{font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px;}
+.field label{font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;}
+.field .req{color:var(--red);}
+.field input,.field select,.field textarea{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;width:100%;outline:none;transition:border-color .2s;-webkit-appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
+.field textarea{resize:vertical;min-height:85px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-row .field{margin-bottom:0;}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.opt-c{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 10px;cursor:pointer;transition:all .2s;text-align:center;}
+.opt-c.sel{border-color:var(--gold);background:var(--gold-glow);}
+.opt-c:active{transform:scale(.96);}
+.opt-ico{font-size:20px;margin-bottom:5px;}
+.opt-lbl{font-size:11px;font-weight:600;color:var(--text);}
+.step-nav{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+.btn-prev{background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:12px 14px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-next{flex:1;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--bg);border:none;padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-submit-f{width:100%;background:linear-gradient(135deg,#3a5a32,var(--green));color:var(--bg);border:none;padding:14px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+.success-wrap{text-align:center;padding:32px 16px;}
+.success-ico{width:78px;height:78px;border-radius:50%;background:rgba(74,222,128,.12);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 18px;}
+.ticket-box{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin:18px 0;text-align:center;}
+.ticket-num{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--gold);letter-spacing:3px;word-break:break-all;}
+.upload-zone{border:2px dashed var(--dim);border-radius:var(--rsm);padding:18px;text-align:center;cursor:pointer;position:relative;margin-bottom:10px;}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-list{display:flex;flex-direction:column;gap:5px;}
+.upload-item{display:flex;align-items:center;gap:8px;background:var(--s2);border-radius:6px;padding:6px 10px;font-size:11px;}
+.review-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.review-ttl{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.review-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.review-row:last-child{border-bottom:none;}
+.review-row .k{color:var(--muted);}
+.review-row .v{font-weight:600;color:var(--text);max-width:55%;text-align:left;}
+.agree-row{display:flex;align-items:flex-start;gap:9px;padding:12px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:var(--rsm);margin-bottom:10px;}
+.agree-row input{width:17px;height:17px;flex-shrink:0;margin-top:2px;accent-color:var(--green);}
+.agree-row label{font-size:11px;color:var(--muted);line-height:1.6;cursor:pointer;}
+
+/* ══ TRACKING ══ */
+.track-wrap{}
+.search-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.search-wrap input{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;width:100%;}
+.search-wrap input:focus{border-color:var(--gold);}
+.btn-search{background:var(--gold);color:var(--bg);border:none;padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.status-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.status-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.badge{display:inline-flex;padding:4px 10px;border-radius:99px;font-size:9px;font-weight:700;}
+.tl-item{display:flex;gap:11px;}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;}
+.tl-dot{width:13px;height:13px;border-radius:50%;margin-top:3px;}
+.tl-dot.done{background:var(--green);}
+.tl-dot.pend{background:var(--dim);}
+.tl-line{width:1px;flex:1;background:var(--dim);margin:3px 0;min-height:18px;}
+.tl-content{padding-bottom:14px;flex:1;}
+.tl-lbl{font-size:12px;font-weight:600;}
+.tl-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.tl-date{font-size:9px;color:var(--gold);margin-top:2px;font-family:'Space Grotesk',sans-serif;}
+.dates-card{background:var(--gold-glow);border:1px solid rgba(201,168,76,.3);border-radius:var(--rsm);padding:13px;margin-bottom:10px;}
+.dates-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(201,168,76,.1);}
+.dates-row:last-child{border-bottom:none;}
+.dates-row .k{color:var(--muted);}
+.dates-row .v{font-weight:700;color:var(--text);font-family:'Space Grotesk',sans-serif;}
+.quote-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;position:relative;overflow:hidden;}
+.quote-card::before{content:'';position:absolute;top:0;right:0;left:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.q-total{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:var(--gold);}
+.q-table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0;}
+.q-table th{background:var(--s2);padding:6px 8px;text-align:right;font-size:9px;color:var(--muted);border-bottom:1px solid var(--border);}
+.q-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03);}
+.q-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-accept{flex:1;background:rgba(74,222,128,.14);border:1px solid rgba(74,222,128,.3);color:var(--green);padding:11px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-reject-q{background:none;border:1px solid rgba(248,113,113,.3);color:var(--red);padding:11px 14px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* ══ CHAT ══ */
+.chat-id-wrap{margin-bottom:12px;}
+.chat-id-info{background:var(--gold-glow);border:1px solid rgba(201,168,76,.25);border-radius:var(--rsm);padding:10px 12px;font-size:11px;color:var(--gold);margin-bottom:10px;display:none;}
+.chat-msgs{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;min-height:100px;}
+.msg{max-width:80%;padding:9px 12px;border-radius:11px;font-size:13px;line-height:1.6;}
+.msg.client{background:var(--gold-glow);border:1px solid rgba(201,168,76,.18);margin-right:auto;border-bottom-right-radius:3px;}
+.msg.office{background:var(--s2);border:1px solid var(--border);margin-left:auto;border-bottom-left-radius:3px;}
+.msg-time{font-size:9px;color:var(--muted);margin-top:3px;}
+.chat-input-bar{position:sticky;bottom:calc(var(--nav-h) + var(--safe-bot));background:var(--bg);padding:8px 0;border-top:1px solid var(--border);display:flex;gap:8px;display:none;}
+.chat-input{flex:1;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;}
+.chat-input:focus{border-color:var(--gold);}
+.btn-send{background:var(--gold);color:var(--bg);border:none;width:42px;border-radius:var(--rsm);font-size:17px;cursor:pointer;}
+
+/* ══ PROFILE ══ */
+.profile-avatar{width:70px;height:70px;border-radius:50%;background:var(--gold-glow);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
+.profile-name{font-size:18px;font-weight:700;color:var(--text);text-align:center;margin-bottom:3px;}
+.profile-email{font-size:12px;color:var(--muted);text-align:center;margin-bottom:18px;font-family:'Space Grotesk',sans-serif;}
+.profile-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.profile-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.profile-row:last-child{border-bottom:none;}
+.profile-row .k{color:var(--muted);font-size:11px;}
+.profile-row .v{font-weight:600;color:var(--text);}
+.btn-logout{width:100%;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-svc-new{width:100%;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--bg);border:none;padding:13px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:calc(var(--nav-h)+var(--safe-bot)+10px);left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--s2);border:1px solid var(--border);border-right:3px solid var(--gold);color:var(--text);padding:11px 18px;border-radius:var(--rsm);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:999;transition:all .35s cubic-bezier(.34,1.56,.64,1);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.spinner{width:16px;height:16px;border:2px solid var(--dim);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(min-width:500px){body{background:#000;}#app{box-shadow:0 0 60px rgba(0,0,0,.9);}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ AUTH ══ -->
+  <div class="auth-wrap" id="authWrap">
+    <div class="auth-hero">
+      <div class="auth-logo"><img src="logo.png" alt="Logo"></div>
+      <div class="auth-title">جيل البناء</div>
+      <div class="auth-sub">Architecture &amp; Urban Studies · Est. 2010</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">إنشاء حساب</button>
+      </div>
+
+      <!-- Login -->
+      <div class="aform active" id="aform-login">
+        <div class="auth-err" id="login-err"></div>
+        <div class="auth-ok" id="login-ok"></div>
+        <div class="afield">
+          <label>البريد الإلكتروني <span class="req">*</span></label>
+          <input id="l-email" type="email" placeholder="example@email.com" autocomplete="email">
+        </div>
+        <div class="afield">
+          <label>كلمة المرور <span class="req">*</span></label>
+          <input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn-auth" id="btnLogin" onclick="doLogin()">تسجيل الدخول</button>
+        <button class="btn-forgot" onclick="doForgot()">نسيت كلمة المرور؟</button>
+      </div>
+
+      <!-- Register -->
+      <div class="aform" id="aform-register">
+        <div class="auth-err" id="reg-err"></div>
+        <div class="auth-ok" id="reg-ok"></div>
+        <div class="afield-row">
+          <div class="afield">
+            <label>الاسم الكامل <span class="req">*</span></label>
+            <input id="r-name" placeholder="الاسم واللقب" autocomplete="name">
+          </div>
+          <div class="afield">
+            <label>رقم الهاتف <span class="req">*</span></label>
+            <input id="r-phone" type="tel" placeholder="0555 000 000" autocomplete="tel">
+          </div>
+        </div>
+        <div class="afield">
+          <label>رقم التعريف الوطني <span class="req">*</span></label>
+          <input id="r-nin" placeholder="رقم بطاقة التعريف" inputmode="numeric">
+        </div>
+        <div class="afield">
+          <label>البريد الإلكتروني <span class="req">*</span></label>
+          <input id="r-email" type="email" placeholder="example@email.com" autocomplete="email">
+        </div>
+        <div class="afield-row">
+          <div class="afield">
+            <label>كلمة المرور <span class="req">*</span></label>
+            <input id="r-pass" type="password" placeholder="6 أحرف على الأقل" autocomplete="new-password">
+          </div>
+          <div class="afield">
+            <label>تأكيد كلمة المرور <span class="req">*</span></label>
+            <input id="r-pass2" type="password" placeholder="••••••••" autocomplete="new-password">
+          </div>
+        </div>
+        <button class="btn-auth" id="btnReg" onclick="doRegister()">إنشاء الحساب</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SERVICE SELECTION ══ -->
+  <div class="svc-sel-wrap" id="svcSelWrap" style="display:none">
+    <div class="svc-sel-hdr">
+      <div class="svc-sel-title">مرحباً بك 👋</div>
+      <div class="svc-sel-sub" id="svcSelGreet">اختر الخدمة التي تحتاجها من مكتب جيل البناء للهندسة المعمارية والعمرانية</div>
+    </div>
+    <div class="svc-cards-wrap">
+
+      <!-- الدراسة المعمارية -->
+      <div class="svc-big-card study" onclick="selectService('study')">
+        <div class="svc-big-ico"><i class="fas fa-drafting-compass"></i></div>
+        <div class="svc-big-name">دراسة المشروع</div>
+        <div class="svc-big-name-en">Architectural Study</div>
+        <div class="svc-big-desc">الحصول على دراسة معمارية كاملة ومخططات تفصيلية لمشروعك مع ملف رخصة البناء الرسمي.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">مخططات معمارية معتمدة</div>
+          <div class="svc-big-feat">ملف رخصة البناء الكامل</div>
+          <div class="svc-big-feat">الدراسة الهيكلية والحسابات</div>
+          <div class="svc-big-feat">التصميم الداخلي والديكور</div>
+          <div class="svc-big-feat">تقرير تقدير التكاليف</div>
+        </div>
+        <div class="svc-big-price">من 15,000 دج — حسب نوع ومساحة المشروع</div>
+        <button class="btn-svc study" style="margin-top:14px">اختر الدراسة المعمارية ←</button>
+      </div>
+
+      <!-- إنجاز المشروع -->
+      <div class="svc-big-card exec" onclick="selectService('execution')">
+        <div class="svc-big-ico"><i class="fas fa-hard-hat"></i></div>
+        <div class="svc-big-name">إنجاز المشروع</div>
+        <div class="svc-big-name-en">Project Execution</div>
+        <div class="svc-big-desc">إشراف ميداني كامل على تنفيذ البناء مع متابعة يومية للورشة وضمان جودة الإنجاز.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">إشراف ميداني يومي على الورشة</div>
+          <div class="svc-big-feat">متابعة جودة مواد البناء</div>
+          <div class="svc-big-feat">تقارير تقدم الأشغال الدورية</div>
+          <div class="svc-big-feat">حل المشاكل التقنية الميدانية</div>
+          <div class="svc-big-feat">استلام الأشغال وشهادة الإتمام</div>
+        </div>
+        <div class="svc-big-price">يُحدَّد حسب المساحة ومدة الإنجاز</div>
+        <button class="btn-svc exec" style="margin-top:14px">اختر إنجاز المشروع ←</button>
+      </div>
+
+    </div>
+    <button class="svc-logout-btn" onclick="doLogout()">🚪 تسجيل الخروج</button>
+  </div>
+
+  <!-- ══ STUDY MODE CHOICE (دراسة فقط vs دراسة ومتابعة كاملة) ══ -->
+  <div class="svc-sel-wrap" id="studyModeWrap" style="display:none">
+    <div class="svc-sel-hdr">
+      <button onclick="backToSvcSelection()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'Cairo',sans-serif;font-size:12px;padding:7px 14px;border-radius:8px;cursor:pointer;margin-bottom:14px">→ رجوع</button>
+      <div class="svc-sel-title">كيف تفضّل إنجاز الدراسة؟ 📐</div>
+      <div class="svc-sel-sub">اختر ما يناسب أسلوبك في متابعة مشروعك</div>
+    </div>
+    <div class="svc-cards-wrap">
+
+      <div class="svc-big-card study" onclick="chooseStudyMode('basic')">
+        <div class="svc-big-ico"><i class="fas fa-file-lines"></i></div>
+        <div class="svc-big-name">دراسة ورخصة فقط</div>
+        <div class="svc-big-name-en">Study &amp; Permit Only</div>
+        <div class="svc-big-desc">تستلم المخططات وملف رخصة البناء كاملَين دفعة واحدة، وتتولى الباقي بنفسك — بدون أي التزام متابعة مستمرة من المكتب.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">مخططات معمارية معتمدة</div>
+          <div class="svc-big-feat">ملف رخصة البناء الكامل</div>
+          <div class="svc-big-feat">تسليم نهائي واحد — لا متابعة لاحقة</div>
+          <div class="svc-big-feat">الأنسب لمن يريد إدارة التنفيذ بنفسه</div>
+        </div>
+        <button class="btn-svc study" style="margin-top:14px">اختر دراسة فقط ←</button>
+      </div>
+
+      <div class="svc-big-card exec" onclick="chooseStudyMode('full')">
+        <div class="svc-big-ico"><i class="fas fa-handshake"></i></div>
+        <div class="svc-big-name">دراسة ومتابعة كاملة</div>
+        <div class="svc-big-name-en">Full Study &amp; Follow-up</div>
+        <div class="svc-big-desc">المكتب يرافقك من الدراسة حتى نهاية التنفيذ، مع إمكانية الانتقال لخدمة الإنجاز مباشرة عند اكتمال الدراسة.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">كل ما في "دراسة فقط"</div>
+          <div class="svc-big-feat">إمكانية الانتقال لمؤسسة الإنجاز مباشرة</div>
+          <div class="svc-big-feat">متابعة مستمرة مع المكتب</div>
+          <div class="svc-big-feat">الأنسب لمن ليس لديه وقت للمتابعة اليومية</div>
+        </div>
+        <button class="btn-svc exec" style="margin-top:14px">اختر المتابعة الكاملة ←</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ EXECUTION MODE CHOICE (تواصل مباشر vs متابعة كاملة) ══ -->
+  <div class="svc-sel-wrap" id="execModeWrap" style="display:none">
+    <div class="svc-sel-hdr">
+      <button onclick="backToSvcSelectionExec()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'Cairo',sans-serif;font-size:12px;padding:7px 14px;border-radius:8px;cursor:pointer;margin-bottom:14px">→ رجوع</button>
+      <div class="svc-sel-title">كيف تفضّل تنفيذ مشروعك؟ 🏗️</div>
+      <div class="svc-sel-sub">اختر ما يناسب أسلوبك في متابعة الورشة</div>
+    </div>
+    <div class="svc-cards-wrap">
+
+      <div class="svc-big-card study" onclick="chooseExecMode('direct')">
+        <div class="svc-big-ico"><i class="fas fa-handshake"></i></div>
+        <div class="svc-big-name">تواصل مباشر مع الفريق</div>
+        <div class="svc-big-name-en">Direct Contact Directory</div>
+        <div class="svc-big-desc">تصفّح مهندسي متابعة وعمالاً موثوقين قريبين من موقعك، وتواصل معهم مباشرة بالاسم ورقم الهاتف — تتفاوض وتدفع يداً بيد كما تفضّل.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">أسماء وأرقام هواتف مباشرة</div>
+          <div class="svc-big-feat">فرز حسب الولاية والبلدية</div>
+          <div class="svc-big-feat">تفاوض ودفع مباشر بدون وسيط</div>
+          <div class="svc-big-feat">الأنسب لمن يريد حضوراً شخصياً بالورشة</div>
+        </div>
+        <button class="btn-svc study" style="margin-top:14px">تصفّح الدليل ←</button>
+      </div>
+
+      <div class="svc-big-card exec" onclick="chooseExecMode('managed')">
+        <div class="svc-big-ico"><i class="fas fa-building"></i></div>
+        <div class="svc-big-name">متابعة كاملة عبر المؤسسة</div>
+        <div class="svc-big-name-en">Full Managed Execution</div>
+        <div class="svc-big-desc">المؤسسة تتولى كل شيء: كشف كمي وتقييمي، تعيين فريق متابعة، تقارير دورية، وتنسيق العمال — أنت فقط توافق وتراقب من بعيد.</div>
+        <div class="svc-big-features">
+          <div class="svc-big-feat">كشف كمي وتقييمي معتمد</div>
+          <div class="svc-big-feat">فريق متابعة معيَّن من المؤسسة</div>
+          <div class="svc-big-feat">تقارير ميدانية وصور دورية</div>
+          <div class="svc-big-feat">الأنسب لمن ليس لديه وقت للحضور اليومي</div>
+        </div>
+        <button class="btn-svc exec" style="margin-top:14px">اختر المتابعة الكاملة ←</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ DIRECT CONTACT DIRECTORY (دليل التواصل المباشر) ══ -->
+  <div class="svc-sel-wrap" id="directoryWrap" style="display:none">
+    <div class="svc-sel-hdr">
+      <button onclick="backToSvcSelectionExec()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'Cairo',sans-serif;font-size:12px;padding:7px 14px;border-radius:8px;cursor:pointer;margin-bottom:14px">→ رجوع</button>
+      <div class="svc-sel-title">دليل الفريق الموثوق 🤝</div>
+      <div class="svc-sel-sub">اختر الولاية لعرض مهندسي المتابعة والعمال القريبين منك — تواصل معهم مباشرة</div>
+    </div>
+    <div style="max-width:600px;margin:0 auto 20px;display:flex;gap:10px;flex-wrap:wrap">
+      <select id="dir_wilaya" onchange="filterDirectory()" style="flex:1;min-width:180px;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px"><option value="">— كل الولايات —</option></select>
+      <select id="dir_role" onchange="filterDirectory()" style="flex:1;min-width:150px;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px">
+        <option value="">كل الفئات</option>
+        <option value="supervisor">مهندسو متابعة</option>
+        <option value="worker">عمال</option>
+      </select>
+    </div>
+    <div id="directoryList" style="max-width:600px;margin:0 auto"></div>
+  </div>
+
+  <!-- ══ HEADER ══ -->
+  <div class="hdr" id="mainHdr" style="display:none">
+    <div class="hdr-brand">
+      <div class="hdr-logo"><img src="logo.png" alt="Logo"></div>
+      <div>
+        <div class="hdr-name">جيل البناء</div>
+        <div class="hdr-sub">Client Portal</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-btn" onclick="window.open('tel:0796532884')"><i class="fas fa-phone"></i></div>
+      <div class="hdr-user" id="hdrUserName" onclick="goTab('profile')">حسابي</div>
+    </div>
+  </div>
+
+  <!-- ══ SCREENS ══ -->
+  <div class="screens" id="mainScreens" style="display:none">
+
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="screen-inner">
+        <div class="home-hero">
+          <div class="home-welcome">أهلاً وسهلاً /  Welcome</div>
+          <div class="home-name" id="homeUserName">عميل جيل البناء</div>
+          <div class="home-btns">
+            <button class="hbtn" onclick="goNewRequest()"><i class="fas fa-file-circle-plus"></i> طلب جديد</button>
+            <button class="hbtn" onclick="goTab('track')"><i class="fas fa-magnifying-glass"></i> طلباتي</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-c"><div class="stat-n" id="statTotal">0</div><div class="stat-l">طلباتي</div></div>
+          <div class="stat-c"><div class="stat-n" id="statActive">0</div><div class="stat-l">قيد التنفيذ</div></div>
+          <div class="stat-c"><div class="stat-n" id="statDone">0</div><div class="stat-l">منجز</div></div>
+        </div>
+        <div class="sec-title">آخر طلباتي</div>
+        <div id="myRequestsList">
+          <div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبات بعد</div><div class="empty-d">ابدأ بتقديم طلب جديد</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW REQUEST -->
+    <div class="screen" id="screen-request">
+      <div class="screen-inner">
+        <div class="form-prog" id="formProg">
+          <div class="fp-s active" id="fs0"></div>
+          <div class="fp-s" id="fs1"></div>
+          <div class="fp-s" id="fs2"></div>
+          <div class="fp-s" id="fs3"></div>
+        </div>
+
+        <!-- Step 0: Service type banner -->
+        <div class="fstep active" id="fstep-0">
+          <div class="step-lbl">الخطوة 1 من 4</div>
+          <div class="step-ttl" id="step0Title">تفاصيل الخدمة</div>
+          <div id="step0Content"></div>
+          <div class="step-nav">
+            <button class="btn-prev" onclick="goTab('home')">✕ إلغاء</button>
+            <button class="btn-next" onclick="goFormStep(1)">التالي ←</button>
+          </div>
+        </div>
+
+        <!-- Step 1: Location -->
+        <div class="fstep" id="fstep-1">
+          <div class="step-lbl">الخطوة 2 من 4</div>
+          <div class="step-ttl">موقع المشروع 📍</div>
+          <div class="field-row">
+            <div class="field">
+              <label>ولاية المشروع <span class="req">*</span></label>
+              <select id="f_pwilaya" onchange="updateCList('f_pwilaya','f_commune')">
+                <option value="">— اختر —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>البلدية <span class="req">*</span></label>
+              <select id="f_commune"><option value="">— اختر الولاية —</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label>الدائرة</label>
+            <select id="f_daira"><option value="">— اختر الولاية أولاً —</option></select>
+          </div>
+          <div class="field">
+            <label>العنوان التفصيلي <span class="req">*</span></label>
+            <input id="f_address" placeholder="الحي، الشارع، رقم القطعة">
+          </div>
+          <div class="field">
+            <label>ملاحظات عن الموقع</label>
+            <textarea id="f_land" placeholder="مساحة القطعة، حالة الموقع..."></textarea>
+          </div>
+          <div class="step-nav">
+            <button class="btn-prev" onclick="goFormStep(0)">←</button>
+            <button class="btn-next" onclick="goFormStep(2)">التالي ←</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Details -->
+        <div class="fstep" id="fstep-2">
+          <div class="step-lbl">الخطوة 3 من 4</div>
+          <div class="step-ttl">تفاصيل المشروع 📝</div>
+          <div class="field">
+            <label>وصف المشروع</label>
+            <textarea id="f_desc" placeholder="أفكارك، متطلباتك، أولوياتك..."></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>الجدول الزمني</label>
+              <select id="f_timeline">
+                <option value="">— اختر —</option>
+                <option>أقل من شهر (عاجل)</option>
+                <option>1 إلى 3 أشهر</option>
+                <option>3 إلى 6 أشهر</option>
+                <option>أكثر من 6 أشهر</option>
+                <option>غير محدد</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>الميزانية التقريبية (دج)</label>
+              <input id="f_budget" type="number" placeholder="اختياري" inputmode="numeric">
+            </div>
+          </div>
+          <div class="field">
+            <label id="upLabel">إرفاق ملفات (اختياري)</label>
+            <div class="upload-zone">
+              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.dwg" onchange="handleUp(this.files)">
+              <div style="font-size:24px;margin-bottom:5px">📎</div>
+              <div style="font-size:12px;color:var(--muted)" id="upHint">PDF, JPG, DWG</div>
+            </div>
+            <div class="upload-list" id="upList"></div>
+          </div>
+          <div class="step-nav">
+            <button class="btn-prev" onclick="goFormStep(1)">←</button>
+            <button class="btn-next" onclick="goFormStep(3)">مراجعة ←</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Review -->
+        <div class="fstep" id="fstep-3">
+          <div class="step-lbl">الخطوة 4 من 4</div>
+          <div class="step-ttl">مراجعة وإرسال ✅</div>
+          <div id="reviewContent"></div>
+          <div class="agree-row">
+            <input type="checkbox" id="f_agree">
+            <label for="f_agree">أوافق على معالجة بياناتي من قبل مكتب جيل البناء للهندسة المعمارية والعمرانية لأغراض معالجة هذا الطلب.</label>
+          </div>
+          <button class="btn-submit-f" onclick="submitReq()">📨 إرسال الطلب</button>
+          <div style="margin-top:8px"><button class="btn-prev" style="width:100%;padding:11px" onclick="goFormStep(2)">← تعديل</button></div>
+        </div>
+
+        <!-- Success -->
+        <div class="fstep" id="fstep-done">
+          <div class="success-wrap">
+            <div class="success-ico">✅</div>
+            <div style="font-size:20px;font-weight:900;margin-bottom:5px">تم إرسال طلبك!</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.8">سيتواصل معك مهندسنا خلال 24 ساعة</div>
+            <div class="ticket-box">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">رقم الطلب المرجعي</div>
+              <div class="ticket-num" id="doneTicket">—</div>
+            </div>
+            <button class="btn-next" style="width:100%" onclick="goTab('track')">🔍 تتبع طلبي</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TRACK -->
+    <div class="screen" id="screen-track">
+      <div class="screen-inner">
+        <div class="sec-title" style="margin-bottom:14px">تتبع طلباتي</div>
+        <div id="myTrackList">
+          <div class="empty-card"><div class="empty-ico">🔍</div><div class="empty-t">لا توجد طلبات</div><div class="empty-d">قدّم طلباً جديداً من الرئيسية</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXEC (مشروع الإنجاز) -->
+    <div class="screen" id="screen-exec">
+      <div class="screen-inner">
+        <div class="sec-title" style="margin-bottom:14px">🏗️ متابعة الإنجاز</div>
+        <div id="myExecList">
+          <div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا يوجد مشروع إنجاز نشط</div><div class="empty-d">سيظهر هنا فور اعتماد المكتب لبدء الأشغال</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIALS (طلب مواد البناء) -->
+    <div class="screen" id="screen-materials">
+      <div class="screen-inner">
+        <div class="sec-title" style="margin-bottom:6px">🧱 طلب مواد البناء لورشتك</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7">اختر الكميات التي تحتاجها، سيراجع المكتب طلبك ويتواصل معك لتأكيد التسليم.</div>
+        <div id="materialsCatalog"></div>
+
+        <div id="cartBar" style="display:none;position:sticky;bottom:0;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-top:14px;box-shadow:0 -4px 16px rgba(0,0,0,.3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:11px;color:var(--muted)">الإجمالي (<span id="cartCount">0</span> بند)</span>
+            <span style="font-size:16px;font-weight:800;color:var(--gold)" id="cartTotal">0 دج</span>
+          </div>
+          <button class="btn-submit-f" onclick="openMaterialsCheckout()">📨 إرسال طلب المواد</button>
+        </div>
+
+        <div class="sec-title" style="margin:22px 0 10px">📦 طلبياتي السابقة</div>
+        <div id="myMaterialOrdersList"><div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبيات مواد بعد</div></div></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="screen" id="screen-chat">
+      <div class="screen-inner" style="padding-bottom:calc(56px + var(--nav-h) + var(--safe-bot))">
+        <div class="sec-title" style="margin-bottom:10px">التواصل مع المكتب 💬</div>
+        <div id="chatSelectReq" style="margin-bottom:12px">
+          <select id="chatReqSelect" style="width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;margin-bottom:8px" onchange="openChatForReq(this.value)">
+            <option value="">— اختر طلباً —</option>
+          </select>
+        </div>
+        <div class="chat-id-info" id="chatInfo"></div>
+        <div class="chat-msgs" id="chatMsgs"></div>
+      </div>
+      <div class="chat-input-bar" id="chatInputBar">
+        <input class="chat-input" id="chatInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="btn-send" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="screen-inner">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-name" id="profName">—</div>
+        <div class="profile-email" id="profEmail">—</div>
+        <div class="profile-card">
+          <div class="review-ttl">بيانات الحساب</div>
+          <div class="profile-row"><span class="k">الهاتف</span><span class="v" id="profPhone">—</span></div>
+          <div class="profile-row"><span class="k">رقم التعريف</span><span class="v" id="profNin">—</span></div>
+          <div class="profile-row"><span class="k">تاريخ التسجيل</span><span class="v" id="profDate">—</span></div>
+        </div>
+        <button class="btn-svc-new" onclick="showSvcSelection()">🔄 تقديم طلب خدمة جديدة</button>
+        <button class="btn-logout" onclick="doLogout()">🚪 تسجيل الخروج</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav class="nav" id="mainNav" style="display:none">
+    <button class="ntab active" id="ntab-home" onclick="goTab('home')"><div class="ntab-ico"><i class="fas fa-home"></i></div><div>الرئيسية</div></button>
+    <button class="ntab" id="ntab-request" onclick="goNewRequest()"><div class="ntab-ico"><i class="fas fa-file-circle-plus"></i></div><div>طلب جديد</div></button>
+    <button class="ntab" id="ntab-track" onclick="goTab('track')"><div class="ntab-ico"><i class="fas fa-magnifying-glass"></i></div><div>طلباتي</div><span class="nbadge" id="nbadge-track"></span></button>
+    <button class="ntab" id="ntab-exec" onclick="goTab('exec')" style="display:none"><div class="ntab-ico"><i class="fas fa-hard-hat"></i></div><div>الإنجاز</div><span class="nbadge" id="nbadge-exec"></span></button>
+    <button class="ntab" id="ntab-materials" onclick="goTab('materials')"><div class="ntab-ico"><i class="fas fa-boxes-stacked"></i></div><div>المواد</div><span class="nbadge" id="nbadge-materials"></span></button>
+    <button class="ntab" id="ntab-chat" onclick="goTab('chat')"><div class="ntab-ico"><i class="fas fa-comment-dots"></i></div><div>الدردشة</div><span class="nbadge" id="nbadge-chat"></span></button>
+    <button class="ntab" id="ntab-profile" onclick="goTab('profile')"><div class="ntab-ico"><i class="fas fa-user"></i></div><div>حسابي</div></button>
+  </nav>
+
+</div>
+
+<!-- MODAL: تأكيد طلب المواد -->
+<div id="matCheckoutOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;width:92%;max-width:420px;max-height:88vh;overflow-y:auto">
+    <div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:14px">📨 تأكيد طلب المواد</div>
+    <div id="matCheckoutItems" style="margin-bottom:14px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--s2);border-radius:var(--rsm);padding:11px 14px;margin-bottom:14px">
+      <span style="font-size:12px;color:var(--muted);font-weight:700">الإجمالي</span>
+      <span style="font-size:16px;font-weight:800;color:var(--gold)" id="matCheckoutTotal">0 دج</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">طريقة الاستلام</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="fmDelivery" onclick="setFulfillmentMode('delivery')" style="flex:1;padding:11px 8px;border-radius:var(--rsm);border:1.5px solid var(--gold);background:var(--gold-glow);color:var(--gold);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🚚 توصيل كامل</button>
+        <button type="button" id="fmPickup" onclick="setFulfillmentMode('pickup')" style="flex:1;padding:11px 8px;border-radius:var(--rsm);border:1.5px solid var(--border);background:var(--s2);color:var(--muted);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🏬 حجز واستلام يدوي</button>
+      </div>
+      <div id="fmHint" style="font-size:10px;color:var(--muted);line-height:1.6">المكتب يوصل المواد لموقعك ويؤكد الطلب معك.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">ربط الطلب بمشروع إنجاز (اختياري)</label>
+      <select id="matProject" onchange="onMatProjectChange()" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%">
+        <option value="">— طلب مستقل (بدون ربط) —</option>
+      </select>
+    </div>
+    <div id="matPhaseWrap" style="display:none;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">لأي مرحلة هذه المواد؟</label>
+      <select id="matPhase" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%"></select>
+      <div style="font-size:10px;color:var(--muted);line-height:1.6">سيراجع مهندس المتابعة هذا الطلب أولاً قبل تحويله للمستودع.</div>
+    </div>
+    <div id="matAddressWrap" style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">عنوان الورشة / موقع التسليم</label>
+      <input id="matAddress" placeholder="مثال: حي النصر، ولاية سطيف" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%">
+    </div>
+    <div id="matPickupWrap" style="display:none;flex-direction:column;gap:5px;margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">أقرب ولاية لاستلام الحجز منها</label>
+      <select id="matPickupWilaya" onchange="onPickupWilayaChange()" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%"><option value="">— اختر —</option></select>
+      <div id="pickupWarehouseInfo" style="font-size:11px;color:var(--teal);line-height:1.6"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+      <label style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase">ملاحظات (اختياري)</label>
+      <textarea id="matNotes" style="background:var(--s2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;width:100%;min-height:60px;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button style="flex:1;background:none;border:1px solid var(--border);color:var(--muted);padding:12px;border-radius:var(--rsm);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer" onclick="closeMaterialsCheckout()">إلغاء</button>
+      <button class="btn-submit-f" style="flex:2" onclick="submitMaterialsOrder()">✅ تأكيد الطلب</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="dz_locations.js"></script>
+<script type="module">
+import Bridge from './bridge.js?v=20260712c';
+
+// ═══ STATE ═══════════════════════════════════════════
+let currentUser = null;
+let clientProfile = null;
+let selectedService = null; // 'study' | 'execution'
+let studyMode = null; // 'basic' (دراسة ورخصة فقط) | 'full' (دراسة ومتابعة كاملة)
+let execMode = null; // 'direct' (تواصل مباشر) | 'managed' (متابعة كاملة عبر المؤسسة)
+let myRequests = [];
+let curFormStep = 0;
+let formServiceType = null;
+let formSubServices = [];
+let upFiles = [];
+let activeChatReqId = null;
+let chatUnsub = null;
+let reqsUnsub = null;
+let execProjects = [];
+let execUnsub = null;
+let materialsCatalog = [];
+let materialsCatalogUnsub = null;
+let materialsCart = {}; // materialId -> qty
+let myMaterialOrders = [];
+let matOrdersUnsub = null;
+
+// ═══ UTILS ═══════════════════════════════════════════
+function toast(msg, d=3200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), d);
+}
+function gv(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function fmtD(v) { return Bridge.fmtDate(v); }
+function fmtN(n) { return Bridge.fmtNum(n); }
+function showErr(id, msg) { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
+function showOk(id, msg)  { const el=document.getElementById(id); if(el){el.textContent=msg;el.style.display=msg?'block':'none';} }
+
+// ═══ WILAYAS ═════════════════════════════════════════
+const WILAYAS = window.DZ_WILAYAS || [];
+const COMMUNES = window.DZ_COMMUNES || {};
+const DAIRAS = window.DZ_DAIRAS || {};
+
+function populateWilayas() {
+  const sel = document.getElementById('f_pwilaya'); if (!sel) return;
+  WILAYAS.forEach(w => { const o=document.createElement('option'); o.value=w; o.textContent=w; sel.appendChild(o); });
+}
+function updateCList(wId, cId) {
+  const w = document.getElementById(wId)?.value;
+  const cs = document.getElementById(cId); if (!cs) return;
+  cs.innerHTML = '<option value="">— اختر البلدية —</option>';
+  (COMMUNES[w]||[]).forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+  const ds = document.getElementById('f_daira');
+  if (ds && ds.tagName === 'SELECT') {
+    ds.innerHTML = '<option value="">— اختر الدائرة —</option>';
+    (DAIRAS[w]||[]).forEach(d => { const o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o); });
+  }
+}
+window.updateCList = updateCList;
+
+// ═══ AUTH ════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.querySelectorAll('.aform').forEach(f => f.classList.remove('active'));
+  document.getElementById('aform-'+tab).classList.add('active');
+  ['login-err','login-ok','reg-err','reg-ok'].forEach(id => showErr(id,''));
+}
+window.switchAuthTab = switchAuthTab;
+
+async function doLogin() {
+  const email=gv('l-email'), pass=gv('l-pass');
+  if (!email||!pass) { showErr('login-err','يرجى ملء جميع الحقول'); return; }
+  const btn=document.getElementById('btnLogin');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  showErr('login-err',''); showOk('login-ok','');
+  try {
+    const loginPromise = Bridge.Auth.loginClient(email, pass);
+    const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej({code:'network-timeout'}), 15000));
+    await Promise.race([loginPromise, timeoutPromise]);
+    // onAuthStateChanged سيتعامل مع الباقي
+  } catch(err) {
+    const msgs={'auth/user-not-found':'البريد غير مسجّل','auth/wrong-password':'كلمة المرور خاطئة','auth/invalid-credential':'البريد أو كلمة المرور خاطئة','auth/too-many-requests':'تم تجاوز عدد المحاولات، انتظر قليلاً','network-timeout':'الاتصال بطيء جداً أو منقطع — تحقق من الإنترنت وحاول مجدداً'};
+    showErr('login-err', msgs[err.code] || 'خطأ: ' + (err.message||''));
+    btn.disabled=false; btn.textContent='تسجيل الدخول';
+  }
+}
+window.doLogin = doLogin;
+window.addEventListener('keydown', e => { if(e.key==='Enter' && document.getElementById('aform-login').classList.contains('active')) doLogin(); });
+
+async function doRegister() {
+  const name=gv('r-name'),phone=gv('r-phone'),nin=gv('r-nin'),email=gv('r-email'),pass=gv('r-pass'),pass2=gv('r-pass2');
+  showErr('reg-err',''); showOk('reg-ok','');
+  if (!name||!phone||!nin||!email||!pass) { showErr('reg-err','يرجى ملء جميع الحقول الإلزامية'); return; }
+  if (pass !== pass2) { showErr('reg-err','كلمتا المرور غير متطابقتين'); return; }
+  if (pass.length < 6) { showErr('reg-err','كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+  const btn=document.getElementById('btnReg');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try {
+    await Bridge.Auth.registerClient(name, phone, nin, email, pass);
+    showOk('reg-ok','✅ تم إنشاء حسابك بنجاح! مرحباً بك.');
+    // onAuthStateChanged سيتعامل مع الباقي
+  } catch(err) {
+    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً','auth/invalid-email':'البريد الإلكتروني غير صالح'};
+    showErr('reg-err', msgs[err.code] || 'خطأ: ' + err.message);
+    btn.disabled=false; btn.textContent='إنشاء الحساب';
+  }
+}
+window.doRegister = doRegister;
+
+async function doForgot() {
+  const email = gv('l-email');
+  if (!email) { showErr('login-err','أدخل بريدك الإلكتروني أولاً'); return; }
+  try {
+    await Bridge.Auth.resetPassword(email);
+    showOk('login-ok','✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك');
+    showErr('login-err','');
+  } catch(err) { showErr('login-err', 'خطأ: ' + err.message); }
+}
+window.doForgot = doForgot;
+
+async function doLogout() {
+  if (!confirm('تأكيد تسجيل الخروج؟')) return;
+  await Bridge.Auth.signOut();
+  currentUser = null; clientProfile = null; myRequests = []; execProjects = [];
+  materialsCart = {}; myMaterialOrders = []; studyMode = null; selectedService = null; execMode = null;
+  if (reqsUnsub) { reqsUnsub(); reqsUnsub=null; }
+  if (execUnsub) { execUnsub(); execUnsub=null; }
+  if (materialsCatalogUnsub) { materialsCatalogUnsub(); materialsCatalogUnsub=null; }
+  if (matOrdersUnsub) { matOrdersUnsub(); matOrdersUnsub=null; }
+  showAuthScreen();
+}
+window.doLogout = doLogout;
+
+// ═══ AUTH STATE ═══════════════════════════════════════
+const _urlParams = new URLSearchParams(location.search);
+const _preselectService = _urlParams.get('service'); // 'execution' من رابط الصفحة الرئيسية
+const _preselectTab = _urlParams.get('tab'); // 'materials' من رابط الصفحة الرئيسية
+
+Bridge.Auth.onChange(async user => {
+  if (user && !user.isAnonymous) {
+    currentUser = user;
+    try {
+      // مهلة أقصاها 7 ثوانٍ — إن كانت الشبكة بطيئة/متقطعة، لا يبقى العميل عالقاً بلا نهاية
+      const profilePromise = Bridge.Auth.getClientProfile(user.uid);
+      const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 7000));
+      clientProfile = await Promise.race([profilePromise, timeoutPromise]);
+    } catch(e) {
+      console.warn('تعذر تحميل ملف العميل (شبكة بطيئة أو غير متصلة) — استخدام بيانات أساسية:', e.message);
+      clientProfile = null;
+    }
+    if (!clientProfile) {
+      clientProfile = { uid:user.uid, name:user.displayName||'عميل', email:user.email, phone:'—', nin:'—' };
+    }
+    if (_preselectTab === 'materials') { showMainApp(); goTab('materials'); }
+    // إذا لم يختر خدمة بعد — أظهر شاشة الاختيار (أو فعّلها تلقائياً من رابط خارجي)
+    else if (!selectedService && (_preselectService === 'execution' || _preselectService === 'study')) { selectService(_preselectService); }
+    else if (!selectedService) { showSvcSelection(); }
+    else { showMainApp(); }
+  } else if (!user || user.isAnonymous) {
+    // غير مسجّل — أظهر شاشة تسجيل الدخول
+    showAuthScreen();
+  }
+});
+
+// ═══ SCREENS CONTROL ═════════════════════════════════
+function showAuthScreen() {
+  document.getElementById('authWrap').style.display='flex';
+  document.getElementById('svcSelWrap').style.display='none';
+  document.getElementById('mainHdr').style.display='none';
+  document.getElementById('mainScreens').style.display='none';
+  document.getElementById('mainNav').style.display='none';
+  // reset buttons
+  const bl=document.getElementById('btnLogin'); if(bl){bl.disabled=false;bl.textContent='تسجيل الدخول';}
+  const br=document.getElementById('btnReg'); if(br){br.disabled=false;br.textContent='إنشاء الحساب';}
+}
+
+function showSvcSelection() {
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('studyModeWrap').style.display='none';
+  document.getElementById('execModeWrap').style.display='none';
+  document.getElementById('directoryWrap').style.display='none';
+  document.getElementById('svcSelWrap').style.display='flex';
+  document.getElementById('mainHdr').style.display='none';
+  document.getElementById('mainScreens').style.display='none';
+  document.getElementById('mainNav').style.display='none';
+  const name = clientProfile?.name || currentUser?.displayName || 'عزيزي العميل';
+  document.getElementById('svcSelGreet').textContent = `مرحباً ${name}! اختر الخدمة التي تحتاجها من مكتب جيل البناء للهندسة المعمارية والعمرانية.`;
+}
+window.showSvcSelection = showSvcSelection;
+
+function showMainApp() {
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('svcSelWrap').style.display='none';
+  document.getElementById('studyModeWrap').style.display='none';
+  document.getElementById('execModeWrap').style.display='none';
+  document.getElementById('directoryWrap').style.display='none';
+  document.getElementById('mainHdr').style.display='flex';
+  document.getElementById('mainScreens').style.display='block';
+  document.getElementById('mainNav').style.display='flex';
+  // تحديث header
+  const name = clientProfile?.name || currentUser?.displayName || 'حسابي';
+  document.getElementById('hdrUserName').textContent = name.split(' ')[0];
+  document.getElementById('homeUserName').textContent = name;
+  document.getElementById('profName').textContent = name;
+  document.getElementById('profEmail').textContent = currentUser?.email || '—';
+  document.getElementById('profPhone').textContent = clientProfile?.phone || '—';
+  document.getElementById('profNin').textContent = clientProfile?.nin || '—';
+  document.getElementById('profDate').textContent = fmtD(clientProfile?.createdAt) || '—';
+  // تحميل الطلبات
+  loadMyRequests();
+  loadExecTab();
+  loadMaterialsTab();
+  populateWilayas();
+  buildStep0();
+}
+
+// ═══ SERVICE SELECTION ═══════════════════════════════
+function selectService(type) {
+  if (type === 'study' && !studyMode) {
+    // اعرض اختيار "دراسة فقط" أو "دراسة ومتابعة كاملة" أولاً
+    document.getElementById('svcSelWrap').style.display = 'none';
+    document.getElementById('studyModeWrap').style.display = 'flex';
+    return;
+  }
+  if (type === 'execution' && !execMode) {
+    document.getElementById('svcSelWrap').style.display = 'none';
+    document.getElementById('execModeWrap').style.display = 'flex';
+    return;
+  }
+  selectedService = type;
+  formServiceType = type;
+  formSubServices = type==='study' ? ['study','permit'] : ['supervision'];
+  showMainApp();
+  setTimeout(() => goTab('request'), 100);
+}
+window.selectService = selectService;
+
+function chooseStudyMode(mode) {
+  studyMode = mode; // 'basic' | 'full'
+  selectService('study');
+}
+window.chooseStudyMode = chooseStudyMode;
+
+function backToSvcSelection() {
+  studyMode = null;
+  document.getElementById('studyModeWrap').style.display = 'none';
+  document.getElementById('svcSelWrap').style.display = 'flex';
+}
+window.backToSvcSelection = backToSvcSelection;
+
+function chooseExecMode(mode) {
+  execMode = mode; // 'direct' | 'managed'
+  if (mode === 'direct') {
+    document.getElementById('execModeWrap').style.display = 'none';
+    document.getElementById('directoryWrap').style.display = 'flex';
+    loadDirectory();
+    return;
+  }
+  selectService('execution');
+}
+window.chooseExecMode = chooseExecMode;
+
+function backToSvcSelectionExec() {
+  execMode = null;
+  document.getElementById('execModeWrap').style.display = 'none';
+  document.getElementById('directoryWrap').style.display = 'none';
+  document.getElementById('svcSelWrap').style.display = 'flex';
+}
+window.backToSvcSelectionExec = backToSvcSelectionExec;
+
+let directoryMembers = [];
+async function loadDirectory() {
+  const wSel = document.getElementById('dir_wilaya');
+  if (wSel.options.length <= 1) (window.DZ_WILAYAS||[]).forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=w; wSel.appendChild(o); });
+  document.getElementById('directoryList').innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">⏳ جارٍ التحميل...</div>';
+  try {
+    directoryMembers = await Bridge.Team.getDirectory();
+    filterDirectory();
+  } catch(err) {
+    document.getElementById('directoryList').innerHTML = '<div style="text-align:center;color:var(--red);padding:20px">تعذر تحميل الدليل</div>';
+  }
+}
+window.loadDirectory = loadDirectory;
+
+function filterDirectory() {
+  const wilaya = document.getElementById('dir_wilaya').value;
+  const role = document.getElementById('dir_role').value;
+  const list = directoryMembers.filter(m => (!wilaya || m.wilaya===wilaya) && (!role || m.role===role));
+  const el = document.getElementById('directoryList');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px">لا يوجد أعضاء مطابقون حالياً — جرّب توسيع البحث</div>'; return; }
+  el.innerHTML = list.map(m => `
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${m.role==='supervisor'?'🏗️':'🔨'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13px">${esc(m.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${m.role==='supervisor'?esc(m.specialty||'مهندس متابعة'):esc((m.specialties||[]).join('، '))}</div>
+        <div style="font-size:10px;color:var(--muted)">📍 ${esc(m.wilaya||'—')}${m.commune?' — '+esc(m.commune):''}</div>
+      </div>
+      <a href="tel:${esc(m.phone||'')}" style="background:var(--gold);color:var(--ink);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">📞 اتصال</a>
+    </div>
+  `).join('');
+}
+window.filterDirectory = filterDirectory;
+
+function buildStep0() {
+  const isStudy = formServiceType === 'study';
+  document.getElementById('step0Title').textContent = isStudy ? 'تفاصيل الدراسة المعمارية 📐' : 'تفاصيل إنجاز المشروع 🏗️';
+  const content = document.getElementById('step0Content');
+  if (isStudy) {
+    content.innerHTML = `
+      <div style="background:var(--gold-glow);border:1px solid rgba(201,168,76,.25);border-radius:var(--rsm);padding:13px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
+        <strong style="color:var(--gold)">${studyMode==='basic' ? '📄 دراسة ورخصة فقط' : '🤝 دراسة ومتابعة كاملة'}</strong> — ${studyMode==='basic' ? 'تشمل المخططات المعمارية الكاملة وملف رخصة البناء، تسليم واحد بدون متابعة لاحقة.' : 'تشمل المخططات والرخصة، مع مرافقة المكتب لك حتى نهاية التنفيذ.'}
+      </div>
+      <div class="field-row">
+        <div class="field"><label>نوع المبنى <span class="req">*</span></label>
+          <select id="f_btype"><option value="">— اختر —</option><option>فيلا سكنية</option><option>شقة سكنية</option><option>عمارة سكنية</option><option>محل تجاري</option><option>عمارة تجارية</option><option>مكاتب إدارية</option><option>ورشة صناعية</option><option>مستودع</option><option>مشروع سياحي</option><option>أخرى</option></select>
+        </div>
+        <div class="field"><label>عدد الطوابق <span class="req">*</span></label>
+          <select id="f_floors"><option value="">— اختر —</option><option>طابق واحد</option><option>طابقان</option><option>3 طوابق</option><option>4 طوابق</option><option>5 طوابق وأكثر</option><option>غير محدد</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>المساحة (م²)</label><input id="f_area" type="number" placeholder="200" inputmode="numeric"></div>
+        <div class="field"><label>عدد الغرف</label><input id="f_rooms" type="number" placeholder="4" inputmode="numeric"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>عدد الواجهات</label><input id="f_facades" type="number" placeholder="1" inputmode="numeric"></div>
+        <div class="field"><label>عدد الحمامات</label><input id="f_bathrooms" type="number" placeholder="2" inputmode="numeric"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>عدد المستودعات</label><input id="f_storerooms" type="number" placeholder="0" inputmode="numeric"></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:9px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">الخدمات المطلوبة</div>
+        <div class="opt-grid">
+          <div class="opt-c sel" data-s="study" onclick="togSub(this)"><div class="opt-ico">📐</div><div class="opt-lbl">دراسة معمارية</div></div>
+          <div class="opt-c sel" data-s="permit" onclick="togSub(this)"><div class="opt-ico">📋</div><div class="opt-lbl">رخصة البناء</div></div>
+          <div class="opt-c" data-s="structure" onclick="togSub(this)"><div class="opt-ico">🔩</div><div class="opt-lbl">دراسة هيكلية</div></div>
+          <div class="opt-c" data-s="interior" onclick="togSub(this)"><div class="opt-ico">🛋️</div><div class="opt-lbl">تصميم داخلي</div></div>
+          <div class="opt-c" data-s="estimate" onclick="togSub(this)"><div class="opt-ico">💰</div><div class="opt-lbl">تقدير التكاليف</div></div>
+        </div>
+      </div>`;
+    formSubServices = ['study','permit'];
+  } else {
+    content.innerHTML = `
+      <div style="background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);border-radius:var(--rsm);padding:13px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
+        <strong style="color:var(--teal)">إنجاز المشروع</strong> — إشراف ميداني كامل على تنفيذ أشغال البناء مع متابعة يومية للورشة.
+      </div>
+      <div class="field-row">
+        <div class="field"><label>نوع المبنى <span class="req">*</span></label>
+          <select id="f_btype"><option value="">— اختر —</option><option>فيلا سكنية</option><option>شقة سكنية</option><option>عمارة سكنية</option><option>محل تجاري</option><option>عمارة تجارية</option><option>مكاتب إدارية</option><option>ورشة صناعية</option><option>أخرى</option></select>
+        </div>
+        <div class="field"><label>عدد الطوابق <span class="req">*</span></label>
+          <select id="f_floors"><option value="">— اختر —</option><option>طابق واحد</option><option>طابقان</option><option>3 طوابق</option><option>4 طوابق</option><option>5 طوابق وأكثر</option><option>غير محدد</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>المساحة الإجمالية (م²)</label><input id="f_area" type="number" placeholder="200" inputmode="numeric"></div>
+        <div class="field"><label>المرحلة الحالية</label>
+          <select id="f_curphase"><option value="">— اختر —</option><option>لديّ مخطط معتمد</option><option>البناء بدأ جزئياً</option><option>في منتصف الإنجاز</option><option>مشروع موقوف</option></select>
+        </div>
+      </div>
+      <div class="field"><label>هل لديك دراسة معمارية؟</label>
+        <select id="f_hasStudy"><option value="">— اختر —</option><option value="yes">نعم — لدي دراسة معتمدة</option><option value="no">لا — أحتاج دراسة أيضاً</option></select>
+      </div>`;
+    formSubServices = ['supervision'];
+  }
+}
+
+function togSub(card) {
+  card.classList.toggle('sel');
+  const s = card.dataset.s;
+  if (card.classList.contains('sel')) { if (!formSubServices.includes(s)) formSubServices.push(s); }
+  else formSubServices = formSubServices.filter(x=>x!==s);
+}
+window.togSub = togSub;
+
+// ═══ NAVIGATION ══════════════════════════════════════
+function goTab(tab) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+tab)?.classList.add('active');
+  document.getElementById('ntab-'+tab)?.classList.add('active');
+  if (tab==='track') loadTrackScreen();
+  if (tab==='chat') loadChatScreen();
+  if (tab==='materials') { renderMaterialsCatalog(); renderMyMaterialOrders(); }
+}
+window.goTab = goTab;
+
+function goNewRequest() {
+  if (!selectedService) { showSvcSelection(); return; }
+  goTab('request');
+  curFormStep = 0;
+  formSubServices = formServiceType==='study' ? ['study','permit'] : ['supervision'];
+  upFiles = [];
+  document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('fstep-0').classList.add('active');
+  updateFormProg(0);
+  buildStep0();
+}
+window.goNewRequest = goNewRequest;
+
+function updateFormProg(n) {
+  for (let i=0;i<4;i++) {
+    const s=document.getElementById('fs'+i);
+    if(s) s.className='fp-s'+(i<n?' done':i===n?' active':'');
+  }
+}
+
+// ═══ FORM ════════════════════════════════════════════
+function goFormStep(n) {
+  if (n > curFormStep) {
+    if (curFormStep===0) {
+      if (!gv('f_btype')) {toast('⚠️ اختر نوع المبنى');return;}
+      if (!gv('f_floors')) {toast('⚠️ اختر عدد الطوابق');return;}
+      if (formSubServices.length===0) {toast('⚠️ اختر خدمة واحدة على الأقل');return;}
+    }
+    if (curFormStep===1) {
+      if (!gv('f_pwilaya')) {toast('⚠️ اختر ولاية المشروع');return;}
+      if (!gv('f_commune')) {toast('⚠️ اختر البلدية');return;}
+      if (!gv('f_address')) {toast('⚠️ أدخل العنوان التفصيلي');return;}
+    }
+    if (curFormStep===2 && n===3) buildReview();
+  }
+  curFormStep = n;
+  document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('fstep-'+n)?.classList.add('active');
+  updateFormProg(n);
+  document.getElementById('screen-request').scrollTop = 0;
+  if (n===2) {
+    const lbl = document.getElementById('upLabel'), hint = document.getElementById('upHint');
+    if (formServiceType==='execution') {
+      if (lbl) lbl.textContent = 'صور المشروع الحالي ومخططاتك (إن وجدت)';
+      if (hint) hint.textContent = 'JPG, PNG, PDF, DWG';
+    } else {
+      if (lbl) lbl.textContent = 'إرفاق ملفات (اختياري)';
+      if (hint) hint.textContent = 'PDF, JPG, DWG';
+    }
+  }
+}
+window.goFormStep = goFormStep;
+
+function handleUp(files) {
+  for(const f of files){if(!upFiles.find(x=>x.name===f.name))upFiles.push(f);}
+  document.getElementById('upList').innerHTML = upFiles.map((f,i)=>
+    `<div class="upload-item">📎 <span style="flex:1">${f.name.substring(0,35)}</span><span style="color:var(--muted);font-size:10px">${Math.round(f.size/1024)}KB</span><button style="background:none;border:none;cursor:pointer;color:var(--muted)" onclick="upFiles.splice(${i},1);handleUp([])">✕</button></div>`
+  ).join('');
+}
+window.handleUp = handleUp;
+
+const SVC_NAMES={study:'الدراسة المعمارية',permit:'رخصة البناء',structure:'الدراسة الهيكلية',supervision:'الإشراف على الإنجاز',interior:'التصميم الداخلي',estimate:'تقدير التكاليف'};
+
+function buildReview() {
+  const typeLabel = formServiceType==='study' ? 'دراسة مشروع' : 'إنجاز مشروع';
+  const rows = [
+    ['نوع الخدمة', typeLabel + (formServiceType==='study' ? (studyMode==='basic'?' — دراسة ورخصة فقط':' — دراسة ومتابعة كاملة') : '')],
+    ['الخدمات', formSubServices.map(s=>SVC_NAMES[s]).join(' + ')],
+    ['المبنى', gv('f_btype')], ['الطوابق', gv('f_floors')],
+    ['المساحة', gv('f_area')?gv('f_area')+' م²':'—'],
+    ['الغرف', gv('f_rooms')||'—'], ['الواجهات', gv('f_facades')||'—'],
+    ['الحمامات', gv('f_bathrooms')||'—'], ['المستودعات', gv('f_storerooms')||'—'],
+    ['ولاية المشروع', gv('f_pwilaya')], ['الدائرة', gv('f_daira')||'—'], ['البلدية', gv('f_commune')],
+    ['العنوان', gv('f_address')],
+    ['الجدول الزمني', gv('f_timeline')||'—'],
+    ['الميزانية', gv('f_budget')?Bridge.fmtNum(Number(gv('f_budget')))+' دج':'—'],
+    ['الملفات', upFiles.length?upFiles.length+' ملف':'—'],
+  ];
+  document.getElementById('reviewContent').innerHTML = `
+    <div class="review-card">
+      <div class="review-ttl">ملخص الطلب</div>
+      ${rows.map(([k,v])=>`<div class="review-row"><span class="k">${k}</span><span class="v">${v||'—'}</span></div>`).join('')}
+    </div>`;
+}
+
+async function submitReq() {
+  if (!document.getElementById('f_agree').checked) {toast('⚠️ يرجى الموافقة على شروط معالجة البيانات');return;}
+  if (!currentUser) {toast('⚠️ يجب تسجيل الدخول أولاً');return;}
+  const btn = document.querySelector('.btn-submit-f');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جارٍ الإرسال...';
+  try {
+    const data = {
+      name: clientProfile?.name || currentUser.displayName,
+      phone: clientProfile?.phone || '—',
+      nin: clientProfile?.nin || '—',
+      email: currentUser.email,
+      uid: currentUser.uid,
+      serviceType: formServiceType,
+      studyMode: formServiceType==='study' ? (studyMode||'full') : null,
+      services: [...formSubServices],
+      building: gv('f_btype'),
+      floors: gv('f_floors'),
+      area: gv('f_area'),
+      rooms: gv('f_rooms')||'',
+      facades: gv('f_facades')||'',
+      bathrooms: gv('f_bathrooms')||'',
+      storerooms: gv('f_storerooms')||'',
+      projWilaya: gv('f_pwilaya'),
+      daira: gv('f_daira')||'',
+      commune: gv('f_commune'),
+      address: gv('f_address'),
+      landInfo: gv('f_land'),
+      desc: gv('f_desc'),
+      timeline: gv('f_timeline'),
+      budget: gv('f_budget'),
+      files: [],
+    };
+    const req = await Bridge.Requests.submit(data);
+    document.getElementById('doneTicket').textContent = req.ticket;
+    document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+    document.getElementById('fstep-done').classList.add('active');
+    document.querySelectorAll('.fp-s').forEach(s=>s.className='fp-s done');
+    toast('✅ تم إرسال طلبك! رقمك: '+req.ticket, 5000);
+    loadMyRequests();
+    if (upFiles.length) {
+      try {
+        const metas = [];
+        for (const f of upFiles) metas.push(await Bridge.Requests.uploadFile(req.ticket, f));
+        await Bridge.Requests.attachFiles(req.ticket, metas);
+        loadMyRequests();
+      } catch (e) {
+        console.error('file upload failed', e);
+        toast('⚠️ تم إرسال طلبك لكن تعذر رفع المرفقات — تواصل مع المكتب لإرسالها', 6000);
+      }
+    }
+  } catch(err) {
+    const c=err?.code||'';
+    const msgs={'permission-denied':'خطأ في الصلاحيات — تحقق من firestore.rules','auth/requires-recent-login':'يرجى تسجيل الدخول مجدداً'};
+    toast('❌ '+(msgs[c]||err?.message||'خطأ غير معروف'));
+    btn.disabled=false; btn.textContent='📨 إرسال الطلب';
+  }
+}
+window.submitReq = submitReq;
+
+// ═══ MY REQUESTS ═════════════════════════════════════
+async function loadMyRequests() {
+  if (!currentUser) return;
+  try {
+    const allReqs = await Bridge.Requests.getAll();
+    myRequests = allReqs.filter(r => r.uid === currentUser.uid);
+    renderHomeRequests();
+    renderTrackRequests();
+    populateChatSelect();
+    // إحصائيات
+    document.getElementById('statTotal').textContent = myRequests.length;
+    document.getElementById('statActive').textContent = myRequests.filter(r=>['pending','reviewing','quoted','payment_pending'].includes(r.status)).length;
+    document.getElementById('statDone').textContent = myRequests.filter(r=>r.status==='project_created').length;
+    // شارة track
+    const pending = myRequests.filter(r=>r.status==='quoted').length;
+    const badge=document.getElementById('nbadge-track');
+    if(badge){badge.textContent=pending||'';badge.style.display=pending?'flex':'none';}
+  } catch(err) { console.error(err); }
+}
+
+const STATUS_LABELS = {
+  pending:{label:'قيد المعالجة',color:'var(--amber)',bg:'rgba(251,191,36,.15)'},
+  reviewing:{label:'قيد الدراسة',color:'var(--teal)',bg:'rgba(45,212,191,.12)'},
+  quoted:{label:'عرض السعر جاهز',color:'var(--gold)',bg:'rgba(201,168,76,.15)'},
+  payment_pending:{label:'قيد التحقق من الدفع',color:'var(--amber)',bg:'rgba(251,191,36,.1)'},
+  accepted:{label:'مقبول',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+  rejected:{label:'مرفوض',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
+  project_created:{label:'مشروع نشط',color:'#a78bfa',bg:'rgba(167,139,250,.12)'},
+  engineer_assigned:{label:'قيد إعداد الدراسة',color:'var(--teal)',bg:'rgba(45,212,191,.12)'},
+  client_review:{label:'🎨 التصميم جاهز للمراجعة',color:'var(--gold)',bg:'rgba(201,168,76,.15)'},
+  revisions_requested:{label:'بانتظار تعديل المهندس',color:'var(--amber)',bg:'rgba(251,191,36,.15)'},
+  study_approved:{label:'تمت الموافقة على الدراسة',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+  study_closed:{label:'📄 تم التسليم النهائي (دراسة فقط)',color:'var(--gold)',bg:'rgba(201,168,76,.15)'},
+  execution:{label:'🏗️ قيد الإنجاز',color:'#a78bfa',bg:'rgba(167,139,250,.12)'},
+};
+
+function renderHomeRequests() {
+  const el = document.getElementById('myRequestsList');
+  if (!myRequests.length) {
+    el.innerHTML='<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبات بعد</div><div class="empty-d">ابدأ بتقديم طلب جديد</div></div>';
+    return;
+  }
+  el.innerHTML = myRequests.slice(0,5).map(r => {
+    const sm=STATUS_LABELS[r.status]||STATUS_LABELS.pending;
+    return `<div class="req-card" onclick="goTab('track')">
+      <div class="req-ticket">${r.ticket}</div>
+      <div class="req-name">${r.building||'مشروع'} — ${r.projWilaya||r.wilaya||''}</div>
+      <div class="req-meta">${fmtD(r.submittedAt)}</div>
+      <span class="req-badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══ TRACK SCREEN ════════════════════════════════════
+function loadTrackScreen() { renderTrackRequests(); }
+
+function renderTrackRequests() {
+  const el = document.getElementById('myTrackList');
+  if (!myRequests.length) {
+    el.innerHTML='<div class="empty-card"><div class="empty-ico">🔍</div><div class="empty-t">لا توجد طلبات</div><div class="empty-d">قدّم طلباً جديداً</div></div>';
+    return;
+  }
+  el.innerHTML = myRequests.map(r => {
+    const sm=STATUS_LABELS[r.status]||STATUS_LABELS.pending;
+    const tl=(r.timeline||[]).filter(s=>s.done);
+    const pending=[{label:'التواصل مع العميل',done:false},{label:'إعداد عرض السعر',done:false},{label:'موافقة العميل',done:false},{label:'بداية المشروع',done:false}];
+    const allSteps=[...tl,...pending].slice(0,5);
+    const hasDates = r.deliveryDate||r.startDate;
+    return `<div class="status-card">
+      <div class="status-hdr">
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">رقم الطلب</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--text)">${r.ticket}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${r.building||'مشروع'} — ${r.projWilaya||''}</div>
+        </div>
+        <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+      </div>
+      ${hasDates?`<div class="dates-card">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:6px">📅 التواريخ المهمة</div>
+        ${r.startDate?`<div class="dates-row"><span class="k">🏗️ بداية الإنجاز</span><span class="v">${r.startDate}</span></div>`:''}
+        ${r.deliveryDate?`<div class="dates-row"><span class="k">📦 تاريخ التسليم</span><span class="v" style="color:var(--green)">${r.deliveryDate}</span></div>`:''}
+      </div>`:''}
+      <div class="tl-item" style="flex-direction:column">
+        ${allSteps.map((s,i)=>`<div style="display:flex;gap:11px"><div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0"><div class="tl-dot ${s.done?'done':'pend'}"></div>${i<allSteps.length-1?'<div class="tl-line"></div>':''}</div><div class="tl-content"><div class="tl-lbl" style="color:${s.done?'var(--green)':'var(--muted)'}">${s.label||s.step}</div>${s.ts?`<div class="tl-date">${fmtD(s.ts)}</div>`:''}</div></div>`).join('')}
+      </div>
+      ${renderQuoteForReq(r)}
+      ${renderDesignReviewForReq(r)}
+      ${renderExecTrackingForReq(r)}
+    </div>`;
+  }).join('');
+}
+
+// ═══ EXEC TAB (متابعة الإنجاز) ════════════════════════
+function loadExecTab() {
+  if (!currentUser) return;
+  if (execUnsub) { execUnsub(); execUnsub = null; }
+  execUnsub = Bridge.ExecProjects.watchByClient(currentUser.uid, list => {
+    execProjects = list;
+    updateExecNav();
+    renderExecScreen();
+  });
+}
+
+function updateExecNav() {
+  const tab = document.getElementById('ntab-exec');
+  if (!tab) return;
+  const hasActive = execProjects.length > 0;
+  tab.style.display = hasActive ? 'flex' : 'none';
+  const badge = document.getElementById('nbadge-exec');
+  const inProgress = execProjects.filter(p => p.status === 'in_progress').length;
+  if (badge) { badge.textContent = inProgress || ''; badge.style.display = inProgress ? 'flex' : 'none'; }
+}
+
+const EXEC_STATUS_LABELS = {
+  awaiting_start: { label:'بانتظار الانطلاق', color:'var(--amber)', bg:'rgba(251,191,36,.15)' },
+  in_progress:    { label:'قيد التنفيذ',       color:'var(--teal)',  bg:'rgba(45,212,191,.12)' },
+  paused:         { label:'متوقف مؤقتاً',       color:'var(--red)',   bg:'rgba(248,113,113,.12)' },
+  completed:      { label:'مكتمل',              color:'var(--green)', bg:'rgba(74,222,128,.12)' },
+};
+
+async function renderExecScreen() {
+  const el = document.getElementById('myExecList');
+  if (!el) return;
+  if (!execProjects.length) {
+    el.innerHTML = '<div class="empty-card"><div class="empty-ico">🏗️</div><div class="empty-t">لا يوجد مشروع إنجاز نشط</div><div class="empty-d">سيظهر هنا فور اعتماد المكتب لبدء الأشغال</div></div>';
+    return;
+  }
+  const cards = await Promise.all(execProjects.map(renderExecCard));
+  el.innerHTML = cards.join('');
+}
+
+async function renderExecCard(p) {
+  const sm = EXEC_STATUS_LABELS[p.status] || EXEC_STATUS_LABELS.awaiting_start;
+  const phases = p.phases || [];
+  const engineerName = p.team?.engineerName || (p.team?.engineerId ? 'مهندس مُعيَّن' : '— لم يُعيَّن بعد —');
+  const workerCount = (p.team?.workerIds || []).length;
+  let visits = [];
+  try { visits = (await Bridge.ExecProjects.getVisits(p.id)).slice(0, 3); } catch(e) {}
+
+  return `<div class="status-card">
+    <div class="status-hdr">
+      <div>
+        <div style="font-size:9px;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">رقم المشروع</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--text)">${p.id}</div>
+      </div>
+      <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+    </div>
+
+    <div class="dates-card">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:6px">👥 الفريق المكلّف</div>
+      <div class="dates-row"><span class="k">👷 المهندس المشرف</span><span class="v">${engineerName}</span></div>
+      <div class="dates-row"><span class="k">🔨 عدد العمال</span><span class="v">${workerCount} عامل</span></div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:var(--gold);margin:14px 0 8px">📊 مراحل التنفيذ</div>
+    <div class="tl-item" style="flex-direction:column">
+      ${phases.map((ph,i) => `<div style="display:flex;gap:11px"><div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0"><div class="tl-dot ${ph.status==='done'?'done':ph.status==='current'?'':'pend'}" style="${ph.status==='current'?'background:var(--gold)':''}"></div>${i<phases.length-1?'<div class="tl-line"></div>':''}</div><div class="tl-content"><div class="tl-lbl" style="color:${ph.status==='done'?'var(--green)':ph.status==='current'?'var(--gold)':'var(--muted)'}">${ph.label}${ph.status==='current'?' — جارية الآن':''}</div></div></div>`).join('')}
+    </div>
+
+    ${visits.length ? `
+    <div style="font-size:10px;font-weight:700;color:var(--gold);margin:14px 0 8px">📋 آخر محاضر الزيارة</div>
+    ${visits.map(v => `<div class="dates-row"><span class="k">📅 ${v.date}</span><span class="v">${v.engineerName||'—'}${v.progress?' — '+v.progress+'%':''}</span></div>`).join('')}
+    ` : ''}
+  </div>`;
+}
+
+// ═══ MATERIALS TAB (طلب مواد البناء) ══════════════════
+function loadMaterialsTab() {
+  if (!currentUser) return;
+  if (materialsCatalogUnsub) { materialsCatalogUnsub(); materialsCatalogUnsub = null; }
+  if (matOrdersUnsub) { matOrdersUnsub(); matOrdersUnsub = null; }
+  materialsCatalogUnsub = Bridge.Materials.watchAll(list => {
+    materialsCatalog = list;
+    if (document.getElementById('screen-materials')?.classList.contains('active')) renderMaterialsCatalog();
+  });
+  matOrdersUnsub = Bridge.MaterialOrders.watchByClient(currentUser.uid, list => {
+    myMaterialOrders = list.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    if (document.getElementById('screen-materials')?.classList.contains('active')) renderMyMaterialOrders();
+  });
+}
+
+function renderMaterialsCatalog() {
+  const el = document.getElementById('materialsCatalog');
+  if (!materialsCatalog.length) {
+    el.innerHTML = '<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد مواد متاحة حالياً</div></div>';
+    updateCartBar();
+    return;
+  }
+  el.innerHTML = materialsCatalog.map(m => {
+    const qty = materialsCart[m.id] || 0;
+    const outOfStock = (Number(m.stockQty)||0) <= 0;
+    return `<div class="req-card" style="cursor:default;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(m.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${(m.unitPrice||0).toLocaleString('ar-DZ')} دج / ${esc(m.unit)} ${outOfStock?' · <span style="color:var(--red)">غير متوفر حالياً</span>':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button onclick="changeCartQty('${m.id}',-1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:15px;cursor:pointer">−</button>
+        <span style="width:22px;text-align:center;font-size:13px;font-weight:700">${qty}</span>
+        <button onclick="changeCartQty('${m.id}',1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:15px;cursor:pointer" ${outOfStock?'disabled':''}>+</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateCartBar();
+}
+
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function changeCartQty(materialId, delta) {
+  const cur = materialsCart[materialId] || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) delete materialsCart[materialId]; else materialsCart[materialId] = next;
+  renderMaterialsCatalog();
+}
+window.changeCartQty = changeCartQty;
+
+function updateCartBar() {
+  const ids = Object.keys(materialsCart);
+  const bar = document.getElementById('cartBar');
+  if (!ids.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  let total = 0;
+  ids.forEach(id => { const m = materialsCatalog.find(x=>x.id===id); if (m) total += (m.unitPrice||0) * materialsCart[id]; });
+  document.getElementById('cartCount').textContent = ids.length;
+  document.getElementById('cartTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
+}
+
+function openMaterialsCheckout() {
+  const ids = Object.keys(materialsCart);
+  if (!ids.length) return;
+  const el = document.getElementById('matCheckoutItems');
+  let total = 0;
+  el.innerHTML = ids.map(id => {
+    const m = materialsCatalog.find(x=>x.id===id);
+    if (!m) return '';
+    const sub = (m.unitPrice||0) * materialsCart[id];
+    total += sub;
+    return `<div class="dates-row"><span class="k">${esc(m.name)} × ${materialsCart[id]}</span><span class="v">${sub.toLocaleString('ar-DZ')} دج</span></div>`;
+  }).join('');
+  document.getElementById('matCheckoutTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
+  document.getElementById('matAddress').value = '';
+  document.getElementById('matNotes').value = '';
+  setFulfillmentMode('delivery');
+  const pwSel = document.getElementById('matPickupWilaya');
+  if (pwSel.options.length <= 1) (window.DZ_WILAYAS||[]).forEach(w=>{ const o=document.createElement('option'); o.value=w; o.textContent=w; pwSel.appendChild(o); });
+  document.getElementById('pickupWarehouseInfo').textContent = '';
+  const projSel = document.getElementById('matProject');
+  projSel.innerHTML = '<option value="">— طلب مستقل (بدون ربط) —</option>' +
+    execProjects.map(p => `<option value="${p.id}">${esc(p.building||p.id)} — ${esc(p.projWilaya||'')}</option>`).join('');
+  if (pendingMatProjectId && execProjects.find(p=>p.id===pendingMatProjectId)) {
+    projSel.value = pendingMatProjectId;
+  }
+  pendingMatProjectId = null;
+  onMatProjectChange();
+  document.getElementById('matCheckoutOverlay').style.display = 'flex';
+}
+window.openMaterialsCheckout = openMaterialsCheckout;
+
+let checkoutFulfillmentMode = 'delivery';
+let selectedPickupWarehouse = null;
+function setFulfillmentMode(mode) {
+  checkoutFulfillmentMode = mode;
+  const del = document.getElementById('fmDelivery'), pick = document.getElementById('fmPickup');
+  const isDelivery = mode === 'delivery';
+  del.style.background = isDelivery ? 'var(--gold-glow)' : 'var(--s2)';
+  del.style.borderColor = isDelivery ? 'var(--gold)' : 'var(--border)';
+  del.style.color = isDelivery ? 'var(--gold)' : 'var(--muted)';
+  pick.style.background = !isDelivery ? 'var(--gold-glow)' : 'var(--s2)';
+  pick.style.borderColor = !isDelivery ? 'var(--gold)' : 'var(--border)';
+  pick.style.color = !isDelivery ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('matAddressWrap').style.display = isDelivery ? 'flex' : 'none';
+  document.getElementById('matPickupWrap').style.display = isDelivery ? 'none' : 'flex';
+  document.getElementById('fmHint').textContent = isDelivery
+    ? 'المكتب يوصل المواد لموقعك ويؤكد الطلب معك.'
+    : 'تحجز الكمية فقط — تذهب للمستودع، تدفع نقداً، وتستلم مباشرة.';
+}
+window.setFulfillmentMode = setFulfillmentMode;
+
+async function onPickupWilayaChange() {
+  const wilaya = document.getElementById('matPickupWilaya').value;
+  const infoEl = document.getElementById('pickupWarehouseInfo');
+  selectedPickupWarehouse = null;
+  if (!wilaya) { infoEl.textContent = ''; return; }
+  infoEl.textContent = '⏳ جارٍ البحث عن أقرب مستودع...';
+  try {
+    const wh = await Bridge.Warehouses.findServing(wilaya, null);
+    if (wh) {
+      selectedPickupWarehouse = wh;
+      infoEl.textContent = `🏬 ${wh.name} — ${wh.wilaya} — ${wh.commune}`;
+    } else {
+      infoEl.textContent = '⚠️ لا يوجد مستودع مسجَّل في هذه الولاية حالياً — سيتواصل معك المكتب لتحديد مكان الاستلام.';
+    }
+  } catch(e) { infoEl.textContent = ''; }
+}
+window.onPickupWilayaChange = onPickupWilayaChange;
+
+function onMatProjectChange() {
+  const projId = document.getElementById('matProject').value;
+  const wrap = document.getElementById('matPhaseWrap');
+  if (!projId) { wrap.style.display = 'none'; return; }
+  const proj = execProjects.find(p => p.id === projId);
+  const phaseSel = document.getElementById('matPhase');
+  phaseSel.innerHTML = (proj?.phases || []).map(ph => `<option value="${esc(ph.label)}">${esc(ph.label)}${ph.status==='done'?' (مكتملة)':ph.status==='active'?' (الحالية)':''}</option>`).join('');
+  const curIdx = proj?.currentPhaseIndex || 0;
+  if (phaseSel.options[curIdx]) phaseSel.selectedIndex = curIdx;
+  wrap.style.display = 'flex';
+}
+window.onMatProjectChange = onMatProjectChange;
+
+function closeMaterialsCheckout() { document.getElementById('matCheckoutOverlay').style.display = 'none'; }
+window.closeMaterialsCheckout = closeMaterialsCheckout;
+
+async function submitMaterialsOrder() {
+  const ids = Object.keys(materialsCart);
+  if (!ids.length) return;
+  const items = ids.map(id => {
+    const m = materialsCatalog.find(x=>x.id===id);
+    return { materialId: id, name: m?.name||'', unit: m?.unit||'', qty: materialsCart[id], unitPrice: m?.unitPrice||0 };
+  });
+  const address = document.getElementById('matAddress').value.trim();
+  const notes = document.getElementById('matNotes').value.trim();
+  const execProjectId = document.getElementById('matProject').value || null;
+  const phaseLabel = execProjectId ? (document.getElementById('matPhase').value || null) : null;
+  const supervisorId = execProjectId ? (execProjects.find(p=>p.id===execProjectId)?.team?.engineerId || null) : null;
+  if (checkoutFulfillmentMode === 'pickup' && !document.getElementById('matPickupWilaya').value) {
+    toast('⚠️ اختر الولاية التي تريد الاستلام منها'); return;
+  }
+  try {
+    await Bridge.MaterialOrders.create({
+      clientId: currentUser.uid,
+      clientName: clientProfile?.name || currentUser.displayName || '',
+      clientPhone: clientProfile?.phone || '',
+      address, items, notes, source: 'client',
+      execProjectId, phaseLabel, supervisorId,
+      fulfillmentMode: checkoutFulfillmentMode,
+      warehouseId: selectedPickupWarehouse?.id || null,
+    });
+    materialsCart = {};
+    closeMaterialsCheckout();
+    renderMaterialsCatalog();
+    if (checkoutFulfillmentMode === 'pickup') {
+      toast(selectedPickupWarehouse
+        ? `✅ تم الحجز! توجّه إلى ${selectedPickupWarehouse.name} (${selectedPickupWarehouse.commune}) وادفع نقداً عند الاستلام`
+        : '✅ تم الحجز — سيتواصل معك المكتب لتحديد مكان الاستلام', 6000);
+    } else {
+      toast(execProjectId ? '✅ تم إرسال طلبك — بانتظار موافقة مهندس المتابعة' : '✅ تم إرسال طلبك، سيتواصل معك المكتب لتأكيد التسليم');
+    }
+  } catch(err) { toast('❌ تعذر إرسال الطلب: ' + (err?.message||'')); }
+}
+window.submitMaterialsOrder = submitMaterialsOrder;
+
+const MAT_ORDER_STATUS = {
+  draft:{label:'قيد المراجعة',color:'var(--amber)',bg:'rgba(251,191,36,.15)'},
+  confirmed:{label:'تم التأكيد والتجهيز',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+  cancelled:{label:'ملغاة',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
+  pending_supervisor:{label:'بانتظار موافقة مهندس المتابعة',color:'var(--teal)',bg:'rgba(45,212,191,.12)'},
+  rejected_by_supervisor:{label:'رفضها مهندس المتابعة',color:'var(--red)',bg:'rgba(248,113,113,.12)'},
+  reserved:{label:'🏬 محجوزة — بانتظار الاستلام',color:'var(--gold)',bg:'rgba(201,168,76,.15)'},
+  picked_up:{label:'✅ تم الاستلام والدفع',color:'var(--green)',bg:'rgba(74,222,128,.12)'},
+};
+
+function renderMyMaterialOrders() {
+  const el = document.getElementById('myMaterialOrdersList');
+  if (!myMaterialOrders.length) { el.innerHTML = '<div class="empty-card"><div class="empty-ico">📭</div><div class="empty-t">لا توجد طلبيات مواد بعد</div></div>'; return; }
+  el.innerHTML = myMaterialOrders.map(o => {
+    const sm = MAT_ORDER_STATUS[o.status] || MAT_ORDER_STATUS.draft;
+    return `<div class="status-card">
+      <div class="status-hdr">
+        <div><div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--text)">${esc(o.id||o.orderId)}</div><div style="font-size:10px;color:var(--muted)">${(o.items||[]).length} بند</div></div>
+        <span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.color}40">${sm.label}</span>
+      </div>
+      <div class="dates-row"><span class="k">💰 الإجمالي</span><span class="v">${(o.totalCost||0).toLocaleString('ar-DZ')} دج</span></div>
+      ${o.execProjectId ? `<div class="dates-row"><span class="k">🏗️ مرتبط بمشروع</span><span class="v">${esc(o.phaseLabel||'')}</span></div>` : ''}
+      ${o.status==='rejected_by_supervisor' && o.supervisorNote ? `<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px;font-size:11px;color:var(--text);margin-top:6px">✏️ ملاحظة المهندس: ${esc(o.supervisorNote)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+
+function renderQuoteForReq(req) {
+  if (!['quoted','payment_pending','accepted'].includes(req.status)) return '';
+  // عرض السعر سيُحمَّل بشكل async — نضع placeholder أولاً
+  loadQuoteForReq(req.ticket);
+  return `<div id="qpanel-${req.ticket}"></div>`;
+}
+
+async function loadQuoteForReq(ticket) {
+  try {
+    const q = await Bridge.Quotes.getByReq(ticket);
+    const panel = document.getElementById('qpanel-'+ticket);
+    if (!panel || !q) return;
+    const responded = q.status==='accepted'||q.status==='rejected';
+    panel.innerHTML = `<div class="quote-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">💰 عرض الأسعار</div><div style="font-size:9px;color:var(--muted)">${fmtD(q.createdAt)}</div></div>
+        <div style="text-align:left"><div class="q-total">${fmtN(q.total)} دج</div></div>
+      </div>
+      ${q.items?.length?`<table class="q-table"><thead><tr><th>البيان</th><th>المبلغ (دج)</th></tr></thead><tbody>${q.items.map(it=>`<tr><td>${it.label}</td><td style="font-weight:700;color:var(--gold);text-align:left;font-family:'Space Grotesk',sans-serif">${fmtN(it.amount)}</td></tr>`).join('')}</tbody></table>`:''}
+      ${q.notes?`<div style="background:var(--s3);border-radius:6px;padding:9px;font-size:11px;color:var(--muted);margin-bottom:9px"><strong style="color:var(--text)">ملاحظات:</strong> ${q.notes}</div>`:''}
+      ${responded
+        ?`<div style="text-align:center;padding:10px;background:${q.status==='accepted'?'rgba(74,222,128,.1)':'rgba(248,113,113,.1)'};border:1px solid ${q.status==='accepted'?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)'};border-radius:var(--rsm);font-weight:700;font-size:12px;color:${q.status==='accepted'?'var(--green)':'var(--red)'}">
+            ${q.status==='accepted'?'✅ قبلتَ هذا العرض — سيتواصل معك المكتب قريباً':'❌ رفضتَ هذا العرض — سيتواصل معك المكتب'}
+          </div>`
+        :`<div class="q-actions">
+            <button class="btn-reject-q" onclick="rejectQuote('${q.id}','${ticket}')">❌ رفض</button>
+            <button class="btn-accept" onclick="acceptQuote('${q.id}','${ticket}')">✅ قبول العرض</button>
+          </div>`}
+    </div>`;
+  } catch(e) { console.error(e); }
+}
+window.loadQuoteForReq = loadQuoteForReq;
+
+async function acceptQuote(qid, ticket) {
+  try {
+    await Bridge.Quotes.respond(qid, true, '');
+    toast('✅ تم قبول العرض! سيتواصل معك المكتب قريباً.', 5000);
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.acceptQuote = acceptQuote;
+
+async function rejectQuote(qid, ticket) {
+  const comment = prompt('سبب الرفض (اختياري):','') || '';
+  try {
+    await Bridge.Quotes.respond(qid, false, comment);
+    toast('❌ تم رفض العرض. سيتواصل معك المكتب.');
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.rejectQuote = rejectQuote;
+
+// ═══ مراجعة التصميم (بعد إسناد المشروع لمهندس دراسات) ═══
+function renderDesignReviewForReq(req) {
+  if (!['engineer_assigned','client_review','revisions_requested','study_approved','execution'].includes(req.status)) return '';
+  loadDesignReviewForReq(req.ticket);
+  return `<div id="dpanel-${req.ticket}"></div>`;
+}
+
+async function loadDesignReviewForReq(ticket) {
+  try {
+    const o = await Bridge.StudyOffers.get(ticket);
+    const panel = document.getElementById('dpanel-'+ticket);
+    if (!panel || !o) return;
+    if (o.status==='assigned') {
+      panel.innerHTML = `<div class="quote-card"><div style="font-size:12px;color:var(--muted)">📐 مهندسنا يعمل على تصميم مشروعك حالياً...</div></div>`;
+      return;
+    }
+    if (o.status==='submitted') {
+      panel.innerHTML = `<div class="quote-card"><div style="font-size:12px;color:var(--muted)">📋 المكتب يراجع الدراسة حالياً قبل إرسالها إليك.</div></div>`;
+      return;
+    }
+    if (o.status==='client_review' || o.status==='revisions_requested') {
+      const lastNote = (o.revisionNotes||[]).slice(-1)[0];
+      panel.innerHTML = `<div class="quote-card">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px">🎨 تصميم مشروعك جاهز للمراجعة</div>
+        ${(o.files||[]).length ? `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${o.files.map(f=>`<a href="${f.url}" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:underline">📎 ${f.name}</a>`).join('')}</div>` : ''}
+        ${o.status==='revisions_requested' && lastNote ? `<div style="background:var(--s3);border-radius:6px;padding:9px;font-size:11px;color:var(--muted);margin-bottom:9px"><strong style="color:var(--text)">ملاحظتك السابقة:</strong> ${lastNote.text}</div>` : ''}
+        <textarea id="revNote-${ticket}" placeholder="اكتب ملاحظاتك أو طلب التعديل هنا..." style="width:100%;min-height:60px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:12px;margin-bottom:8px"></textarea>
+        <div class="q-actions">
+          <button class="btn-reject-q" onclick="requestDesignRevision('${ticket}')">✏️ طلب تعديل</button>
+          <button class="btn-accept" onclick="approveDesign('${ticket}')">✅ موافقة نهائية على التصميم</button>
+        </div>
+      </div>`;
+      return;
+    }
+    if (o.status==='approved' || o.status==='paid') {
+      const reqData = myRequests.find(r=>r.ticket===ticket);
+      const isBasic = reqData?.studyMode === 'basic';
+      const msg = isBasic
+        ? '📄 وافقتَ على التصميم النهائي — ملفك جاهز، لا متابعة إضافية مطلوبة من المكتب'
+        : '✅ وافقتَ على التصميم النهائي — المشروع في طريقه لمرحلة الإنجاز';
+      panel.innerHTML = `<div class="quote-card"><div style="text-align:center;padding:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:var(--rsm);font-weight:700;font-size:12px;color:var(--green)">${msg}</div></div>`;
+      return;
+    }
+    if (o.status==='closed') {
+      panel.innerHTML = `<div class="quote-card"><div style="text-align:center;padding:10px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:var(--rsm);font-weight:700;font-size:12px;color:var(--gold)">📄 تم تسليم ملف الدراسة والرخصة نهائياً — شكراً لثقتك بمكتب جيل البناء</div></div>`;
+      return;
+    }
+    if (o.status==='handed_to_execution') {
+      panel.innerHTML = `<div class="quote-card"><div style="text-align:center;padding:10px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:var(--rsm);font-weight:700;font-size:12px;color:#a78bfa">🏗️ انتقل مشروعك لمرحلة الإنجاز</div></div>`;
+    }
+  } catch(e) { console.error(e); }
+}
+window.loadDesignReviewForReq = loadDesignReviewForReq;
+
+async function requestDesignRevision(ticket) {
+  const note = document.getElementById('revNote-'+ticket)?.value?.trim();
+  if (!note) { toast('⚠️ يرجى كتابة ملاحظتك أولاً'); return; }
+  try {
+    await Bridge.StudyOffers.requestRevision(ticket, note);
+    toast('✏️ تم إرسال ملاحظاتك للمهندس');
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.requestDesignRevision = requestDesignRevision;
+
+async function approveDesign(ticket) {
+  if (!confirm('هل أنت متأكد من الموافقة النهائية على التصميم؟')) return;
+  try {
+    await Bridge.StudyOffers.approve(ticket);
+    toast('✅ تمت الموافقة على التصميم النهائي!', 5000);
+    await loadMyRequests();
+    loadTrackScreen();
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.approveDesign = approveDesign;
+
+// ═══ متابعة الإنجاز (بعد إنشاء مشروع فعلي) ═══
+let _execTrackUnsubs = {};
+function renderExecTrackingForReq(req) {
+  if (!req.projectId) return '';
+  loadExecTracking(req.ticket, req.projectId);
+  return `<div id="exec-track-${req.ticket}"><div style="font-size:11px;color:var(--muted);padding:8px">⏳ جارٍ تحميل تتبع الإنجاز...</div></div>`;
+}
+
+async function loadExecTracking(ticket, projectId) {
+  const panel = document.getElementById('exec-track-'+ticket);
+  if (!panel) return;
+  try {
+    const proj = await Bridge.ExecProjects.get(projectId);
+    if (!proj) { panel.innerHTML = ''; return; }
+    const phases = proj.phases || [];
+    const doneCount = phases.filter(p=>p.status==='done').length;
+    const pct = phases.length ? Math.round((doneCount/phases.length)*100) : 0;
+    const curPhase = phases[proj.currentPhaseIndex||0];
+
+    if (_execTrackUnsubs[ticket]) _execTrackUnsubs[ticket]();
+    _execTrackUnsubs[ticket] = Bridge.ExecProjects.watchVisits(projectId, visits => {
+      const visitsHtml = !visits.length ? '<div style="font-size:11px;color:var(--muted)">لا توجد محاضر زيارة بعد</div>' :
+        visits.map(v => `<div style="background:var(--s3);border-radius:8px;padding:9px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px"><span>📅 ${v.date}</span><span>تقدّم: ${v.progress||0}%</span></div>
+          ${v.notes?`<div style="font-size:12px;color:var(--text);margin-bottom:5px">${esc(v.notes)}</div>`:''}
+          ${(v.photos||[]).length ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${v.photos.map(ph=>`<a href="${ph.url}" target="_blank"><img src="${ph.url}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>`).join('')}</div>` : ''}
+        </div>`).join('');
+      const bodyEl = panel.querySelector('.exec-visits-slot');
+      if (bodyEl) bodyEl.innerHTML = visitsHtml;
+    });
+
+    panel.innerHTML = `<div class="quote-card">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">🏗️ متابعة الإنجاز</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">المرحلة الحالية: <strong style="color:var(--gold)">${curPhase?esc(curPhase.label):'—'}</strong></div>
+      <div class="pw" style="margin-bottom:12px"><div class="pb" style="width:${pct}%"></div></div>
+      <button class="btn-block" style="margin-bottom:12px" onclick="goToMaterialsForProject('${projectId}')">📦 طلب مواد بناء لهذه المرحلة</button>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">📋 محاضر الزيارة والصور</div>
+      <div class="exec-visits-slot" style="margin-bottom:12px"><div style="font-size:11px;color:var(--muted)">⏳ تحميل...</div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">💬 ملاحظاتك</div>
+      <div id="ectc-${ticket}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:180px;overflow-y:auto"></div>
+      <textarea id="ecti-${ticket}" placeholder="اكتب ملاحظتك للمكتب..." style="width:100%;min-height:50px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:inherit;font-size:12px;margin-bottom:8px"></textarea>
+      <button class="btn-accept" style="width:100%" onclick="sendClientExecComment('${ticket}','${projectId}')">📨 إرسال للمكتب</button>
+    </div>`;
+
+    Bridge.ExecProjects.watchComments(projectId, comments => {
+      const el = document.getElementById('ectc-'+ticket);
+      if (!el) return;
+      el.innerHTML = !comments.length ? '<div style="font-size:11px;color:var(--muted)">لا توجد ملاحظات بعد</div>' :
+        comments.map(c => `<div style="align-self:${c.from==='client'?'flex-end':'flex-start'};max-width:85%;background:${c.from==='client'?'var(--gold-glow)':'var(--s3)'};border-radius:8px;padding:7px 9px;font-size:11px">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${c.from==='client'?'أنت':'🏢 المكتب'}</div>${esc(c.text)}
+        </div>`).join('');
+      el.scrollTop = el.scrollHeight;
+    });
+  } catch(e) { console.error(e); }
+}
+window.loadExecTracking = loadExecTracking;
+
+async function sendClientExecComment(ticket, projectId) {
+  const input = document.getElementById('ecti-'+ticket);
+  const text = input?.value?.trim();
+  if (!text) return;
+  try {
+    await Bridge.ExecProjects.addComment(projectId, { from:'client', text });
+    input.value = '';
+  } catch(err) { toast('❌ '+(err?.message||'خطأ')); }
+}
+window.sendClientExecComment = sendClientExecComment;
+
+let pendingMatProjectId = null;
+function goToMaterialsForProject(projectId) {
+  pendingMatProjectId = projectId;
+  goTab('materials');
+  toast('💡 اختر المواد المطلوبة ثم أكمل الطلب — سيُربط تلقائياً بمشروعك');
+}
+window.goToMaterialsForProject = goToMaterialsForProject;
+
+// ═══ CHAT ════════════════════════════════════════════
+function loadChatScreen() { populateChatSelect(); }
+
+function populateChatSelect() {
+  const sel = document.getElementById('chatReqSelect'); if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— اختر طلباً —</option>';
+  myRequests.forEach(r => {
+    const o=document.createElement('option'); o.value=r.ticket; o.textContent=r.ticket+' — '+(r.building||'مشروع');
+    if(r.ticket===current) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+async function openChatForReq(ticket) {
+  if (!ticket) { document.getElementById('chatInfo').style.display='none'; document.getElementById('chatMsgs').innerHTML=''; document.getElementById('chatInputBar').style.display='none'; activeChatReqId=null; return; }
+  activeChatReqId = ticket;
+  const req = myRequests.find(r=>r.ticket===ticket);
+  const info=document.getElementById('chatInfo');
+  info.textContent=`💬 محادثة: ${ticket} — ${req?.building||'مشروع'}`;
+  info.style.display='flex';
+  document.getElementById('chatInputBar').style.display='flex';
+  if (chatUnsub) { chatUnsub(); chatUnsub=null; }
+  chatUnsub = Bridge.Messages.watchThread(ticket, msgs => renderChatMsgs(msgs));
+  const msgs = await Bridge.Messages.getThread(ticket);
+  renderChatMsgs(msgs);
+  await Bridge.Messages.markRead(ticket,'client');
+}
+window.openChatForReq = openChatForReq;
+
+function renderChatMsgs(msgs) {
+  const box=document.getElementById('chatMsgs'); if(!box) return;
+  if (!msgs.length) { box.innerHTML='<div style="text-align:center;color:var(--dim);font-size:12px;padding:16px">لا توجد رسائل — ابدأ المحادثة</div>'; return; }
+  box.innerHTML = msgs.map(m=>`<div class="msg ${m.from}">${m.text}<div class="msg-time">${m.from==='client'?'أنت':(m.isAi?'🤖 مساعد جيل البناء الذكي':'مكتب جيل البناء')} · ${fmtD(m.ts)}</div></div>`).join('');
+  box.scrollTop=box.scrollHeight;
+  // مسح شارة الدردشة
+  const badge=document.getElementById('nbadge-chat'); if(badge){badge.style.display='none';}
+}
+
+async function sendMsg() {
+  if (!activeChatReqId) {toast('⚠️ اختر طلباً أولاً');return;}
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim(); if(!text) return;
+  input.value='';
+  try { await Bridge.Messages.send(activeChatReqId,'client',text); }
+  catch(err) { toast('❌ تعذر الإرسال'); }
+}
+window.sendMsg = sendMsg;
+
+// ═══ PWA ═════════════════════════════════════════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ═══ INIT ═════════════════════════════════════════════
+await Bridge.Auth.ready().catch(()=>{});
+</script>
+</body>
+</html>
